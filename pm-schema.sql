@@ -1,0 +1,15 @@
+
+
+CREATE TABLE products (
+  sku VARCHAR(6) PRIMARY KEY,
+  p_name VARCHAR(30) NOT NULL,
+  p_description VARCHAR(255) NOT NULL,
+  p_price NUMERIC(7,2) NOT NULL,
+  p_image_url TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category VARCHAR(20) NOT NULL UNIQUE
+);
