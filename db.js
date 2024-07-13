@@ -17,7 +17,6 @@ if (process.env.NODE_ENV === "production") {
 } else {
   db = new Client();
 }
-
 db.connect();
 
 module.exports = db;
