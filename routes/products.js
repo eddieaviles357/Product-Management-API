@@ -5,6 +5,7 @@
 // const express = require("express");
 // const router = express.Router();
 const router = require("express").Router();
+const Products = require("../models/Products");
 
 /** GET /products => { products }
  *
@@ -13,8 +14,10 @@ const router = require("express").Router();
  **/
 
 router.get("/", async function (req, res, next) {
-  console.log('PRODUcSTS ROTUE')
+  
+  console.log('home page')
   try {
+    const productResults = await Products.getProducts();
     return res.json({ "name": "filter product"});
   } catch (err) {
     return next(err);
