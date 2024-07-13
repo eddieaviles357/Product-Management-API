@@ -15,8 +15,11 @@ if (process.env.NODE_ENV === "production") {
     }
   });
 } else {
-  db = new Client();
+  db = new Client({
+    database: getDatabaseUri(),
+  });
 }
+
 db.connect();
 
 module.exports = db;
