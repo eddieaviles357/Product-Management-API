@@ -3,7 +3,7 @@
 
 DROP DATABASE IF EXISTS product_management;
 CREATE DATABASE product_management;
-\connect product_management
+\c product_management
 
 \i pm-schema.sql
 \i pm-seed.sql
