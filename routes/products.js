@@ -24,6 +24,16 @@ router.get("/", async function (req, res, next) {
   }
 });
 
+router.get("/:id", async function (req, res, next) {
+  const id = req.params.id;
+  console.log('ID ', id);
+  try {
+    return res.json({ "id": id });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 
 
 
