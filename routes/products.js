@@ -15,7 +15,7 @@ const Products = require("../models/Products");
 
 router.get("/", async function (req, res, next) {
   
-  console.log('home page')
+  console.log('getting products')
   try {
     const productResults = await Products.getProducts();
     return res.json({ "name": "filter product"});
@@ -23,6 +23,8 @@ router.get("/", async function (req, res, next) {
     return next(err);
   }
 });
+
+
 
 
 
