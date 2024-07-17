@@ -1,14 +1,28 @@
 const db = require("../db.js");
 
+/*
+gets all products, limit is to be set for pagination
+returns [
+  {sku, name, description, price, imageURL, createdAt}, 
+  {...}
+  ]
+*/
 class Products {
   static async getProducts() {
     const result = await db.query(`
       SELECT * FROM products`);
 
-    console.log('RESULSTS', result)
+    const products = result.rows;
+
+    return products;
   }
 
-  static async getProduct(id) {
+/*
+gets product using an id
+returns { sku, name, description, price, imageURL, createdAt }
+
+*/
+  static async findProductById(id) {
     const result = await db.query(`
       SELECT
         sku,
@@ -17,10 +31,17 @@ class Products {
         p_price AS price,
         p_image_url AS imageURL,
         created_at AS createdAt
-      WHERE id = $1
+      FROM products
+      WHERE p_id = $1
     `, [id]);
+    
+    return result.rows[0]
   }
 
+  /*
+  adds a new product to db
+
+  */
   static async addProduct(product) {
     const { sku, name, description, price, imageURL } = product;
 
