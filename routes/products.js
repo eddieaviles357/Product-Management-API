@@ -9,16 +9,15 @@ const Products = require("../models/Products");
 
 /** GET /products => { products }
  *
- * Returns { }
+ * Returns { "products": [ {sku, name, description, price, imageURL, createdAt} ] }
  *
  **/
 
 router.get("/", async function (req, res, next) {
   
-  console.log('getting products')
   try {
-    const productResults = await Products.getProducts();
-    return res.json({ "name": "filter product"});
+    const productsList = await Products.getProducts();
+    return res.json({"products": productsList});
   } catch (err) {
     return next(err);
   }
@@ -26,9 +25,10 @@ router.get("/", async function (req, res, next) {
 
 router.get("/:id", async function (req, res, next) {
   const id = req.params.id;
-  console.log('ID ', id);
+  const product = await Products.findProductById(id);
+
   try {
-    return res.json({ "id": id });
+    return res.json({ product });
   } catch (err) {
     return next(err);
   }
