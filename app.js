@@ -8,13 +8,13 @@ const productsRoutes = require("./routes/products");
 
 app.use(express.json());
 
-app.use("/products", productsRoutes);
+app.use("/api/v1/products", productsRoutes);
 
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {
     return next(new Error("NOT FOUND"));
-  });
+});
 
 /** Generic error handler. Anything unhandled goes here. */
 app.use(function (err, req, res, next) {
