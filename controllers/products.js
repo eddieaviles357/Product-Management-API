@@ -1,3 +1,5 @@
+'use strict';
+
 const Products = require("../models/Products");
 
 // @desc      Get all products
