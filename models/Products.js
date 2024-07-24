@@ -1,7 +1,7 @@
 const db = require("../db.js");
 
 /*
-gets all products, limit is to be set for pagination
+gets all products, ** LIMIT TO BE SET FOR PAGINATION **
 returns [
   {sku, name, description, price, imageURL, createdAt}, 
   {...}
@@ -10,7 +10,15 @@ returns [
 class Products {
   static async getProducts() {
     const result = await db.query(`
-      SELECT * FROM products`);
+      SELECT 
+        p_id AS id,
+        sku,  
+        p_name AS name,
+        p_description AS description,
+        p_price AS price,
+        p_image_url AS image_url,
+        created_at AS created_at
+      FROM products`);
 
     const products = result.rows;
 
@@ -25,12 +33,13 @@ returns { sku, name, description, price, imageURL, createdAt }
   static async findProductById(id) {
     const result = await db.query(`
       SELECT
+        p_id AS id,
         sku,
         p_name AS name,
         p_description AS description,
         p_price AS price,
-        p_image_url AS imageURL,
-        created_at AS createdAt
+        p_image_url AS image_url,
+        created_at AS created_at
       FROM products
       WHERE p_id = $1
     `, [id]);
