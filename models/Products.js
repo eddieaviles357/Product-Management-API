@@ -1,5 +1,13 @@
-const db = require("../db.js");
+'use strict';
 
+const db = require("../db.js");
+const {
+  AppError,
+  NotFoundError,
+  UnauthorizedError,
+  BadRequestError,
+  ForbiddenError,
+} = require("../AppError.js");
 /*
 gets all products, ** LIMIT TO BE SET FOR PAGINATION **
 returns [
@@ -20,9 +28,7 @@ class Products {
         created_at AS created_at
       FROM products`);
 
-    const products = result.rows;
-
-    return products;
+    return (result.rows.length === 0) ? [] : result.rows;
   }
 
 /*
@@ -43,8 +49,8 @@ returns { sku, name, description, price, imageURL, createdAt }
       FROM products
       WHERE p_id = $1
     `, [id]);
-    
-    return result.rows[0]
+
+    return (result.rows.length === 0) ? {} : result.rows[0];
   }
 
   /*
