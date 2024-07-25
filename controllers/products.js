@@ -22,10 +22,9 @@ exports.getProducts = async (req, res, next) => {
 // @route     GET /api/v1/products/id
 // @access    Private/Admin ?????????
 exports.getProductById = async (req, res, next) => {
-  const id = req.params.id;
-  const product = await Products.findProductById(id);
-
   try {
+    const id = req.params.id;
+    const product = await Products.findProductById(id);
     
     return res.status(200).json({ 
       success: true, 
@@ -35,3 +34,4 @@ exports.getProductById = async (req, res, next) => {
     return next(err);
   }
 };
+
