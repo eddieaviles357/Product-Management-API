@@ -41,8 +41,14 @@ class BadRequestError extends AppError {
 /** 403 BAD REQUEST error. */
 
 class ForbiddenError extends AppError {
-  constructor(message = "Bad Request") {
+  constructor(message = "Forbidden") {
     super(message, 403);
+  }
+}
+
+class UnprocessableEntityError extends AppError {
+  constructor(message = "Unprocessable Entity") {
+    super(message, 422)
   }
 }
 
@@ -52,4 +58,5 @@ module.exports = {
   UnauthorizedError,
   BadRequestError,
   ForbiddenError,
+  UnprocessableEntityError
 };
