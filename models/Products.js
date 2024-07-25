@@ -7,6 +7,7 @@ const {
   UnauthorizedError,
   BadRequestError,
   ForbiddenError,
+  UnprocessableEntityError
 } = require("../AppError.js");
 /*
 gets all products, ** LIMIT TO BE SET FOR PAGINATION **
@@ -37,6 +38,8 @@ returns { sku, name, description, price, imageURL, createdAt }
 
 */
   static async findProductById(id) {
+    if(typeof id !== "number") return UnprocessableEntityError("ID must be a number");
+
     const result = await db.query(`
       SELECT
         p_id AS id,
@@ -63,7 +66,9 @@ returns { sku, name, description, price, imageURL, createdAt }
     const result = await db.query(`
       INSERT INTO products (sku, p_name, p_description, p_price, p_image_url, created_at)
       VALUES ($1, $2, $3, $4, $5, NOW())
-      `, [sku, name, description, price, imageURL])   
+      `, [sku, name, description, price, imageURL]);
+      
+    console.log(result)
   }
 }
 
