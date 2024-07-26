@@ -1,4 +1,4 @@
-INSERT INTO products (p_id, sku, p_name, p_description, p_price, p_image_url, created_at)
+INSERT INTO products (product_id, sku, product_name, product_description, price, image_url, created_at)
 VALUES 
 (1, 'MC10SSMM', 'Shirt', 'White short sleeve medium', '10.99', 'https://image.product-management.com/1283859', NOW()),
 (2, 'MC10LSLL', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283860', NOW()),

@@ -1,15 +1,15 @@
 CREATE TABLE products (
-  p_id INTEGER PRIMARY KEY,
+  product_id SERIAL PRIMARY KEY,
   sku VARCHAR(8) NOT NULL UNIQUE,
-  p_name VARCHAR(30) NOT NULL,
-  p_description VARCHAR(255) NOT NULL,
-  p_price NUMERIC(7,2) NOT NULL,
-  p_image_url TEXT NOT NULL,
+  product_name VARCHAR(30) NOT NULL,
+  product_description VARCHAR(255) NOT NULL,
+  price NUMERIC(7,2) NOT NULL,
+  image_url TEXT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE categories (
-  id INTEGER PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   category VARCHAR(20) NOT NULL UNIQUE
 );
 
