@@ -20,12 +20,12 @@ class Products {
   static async getProducts() {
     const result = await db.query(`
       SELECT 
-        p_id AS id,
+        product_id AS id,
         sku,  
-        p_name AS name,
-        p_description AS description,
-        p_price AS price,
-        p_image_url AS image_url,
+        product_name AS name,
+        product_description AS description,
+        price AS price,
+        image_url AS image_url,
         created_at AS created_at
       FROM products`);
 
@@ -38,19 +38,19 @@ returns { sku, name, description, price, imageURL, createdAt }
 
 */
   static async findProductById(id) {
-    if(typeof id !== "number") return UnprocessableEntityError("ID must be a number");
+    if(typeof id !== "number" || isNaN(id)) return new UnprocessableEntityError("ID must be a number");
 
     const result = await db.query(`
       SELECT
-        p_id AS id,
+        product_id AS id,
         sku,
-        p_name AS name,
-        p_description AS description,
-        p_price AS price,
-        p_image_url AS image_url,
+        product_name AS name,
+        product_description AS description,
+        price AS price,
+        image_url AS image_url,
         created_at AS created_at
       FROM products
-      WHERE p_id = $1
+      WHERE product_id = $1
     `, [id]);
 
     return (result.rows.length === 0) ? {} : result.rows[0];
@@ -64,12 +64,32 @@ returns { sku, name, description, price, imageURL, createdAt }
     const { sku, name, description, price, imageURL } = product;
 
     const result = await db.query(`
-      INSERT INTO products (sku, p_name, p_description, p_price, p_image_url, created_at)
+      INSERT INTO products (sku, product_name, product_description, price, image_url, created_at)
       VALUES ($1, $2, $3, $4, $5, NOW())
       `, [sku, name, description, price, imageURL]);
       
     console.log(result)
   }
+
+  /*
+  removes a product from db
+
+  */
+  static async removeProduct(id) {
+    if(typeof id !== "number" || isNaN(id)) return new UnprocessableEntityError("ID must be a number");
+    
+    const result = await db.query(`
+      DELETE FROM products 
+      WHERE product_id = $1
+      RETURNING product_name
+      `, [id]);
+
+      return (result.rows.length === 0) 
+            ? { product_name : `Product with id ${id} not found`, success: false } 
+            : { ...result.rows[0], success: true }
+    
+  }
+
 }
 
 module.exports = Products;
