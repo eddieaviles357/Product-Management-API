@@ -1,28 +1,28 @@
-INSERT INTO products (product_id, sku, product_name, product_description, price, image_url, created_at)
+INSERT INTO products (sku, product_name, product_description, price, image_url, created_at)
 VALUES 
-(1, 'MC10SSMM', 'Shirt', 'White short sleeve medium', '10.99', 'https://image.product-management.com/1283859', NOW()),
-(2, 'MC10LSLL', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283860', NOW()),
-(3, 'MC12SLMM', 'Shirt', 'Red short sleeve medium', '10.99', 'https://image.product-management.com/1283861', NOW());
+('MC10SSMM', 'Shirt', 'White short sleeve medium', '10.99', 'https://image.product-management.com/1283859', NOW()),
+('MC10LSLL', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283860', NOW()),
+('MC12SLMM', 'Shirt', 'Red short sleeve medium', '10.99', 'https://image.product-management.com/1283861', NOW());
 
 
-INSERT INTO categories ( id,category )
+INSERT INTO categories (category)
 VALUES 
-(1, 'expensive'),
-(2, 'inexpensive'),
-(3, 'xs'),
-(4, 'sm'),
-(5, 'mm'),
-(6, 'll'),
-(7, 'xl'),
-(8, 'soft'),
-(9, 'hard'),
-(10, 'white'),
-(11, 'black'),
-(12, 'red'),
-(13, 'yellow'),
-(14, 'blue'),
-(15, 'ss'),
-(16, 'ls');
+('expensive'),
+('inexpensive'),
+('xs'),
+('sm'),
+('mm'),
+('ll'),
+('xl'),
+('soft'),
+('hard'),
+('white'),
+('black'),
+('red'),
+('yellow'),
+('blue'),
+('ss'),
+('ls');
 
 INSERT INTO products_categories (product_id, category_id)
 VALUES
