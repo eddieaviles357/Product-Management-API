@@ -54,7 +54,7 @@ exports.addProduct = async (req, res, next) => {
 // @desc      Update product
 // @route     PUT /api/v1/products/:id
 // @access    Private/Admin ?????????
-exports.addProduct = async (req, res, next) => {
+exports.updateProduct = async (req, res, next) => {
   try {
     const productToUpdate = req.params.id;
     await Products.updateProduct(productToUpdate);
@@ -75,7 +75,7 @@ exports.removeProductById = async (req, res, next) => {
     const id = Number(req.params.id);
     const { success, product_name: productName } = await Products.removeProduct(id);
     const statusCode = success ? 200 : 204;
-    
+
     return res.status(statusCode).json({ 
       success,
       productName

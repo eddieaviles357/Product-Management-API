@@ -6,8 +6,9 @@
 const express = require("express");
 const {
   getProducts,
-  getProductById,
   addProduct,
+  getProductById,
+  updateProduct,
   removeProductById,
 } = require("../controllers/products");
 const router = require("express").Router({mergeParams: true});
@@ -21,6 +22,7 @@ router
 router
   .route('/:id')
   .get(getProductById)
+  .put(updateProduct)
   .delete(removeProductById)
 
 
