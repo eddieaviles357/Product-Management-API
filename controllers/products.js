@@ -51,6 +51,22 @@ exports.addProduct = async (req, res, next) => {
   }
 };
 
+// @desc      Update product
+// @route     PUT /api/v1/products/:id
+// @access    Private/Admin ?????????
+exports.addProduct = async (req, res, next) => {
+  try {
+    const productToUpdate = req.params.id;
+    await Products.updateProduct(productToUpdate);
+    
+    return res.status(200).json({ 
+      success: true, 
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 // @desc      Delete product from db
 // @route     DELETE /api/v1/products/:id
 // @access    Private/Admin ?????????
@@ -58,7 +74,9 @@ exports.removeProductById = async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const { success, product_name: productName } = await Products.removeProduct(id);
-    return res.status(200).json({ 
+    const statusCode = success ? 200 : 204;
+    
+    return res.status(statusCode).json({ 
       success,
       productName
     });
