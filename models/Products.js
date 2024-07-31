@@ -53,7 +53,6 @@ class Products {
       FROM products
       WHERE product_id = $1
     `, [id]);
-
     return (result.rows.length === 0) ? {} : result.rows[0];
   }
 
@@ -69,6 +68,38 @@ class Products {
       `, [sku, name, description, price, imageURL]);
       
     console.log(result)
+  }
+
+  /*
+  updates product
+  */
+  static async updateProduct(id, product) {
+    const { sku, name, description, price, imageURL } = product;
+    console.log("PRODUCT", product)
+    const productInDb = JSON.stringify(await this.findProductById(id));
+    console.log(`productInDb =>>> ${productInDb}`)
+
+    if(Object.keys(productInDb).length === 0) return {};
+    const {sku: sk, name: nm, description: desc, price: prc, imageURL: imgURL} = productInDb;
+
+    const result = await db.query(`
+      UPDATE products SET
+        sku = COALESCE (NULLIF($1, ''),$6)
+        product_name = COALESCE (NULLIF($2, ''),$7)
+        product_description = COALESCE (NULLIF($3, ''),$8)
+        price = COALESCE(NULLIF($4, ''),$9)
+        image_url = COALESCE(NULLIF($5, ''),$10)
+      WHERE product_id = $11
+      RETURNING 
+        sku, 
+        product_name AS productName,
+        product_description AS productDescription
+        price,
+        image_url AS imageURL
+      `, [sku, name, description, price, imageURL, 
+          sk, nm, desc, prc, imgURL, id]);
+      
+    console.log("RESULT FROM udpateProduct function", result)
   }
 
   /*
