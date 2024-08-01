@@ -59,7 +59,7 @@ exports.updateProduct = async (req, res, next) => { // Needs json schema validat
     const productId = Number(req.params.id);
     const productToUpdate = req.body;
     const updatedProduct = await Products.updateProduct(productId, productToUpdate);
-    
+    console.log("FINISHED UPDATING", updatedProduct);
     return res.status(200).json({ 
       success: true, 
       updatedProduct
