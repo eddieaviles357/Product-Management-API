@@ -81,10 +81,12 @@ class Products {
       imageURL 
     } = product;
 
-    const productInDb = JSON.stringify(await this.findProductById(id));
-    const parsedProduct = JSON.parse(productInDb);
+    const existingProduct = JSON.stringify(await this.findProductById(id));
+    const parsedProduct = JSON.parse(existingProduct);
 
+    // check if the object has any values if not return an empty object
     if(Object.keys(parsedProduct).length === 0) return {};
+    
     const {
       sku: sk, 
       name: nm, 
@@ -92,7 +94,6 @@ class Products {
       price: prc, 
       image_url: imgURL
     } = parsedProduct;
-    console.log("IMAGEURL",imgURL)
     
     const result = await db.query(`
       UPDATE products SET
