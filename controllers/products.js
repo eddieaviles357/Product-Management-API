@@ -25,10 +25,10 @@ exports.getProductById = async (req, res, next) => {
   try {
     const id = Number(req.params.id)
     const product = await Products.findProductById(id);
-    
+
     return res.status(200).json({ 
       success: true, 
-      product 
+      updatedProduct
     });
   } catch (err) {
     return next(err);
@@ -57,9 +57,9 @@ exports.addProduct = async (req, res, next) => { // Needs json schema validation
 exports.updateProduct = async (req, res, next) => { // Needs json schema validation
   try {
     const productId = Number(req.params.id);
-    const productToUpdate = req.body;
-    const updatedProduct = await Products.updateProduct(productId, productToUpdate);
-    console.log("FINISHED UPDATING", updatedProduct);
+    const productBody = req.body;
+    const updatedProduct = await Products.updateProduct(productId, productBody);
+
     return res.status(200).json({ 
       success: true, 
       updatedProduct
