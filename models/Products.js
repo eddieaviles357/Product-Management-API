@@ -26,8 +26,9 @@ class Products {
         product_name AS name,
         product_description AS description,
         price AS price,
-        image_url AS image_url,
-        created_at AS created_at
+        image_url AS imageURL,
+        created_at AS createdAt,
+        updated_at AS updatedAt
       FROM products`);
 
     return (result.rows.length === 0) ? [] : result.rows;
@@ -49,7 +50,8 @@ class Products {
         product_description AS description,
         price AS price,
         image_url AS image_url,
-        created_at AS created_at
+        created_at AS createdAt,
+        updated_at AS updatedAt
       FROM products
       WHERE product_id = $1
     `, [id]);
@@ -63,8 +65,8 @@ class Products {
     const { sku, name, description, price, imageURL } = product;
 
     const result = await db.query(`
-      INSERT INTO products (sku, product_name, product_description, price, image_url, created_at)
-      VALUES ($1, $2, $3, $4, $5, NOW())
+      INSERT INTO products (sku, product_name, product_description, price, image_url)
+      VALUES ($1, $2, $3, $4, $5)
       `, [sku, name, description, price, imageURL]);
       
   }
@@ -86,7 +88,7 @@ class Products {
 
     // check if the object has any values if not return an empty object
     if(Object.keys(parsedProduct).length === 0) return {};
-    
+
     const {
       sku: sk, 
       name: nm, 
@@ -101,14 +103,17 @@ class Products {
         product_name = COALESCE( NULLIF( $2, '' ),$7 ),
         product_description = COALESCE( NULLIF( $3, '' ),$8 ),
         price = COALESCE( NULLIF( $4, 0.00 ),$9 ),
-        image_url = COALESCE( NULLIF( $5, '' ),$10 )
+        image_url = COALESCE( NULLIF( $5, '' ),$10 ),
+        updated_at = NOW()
       WHERE product_id = $11
       RETURNING 
         sku, 
         product_name AS productName,
         product_description AS productDescription,
         price,
-        image_url AS imageURL
+        image_url AS imageURL,
+        created_at AS createdAt,
+        updated_at AS updated
       `, [sku, name, description, Number(price), imageURL, 
         sk, nm, desc, prc, imgURL, id]);
 
