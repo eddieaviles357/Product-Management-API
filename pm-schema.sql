@@ -5,7 +5,8 @@ CREATE TABLE products (
   product_description VARCHAR(255) NOT NULL,
   price NUMERIC(7,2) NOT NULL,
   image_url TEXT NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE categories (
