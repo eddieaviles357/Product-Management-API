@@ -61,8 +61,12 @@ class Products {
   /*
   adds a new product to db -> void
   */
-  static async addProduct(product) {
-    const { sku, name, description, price, imageURL } = product;
+  static async addProduct({ sku, name, description, price, imageURL }) {
+
+    const doesProductExist = await db.query(`SELECT sku FROM products WHERE sku = $1`, [sku]);
+
+    // throw Error if product already exists
+    if( doesProductExist.length === 0 ) throw new BadRequestError(`Product already exists`);
 
     const result = await db.query(`
       INSERT INTO products (sku, product_name, product_description, price, image_url)
