@@ -12,12 +12,13 @@ const {
   removeProductById,
 } = require("../controllers/products");
 const router = require("express").Router({mergeParams: true});
+const validateNewProduct = require("../middleware/validateNewProduct");
 
 
 router
   .route('/', )
   .get(getProducts)
-  .post(addProduct)
+  .post(validateNewProduct,addProduct)
 
 router
   .route('/:id')
