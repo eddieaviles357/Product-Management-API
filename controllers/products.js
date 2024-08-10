@@ -1,8 +1,6 @@
 'use strict';
 
 const Products = require("../models/Products");
-const jsonSchema = require("jsonschema")
-const newProductSchema = require("../schemas/newProductSchema.json");
 const updateProductSchema = require("../schemas/updateProductSchema.json");
 
 // @desc      Get all products
@@ -43,14 +41,6 @@ exports.getProductById = async (req, res, next) => {
 // @access    Private/Admin ?????????
 exports.addProduct = async (req, res, next) => { // Needs json schema validation
   try {
-    const validatedSchema = jsonSchema.validate(req.body, newProductSchema);
-
-    if(!validatedSchema.valid) {
-      console.log(validatedSchema);
-      return res.status(400).json({ 
-        errors: validatedSchema.errors.map( errors => ({ property: errors.property.slice(9), message: errors.stack.slice(9) }))
-      });
-    }
 
     const productToAdd = req.body;
     await Products.addProduct(productToAdd);
