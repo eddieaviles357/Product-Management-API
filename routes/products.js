@@ -13,7 +13,7 @@ const {
 } = require("../controllers/products");
 const router = require("express").Router({mergeParams: true});
 const validateNewProduct = require("../middleware/validateNewProduct");
-
+const validateUpdatedProduct = require("../middleware/validateUpdatedProduct");
 
 router
   .route('/', )
@@ -23,7 +23,7 @@ router
 router
   .route('/:id')
   .get(getProductById)
-  .put(updateProduct)
+  .put(validateUpdatedProduct, updateProduct)
   .delete(removeProductById)
 
 
