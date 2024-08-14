@@ -2,8 +2,6 @@
 
 /** Routes for Products. */
 
-// const Products = require("../models/Products");
-const express = require("express");
 const {
   getProducts,
   addProduct,
