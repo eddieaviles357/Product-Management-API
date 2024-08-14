@@ -9,7 +9,7 @@ const productsRoutes = require("./routes/products");
 app.use(express.json());
 
 app.use("/api/v1/products", productsRoutes);
-
+app.use("/api/v1/categories");
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {
