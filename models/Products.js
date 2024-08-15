@@ -31,7 +31,7 @@ class Products {
         updated_at AS updatedAt
       FROM products`);
 
-    return (result.rows.length === 0) ? [] : result.rows;
+    return result.rows;
   }
 
   /*
