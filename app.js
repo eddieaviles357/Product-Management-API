@@ -5,11 +5,12 @@ const express = require('express');
 const app = express();
 
 const productsRoutes = require("./routes/products");
+const categoriesRoutes = require("./routes/categories");
 
 app.use(express.json());
 
 app.use("/api/v1/products", productsRoutes);
-app.use("/api/v1/categories");
+app.use("/api/v1/categories", categoriesRoutes);
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {
