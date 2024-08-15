@@ -3,8 +3,8 @@
 const router = require("express").Router({ mergeParams: true });
 
 const {
-  getAllCategories
-} = require("../models/categories");
+  getCategories
+} = require("../controllers/categories");
 
 // createCategory,
 // updateCategory,
@@ -12,6 +12,6 @@ const {
 
 router
   .route('/')
-  .get(getAllCategories)
+  .get(getCategories)
 
 module.exports = router;
