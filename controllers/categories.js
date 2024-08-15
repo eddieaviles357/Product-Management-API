@@ -1,6 +1,8 @@
 "use strict";
 
-const Categories = require("../models/Categories")
+const Categories = require("../models/Categories");
+
+
 exports.getCategories = async (req, res, next) => {
   try {
     const categories = await Categories.getAllCategories();
