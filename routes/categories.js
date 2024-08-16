@@ -13,5 +13,6 @@ const {
 router
   .route('/')
   .get(getCategories)
+  .post(createCategory)
 
 module.exports = router;
