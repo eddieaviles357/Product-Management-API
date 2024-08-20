@@ -1,3 +1,5 @@
+"use strict";
+
 const jsonSchema = require("jsonschema")
 const newProductSchema = require("../schemas/updateProductSchema.json");
 
