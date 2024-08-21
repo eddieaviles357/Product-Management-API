@@ -16,6 +16,17 @@ class Categories {
 
     return ( allCategories.rows === 0 ) ? [] : allCategories.rows.map( c => c.category );
   }
+
+  static async addCategory(newCategory) {
+    if(typeof newCategory !== 'string') return new Error('Must be a string');
+
+    const result = await db.query(`
+      INSERT INTO categories (category)
+      VALUES ($1)
+      `, [newCategory])
+    console.log(result)
+    console.log(`Successfully added ${newCategory} to DB`);
+  }
   
 }
 
