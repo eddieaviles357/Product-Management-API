@@ -1,20 +1,21 @@
 "use strict";
 
 const {
-  getCategories
+  getCategories,
+  addNewCategory
 } = require("../controllers/categories");
 const router = require("express").Router({ mergeParams: true });
 const validateNewCategory = require("../middleware/validateNewCategory");
-const validateUpdatedCategory = require("../middleware/validateUpdatedCategory");
+// const validateUpdatedCategory = require("../middleware/validateUpdatedCategory");
 
-// createCategory,
+// addNewCategory,
 // updateCategory,
 // removeCategory
 
 router
   .route('/')
   .get(getCategories)
-  .post(validateNewCategory, createCategory)
-  .put(validateUpdatedCategory, updateCategory)
+  .post(validateNewCategory, addNewCategory)
+  // .put(validateUpdatedCategory, updateCategory)
 
 module.exports = router;
