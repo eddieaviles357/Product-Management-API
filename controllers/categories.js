@@ -27,3 +27,31 @@ exports.addNewCategory = async (req, res, next) => {
     return next(err);
   }
 }
+
+// exports.getCategoryId = async (req, res, next) => {
+//   try {
+//     const category = req.params.category;
+//     console.log(category)
+//     await Categories.getCategoryId(category);
+//     return res.status(200).json({
+//       success: true
+//     });
+//   } catch (err) {
+//     return next(err);
+//   }
+// }
+
+exports.updateCategory = async (req, res, next) => {
+  try {
+    const catId = Number(req.params.categoryId);
+    const updatedCategory = req.body.category;
+
+    await Categories.updateCategory(catId, updatedCategory);
+    
+    return res.status(200).json({
+      success: true
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
