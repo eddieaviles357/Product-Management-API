@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.productmanagement.com/v1/updateCategory.schema.json",
+  "title": "updateCategory",
+  "description": "Updates category",
+  "type": "object",
+  "properties": {
+    "category": {
+      "description": "category",
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 20
+    }
+  },
+  "additionalProperties": false,
+  "required": [ "category" ]
+}
