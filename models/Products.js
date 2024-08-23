@@ -40,7 +40,7 @@ class Products {
 
   */
   static async findProductById(id) {
-    if(typeof id !== "number" || isNaN(id)) return new UnprocessableEntityError("ID must be a number");
+    if(typeof id !== "number" || isNaN(id)) throw new UnprocessableEntityError("ID must be a number");
 
     const result = await db.query(`
       SELECT
@@ -129,7 +129,7 @@ class Products {
   returns -> { product_name, success }
   */
   static async removeProduct(id) {
-    if(typeof id !== "number" || isNaN(id)) return new UnprocessableEntityError("ID must be a number");
+    if(typeof id !== "number" || isNaN(id)) throw new UnprocessableEntityError("ID must be a number");
 
     const result = await db.query(`
       DELETE FROM products 
