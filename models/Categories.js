@@ -18,7 +18,7 @@ class Categories {
   }
 
   static async addCategory(newCategory) {
-    if(typeof newCategory !== 'string') return new Error('Must be a string');
+    if(typeof newCategory !== 'string') throw new Error('Must be a string');
 
     const result = await db.query(`
       INSERT INTO categories (category)
@@ -30,27 +30,41 @@ class Categories {
   }
 
   static async getCategoryId(category) {
-    if(typeof category !== 'string') return new Error("Must be a string");
+    if(typeof category !== 'string') throw new Error("Must be a string");
 
     const result = await db.query(`
       SELECT id FROM categories WHERE category = $1
       `, [category]);
 
-      console.log(result);
-
       return result.rows[0]
   }
 
-  // static async updateCategory(category) {
+  static async updateCategory(catId, updatedCategory) {
     
-  //   if(typeof category !== 'string') return new Error('Must be a string');
+    // something aint right lets just return an error ❌
+    if(  typeof updatedCategory !== 'string' 
+      || typeof catId !== 'number'
+      || updatedCategory.length === 0) {
+        throw new Error('Please check inputs');
+      }
+    // does category exist in db 🤔
+    const catExist = await db.query(`
+      SELECT id, category
+      FROM categories 
+      WHERE id = $1
+      `, [catId]);
 
-  //   const result = await db.query(`
-  //     UPDATE categories 
-  //     SET category = COALESCE( NULLIF( $1, '' ),$6 )
-  //     WHERE category = 
-  //     `, [category]);
-  // }
+      // doesn't exist in db lets return error ❌
+      if(catExist.rows.length === 0) throw new Error(`${updatedCategory} does not exist`);
+      const { id, category } = catExist.rows[0];
+
+    const result = await db.query(`
+      UPDATE categories 
+      SET category = COALESCE( NULLIF( $1, '' ),$2 )
+      WHERE id = $3
+      `, [updatedCategory, category, catId]);
+
+  }
   
 }
 
