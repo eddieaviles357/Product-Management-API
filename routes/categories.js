@@ -2,11 +2,13 @@
 
 const {
   getCategories,
-  addNewCategory
+  addNewCategory,
+  updateCategory,
+  // getCategoryId
 } = require("../controllers/categories");
 const router = require("express").Router({ mergeParams: true });
 const validateNewCategory = require("../middleware/validateNewCategory");
-// const validateUpdatedCategory = require("../middleware/validateUpdatedCategory");
+const validateUpdatedCategory = require("../middleware/validateUpdatedCategory");
 
 // addNewCategory,
 // updateCategory,
@@ -16,6 +18,10 @@ router
   .route('/')
   .get(getCategories)
   .post(validateNewCategory, addNewCategory)
-  // .put(validateUpdatedCategory, updateCategory)
+
+router
+  .route('/:categoryId')
+  .put(updateCategory)
+  // .get(getCategoryId)
 
 module.exports = router;
