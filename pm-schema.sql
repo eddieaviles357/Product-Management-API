@@ -27,3 +27,10 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
+
+CREATE TRIGGER update_product_updated_at
+    BEFORE UPDATE
+    ON
+        products
+    FOR EACH ROW
+EXECUTE PROCEDURE update_updated_at_product();
