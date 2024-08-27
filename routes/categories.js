@@ -21,7 +21,7 @@ router
 
 router
   .route('/:categoryId')
-  .put(updateCategory)
+  .put(validateUpdatedCategory, updateCategory)
   // .get(getCategoryId)
 
 module.exports = router;
