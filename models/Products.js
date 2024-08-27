@@ -93,7 +93,7 @@ class Products {
     // check if the object has any values if not return an empty object
     if(Object.keys(parsedProduct).length === 0) return {};
 
-    // must assing values different names to avoid collisions issues
+    // must assign values different names to avoid collisions issues
     const {
       sku: sk, 
       name: nm, 
