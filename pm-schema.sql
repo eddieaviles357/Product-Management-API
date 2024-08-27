@@ -19,3 +19,11 @@ CREATE TABLE products_categories (
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
   category_id INTEGER NOT NULL REFERENCES categories ON DELETE CASCADE
 );
+
+CREATE  FUNCTION update_updated_at_product()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
