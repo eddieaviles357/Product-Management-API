@@ -86,7 +86,16 @@ class Products {
       price, 
       imageURL 
     } = product;
-
+    
+    // if values are empty then return an empty object {}
+    if(  sku.length === 0 
+      & name.length === 0 
+      & description.length === 0 
+      & price === 0 
+      & imageURL.length === 0) {
+        return {};
+      }
+      
     const existingProduct = JSON.stringify(await this.findProductById(id));
     const parsedProduct = JSON.parse(existingProduct);
 
@@ -119,7 +128,7 @@ class Products {
         image_url AS imageURL,
         created_at AS createdAt,
         updated_at AS updated
-      `, [sku, name, description, Number(price), imageURL, 
+      `, [sku, name, description, price, imageURL, 
         sk, nm, desc, prc, imgURL, id]);
 
       return result.rows[0]
