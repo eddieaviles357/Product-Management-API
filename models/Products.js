@@ -112,7 +112,7 @@ class Products {
       price: prc, 
       image_url: imgURL
     } = parsedProduct;
-
+    
     const result = await db.query(`
       UPDATE products SET
         sku = COALESCE( NULLIF( $1, '' ),$6 ),
