@@ -95,13 +95,15 @@ class Products {
       & imageURL.length === 0) {
         return {};
       }
-      
+    
     const existingProduct = JSON.stringify(await this.findProductById(id));
     const parsedProduct = JSON.parse(existingProduct);
 
     // check if the object has any values if not return an empty object
     if(Object.keys(parsedProduct).length === 0) return {};
 
+    // convert to Number
+    parsedProduct.price = Number(parsedProduct.price);
     // must assign values different names to avoid collisions issues
     const {
       sku: sk, 
@@ -110,7 +112,7 @@ class Products {
       price: prc, 
       image_url: imgURL
     } = parsedProduct;
-    
+
     const result = await db.query(`
       UPDATE products SET
         sku = COALESCE( NULLIF( $1, '' ),$6 ),
