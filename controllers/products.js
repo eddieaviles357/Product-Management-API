@@ -74,7 +74,7 @@ exports.updateProduct = async (req, res, next) => { // Needs json schema validat
 // @desc      Delete product from db
 // @route     DELETE /api/v1/products/:id
 // @access    Private/Admin ?????????
-exports.removeProductById = async (req, res, next) => {
+exports.deleteProductById = async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const { success, product_name: productName } = await Products.removeProduct(id);

@@ -7,7 +7,7 @@ const {
   addProduct,
   getProductById,
   updateProduct,
-  removeProductById,
+  deleteProductById,
 } = require("../controllers/products");
 const router = require("express").Router({mergeParams: true});
 const validateNewProduct = require("../middleware/validateNewProduct");
@@ -22,7 +22,7 @@ router
   .route('/:id')
   .get(getProductById)
   .put(validateUpdatedProduct, updateProduct)
-  .delete(removeProductById)
+  .delete(deleteProductById)
 
 
 module.exports = router;
