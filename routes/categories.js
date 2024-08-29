@@ -4,6 +4,7 @@ const {
   getCategories,
   addNewCategory,
   updateCategory,
+  deleteCategory,
   // getCategoryId
 } = require("../controllers/categories");
 const router = require("express").Router({ mergeParams: true });
@@ -22,6 +23,7 @@ router
 router
   .route('/:categoryId')
   .put(validateUpdatedCategory, updateCategory)
+  .delete(deleteCategory)
   // .get(getCategoryId)
 
 module.exports = router;
