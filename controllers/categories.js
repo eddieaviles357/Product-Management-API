@@ -55,3 +55,19 @@ exports.updateCategory = async (req, res, next) => {
     return next(err);
   }
 }
+
+exports.deleteCategory = async (req, res, next) => {
+  try {
+    const catId = Number(req.params.categoryId);
+
+    const { success, category } = await Categories.removeCategory(catId);
+    const statusCode = success ? 200 : 204;
+
+    return res.status(statusCode).json({ 
+      success,
+      category,
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
