@@ -74,7 +74,7 @@ class Categories {
       DELETE FROM categories WHERE id = $1
       RETURNING category
     `, [catId]);
-    console.log(result)
+
     return (result.rows.length === 0) 
     ? { category : `Category with id ${id} not found`, success: false } 
     : { ...result.rows[0], success: true }
