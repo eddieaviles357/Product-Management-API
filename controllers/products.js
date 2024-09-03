@@ -10,9 +10,31 @@ exports.getProducts = async (req, res, next) => {
   try {
     const productsList = await Products.getProducts();
 
+    // since our products don't have a list of categories we will return a new array of products
+    // with an array of categories and reduce our list
+    const prodList = productsList.reduce((acc, product) => {
+      // convert our key categories into an array of string categories
+      product.categories = [product.categories];
+
+      // our initial value will be an empty array, we will return an array of products that replace our initial value
+      if(acc.length === 0) return [product];
+
+      // get reference to last product
+      const lastProduct = acc[acc.length - 1];
+
+      // check if our last product has the same id as our current one
+      // ignore all other values and append our current category
+      if(lastProduct.id === product.id) {
+        lastProduct.categories.push(product.categories[0]);
+        return acc;
+      }
+
+      return [...acc, product]
+    }, []);
+
     return res.status(200).json({ 
       success: true, 
-      products: productsList
+      products: prodList
     });
   } catch (err) {
     return next(err);
