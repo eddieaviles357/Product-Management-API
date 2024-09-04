@@ -7,6 +7,7 @@ VALUES
 
 INSERT INTO categories (category)
 VALUES 
+('none'),
 ('expensive'),
 ('inexpensive'),
 ('xs'),
@@ -26,9 +27,9 @@ VALUES
 
 INSERT INTO products_categories (product_id, category_id)
 VALUES
-(1, 10),
-(1, 5),
-(1, 15),
+(4, 10),
+(4, 5),
+(4, 15),
 (2, 10),
 (2, 6),
 (2, 16),
