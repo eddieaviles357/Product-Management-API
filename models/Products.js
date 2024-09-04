@@ -12,7 +12,7 @@ const {
 
 class Products {
   /*
-    gets all products, ** LIMIT TO BE SET FOR PAGINATION **
+    gets all products, along with categories ** LIMIT TO BE SET FOR PAGINATION **
     returns [
       {sku, name, description, price, imageURL, createdAt}, 
       {...}
@@ -21,16 +21,23 @@ class Products {
   static async getProducts() {
     const result = await db.query(`
       SELECT 
-        product_id AS id,
-        sku,  
-        product_name AS name,
-        product_description AS description,
-        price AS price,
-        image_url AS imageURL,
-        created_at AS createdAt,
-        updated_at AS updatedAt
-      FROM products`);
-
+        p.product_id AS id,
+        p.sku,
+        p.product_name AS "productName",
+        p.product_description AS "productDescription",
+        p.price,
+        p.image_url AS "imageURL",
+        p.created_at AS "createdAt",
+        p.updated_at AS "updatedAt",
+        c.category AS categories
+      FROM 
+        ( SELECT 
+            product_id, sku, product_name, product_description, price, image_url, created_at, updated_at
+          FROM products LIMIT 20 )
+      AS p
+      JOIN products_categories AS p_c ON p.product_id = p_c.product_id
+      JOIN categories AS c ON p_c.category_id = c.id`);
+    
     return result.rows;
   }
 
@@ -71,8 +78,15 @@ class Products {
     const result = await db.query(`
       INSERT INTO products (sku, product_name, product_description, price, image_url)
       VALUES ($1, $2, $3, $4, $5)
+      RETURNING product_id
       `, [sku, name, description, price, imageURL]);
-      
+
+    // add default category to product ( this will be used for retrieving products and must contain at least one category)
+    const { product_id } = result.rows[0];
+    await db.query(`
+      INSERT INTO products_categories (product_id, category_id)
+      VALUES ($1, $2)
+      `, [product_id, 1]);
   }
 
   /*
