@@ -30,11 +30,16 @@ class Products {
         p.created_at AS "createdAt",
         p.updated_at AS "updatedAt",
         c.category AS categories
-      FROM 
-        ( SELECT 
-            product_id, sku, product_name, product_description, price, image_url, created_at, updated_at
-          FROM products LIMIT 20 )
-      AS p
+      FROM (SELECT 
+              product_id, 
+              sku, 
+              product_name, 
+              product_description, 
+              price, 
+              image_url, 
+              created_at, 
+              updated_at
+            FROM products LIMIT 20) AS p
       JOIN products_categories AS p_c ON p.product_id = p_c.product_id
       JOIN categories AS c ON p_c.category_id = c.id`);
     
@@ -75,6 +80,7 @@ class Products {
     // // throw Error if product already exists
     // if( doesProductExist.length === 0 ) throw new BadRequestError(`Product already exists`);
 
+    // insert product and use the id to insert into category inserting default none category
     const result = await db.query(`
       WITH insert_to_prod AS (
         INSERT INTO products (sku, product_name, product_description, price, image_url)
