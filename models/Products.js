@@ -80,7 +80,7 @@ class Products {
     // // throw Error if product already exists
     // if( doesProductExist.length === 0 ) throw new BadRequestError(`Product already exists`);
 
-    // insert product and use the id to insert into category inserting default none category
+    // insert product and use the id to insert into products_categories table inserting default 'none' category
     const result = await db.query(`
       WITH insert_to_prod AS (
         INSERT INTO products (sku, product_name, product_description, price, image_url)
