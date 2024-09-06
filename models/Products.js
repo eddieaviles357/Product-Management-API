@@ -70,23 +70,20 @@ class Products {
   */
   static async addProduct({ sku, name, description, price, imageURL }) {
 
-    const doesProductExist = await db.query(`SELECT sku FROM products WHERE sku = $1`, [sku]);
+    // const doesProductExist = await db.query(`SELECT sku FROM products WHERE sku = $1`, [sku]);
 
-    // throw Error if product already exists
-    if( doesProductExist.length === 0 ) throw new BadRequestError(`Product already exists`);
+    // // throw Error if product already exists
+    // if( doesProductExist.length === 0 ) throw new BadRequestError(`Product already exists`);
 
     const result = await db.query(`
-      INSERT INTO products (sku, product_name, product_description, price, image_url)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING product_id
+      WITH insert_to_prod AS (
+        INSERT INTO products (sku, product_name, product_description, price, image_url)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING product_id
+      )
+        INSERT INTO products_categories (product_id, category_id)
+        SELECT product_id, 1 FROM insert_to_prod
       `, [sku, name, description, price, imageURL]);
-
-    // add default category to product ( this will be used for retrieving products and must contain at least one category)
-    const { product_id } = result.rows[0];
-    await db.query(`
-      INSERT INTO products_categories (product_id, category_id)
-      VALUES ($1, $2)
-      `, [product_id, 1]);
   }
 
   /*
