@@ -18,7 +18,7 @@ class Products {
       {...}
       ]
   */
-  static async getProducts() {
+  static async getProducts() { // useful to use ARRAY_AGG(category)
     const result = await db.query(`
       SELECT 
         p.product_id AS id,
@@ -48,25 +48,31 @@ class Products {
 
   /*
   gets product using an id
-  returns -> { sku, name, description, price, imageURL, createdAt }
+  returns -> { sku, name, description, price, imageURL, createdAt, categories: [] }
 
   */
   static async findProductById(id) {
+    console.log(id)
     if(typeof id !== "number" || isNaN(id)) throw new UnprocessableEntityError("ID must be a number");
 
     const result = await db.query(`
       SELECT
-        product_id AS id,
-        sku,
-        product_name AS name,
-        product_description AS description,
-        price AS price,
-        image_url AS image_url,
-        created_at AS createdAt,
-        updated_at AS updatedAt
-      FROM products
-      WHERE product_id = $1
+        p.product_id AS id,
+        p.sku,
+        p.product_name AS name,
+        p.product_description AS description,
+        p.price AS price,
+        p.image_url AS image_url,
+        p.created_at AS createdAt,
+        p.updated_at AS updatedAt,
+        ARRAY_AGG(c.category) AS categories
+      FROM products p
+      JOIN products_categories pc ON pc.product_id = p.product_id
+      JOIN categories c ON c.id = pc.category_id
+      WHERE p.product_id = $1
+      GROUP BY p.product_id
     `, [id]);
+    
     return (result.rows.length === 0) ? {} : result.rows[0];
   }
 
