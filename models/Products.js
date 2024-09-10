@@ -29,7 +29,7 @@ class Products {
         p.image_url AS "imageURL",
         p.created_at AS "createdAt",
         p.updated_at AS "updatedAt",
-        c.category AS categories
+        ARRAY_AGG(c.category) AS categories
       FROM (SELECT 
               product_id, 
               sku, 
@@ -41,7 +41,16 @@ class Products {
               updated_at
             FROM products LIMIT 20) AS p
       JOIN products_categories AS p_c ON p.product_id = p_c.product_id
-      JOIN categories AS c ON p_c.category_id = c.id`);
+      JOIN categories AS c ON p_c.category_id = c.id
+      GROUP BY 
+        p.product_id, 
+        p.sku, 
+        p.product_name, 
+        p.product_description, 
+        p.price, 
+        p.image_url,
+        p.created_at,
+        p.updated_at`);
     
     return result.rows;
   }
