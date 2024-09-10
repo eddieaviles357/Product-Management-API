@@ -2,7 +2,8 @@ INSERT INTO products (sku, product_name, product_description, price, image_url)
 VALUES 
 ('MC10SSMM', 'Shirt', 'White short sleeve medium', '10.99', 'https://image.product-management.com/1283859'),
 ('MC10LSLL', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283860'),
-('MC12SLMM', 'Shirt', 'Red short sleeve medium', '10.99', 'https://image.product-management.com/1283861');
+('MC10XXXX', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283861'),
+('MC12SLMM', 'Shirt', 'Red short sleeve medium', '10.99', 'https://image.product-management.com/1283862');
 
 
 INSERT INTO categories (category)
