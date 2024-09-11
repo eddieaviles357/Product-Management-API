@@ -39,11 +39,11 @@ class Categories {
       return result.rows[0]
   }
 
-  static async updateCategory(catId, updatedCategory) {
+  static async updateCategory(category, updatedCategory) {
     
     // something aint right lets just return an error ❌
     if(  typeof updatedCategory !== 'string' 
-      || typeof catId !== 'number'
+      || typeof category !== 'string'
       || updatedCategory.length === 0) {
         throw new Error('Please check inputs');
       }
@@ -51,22 +51,22 @@ class Categories {
     const catExist = await db.query(`
       SELECT id, category
       FROM categories 
-      WHERE id = $1
-      `, [catId]);
+      WHERE category = $1
+      `, [category]);
 
       // doesn't exist in db lets return error ❌
       if(catExist.rows.length === 0) throw new Error(`${updatedCategory} does not exist`);
-      const { id, category } = catExist.rows[0];
+      const { category: cat } = catExist.rows[0];
 
     const result = await db.query(`
       UPDATE categories 
       SET category = COALESCE( NULLIF( $1, '' ),$2 )
-      WHERE id = $3
-      `, [updatedCategory, category, catId]);
+      WHERE category = $3
+      `, [updatedCategory, cat, category]);
 
   }
   
-  static async getAllCategoryProducts(catId) {
+  static async getAllCategoryProducts(category) {
     const result = await db.query(`
       SELECT 
         p.product_id AS id,
@@ -80,22 +80,19 @@ class Categories {
       FROM products p
       JOIN products_categories pc ON pc.product_id = p.product_id
       JOIN categories c ON c.id = pc.category_id
-      WHERE c.id = $1`, [catId]);
-      
+      WHERE c.category = $1`, [category]);
+
     return result.rows;
   }
   
-  static async removeCategory(catId) {
-    console.log(catId)
+  static async removeCategory(category) {
 
     const result = await db.query(`
-      DELETE FROM categories WHERE id = $1
+      DELETE FROM categories WHERE category = $1
       RETURNING category
-    `, [catId]);
-
-    return (result.rows.length === 0) 
-    ? { category : `Category with id ${id} not found`, success: false } 
-    : { ...result.rows[0], success: true }
+    `, [category]);
+    
+    return (result.rows.length === 0) ? false : true;
   }
 }
 
