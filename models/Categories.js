@@ -25,19 +25,18 @@ class Categories {
       VALUES ( LOWER($1) )
       `, [newCategory]);
 
-    console.log(result)
     console.log(`Successfully added ${newCategory} to DB`);
   }
 
-  static async getCategoryId(category) {
-    if(typeof category !== 'string') throw new Error("Must be a string");
+  // static async getCategoryId(category) {
+  //   if(typeof category !== 'string') throw new Error("Must be a string");
 
-    const result = await db.query(`
-      SELECT id FROM categories WHERE category = $1
-      `, [category]);
+  //   const result = await db.query(`
+  //     SELECT id FROM categories WHERE category = $1
+  //     `, [category]);
 
-      return result.rows[0]
-  }
+  //     return result.rows[0]
+  // }
 
   static async updateCategory(category, updatedCategory) {
     
@@ -80,7 +79,8 @@ class Categories {
       FROM products p
       JOIN products_categories pc ON pc.product_id = p.product_id
       JOIN categories c ON c.id = pc.category_id
-      WHERE c.category = $1`, [category]);
+      WHERE c.category = $1
+      LIMIT 20`, [category]);
 
     return result.rows;
   }
