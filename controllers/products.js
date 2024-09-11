@@ -19,7 +19,7 @@ exports.getProducts = async (req, res, next) => {
   }
 };
 
-// @desc      Get single products by id
+// @desc      Get single product by id
 // @route     GET /api/v1/products/:id
 // @access    Private/Admin ?????????
 exports.getProductById = async (req, res, next) => {
