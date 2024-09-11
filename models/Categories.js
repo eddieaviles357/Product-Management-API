@@ -66,9 +66,27 @@ class Categories {
 
   }
   
+  static async getAllCategoryProducts(catId) {
+    const result = await db.query(`
+      SELECT 
+        p.product_id AS id,
+        p.sku,
+        p.product_name AS "productName",
+        p.product_description AS "productDescription",
+        p.price,
+        p.image_url AS "imageURL",
+        p.created_at AS "createdAt",
+        p.updated_at AS "updatedAt"
+      FROM products p
+      JOIN products_categories pc ON pc.product_id = p.product_id
+      JOIN categories c ON c.id = pc.category_id
+      WHERE c.id = $1`, [catId]);
+      
+    return result.rows;
+  }
+  
   static async removeCategory(catId) {
     console.log(catId)
-    // if(typeof catId !== 'number') throw new Error(`${catId} is not a number`);
 
     const result = await db.query(`
       DELETE FROM categories WHERE id = $1

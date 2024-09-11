@@ -56,6 +56,21 @@ exports.updateCategory = async (req, res, next) => {
   }
 }
 
+exports.getCategoryProducts = async (req, res, next) => {
+  try {
+    const catId = Number(req.params.categoryId);
+
+    const categoryProducts = await Categories.getAllCategoryProducts(catId);
+    
+    return res.status(200).json({
+      success: true,
+      categoryProducts
+    })
+  } catch (err) {
+    return next(err);
+  }
+}
+
 exports.deleteCategory = async (req, res, next) => {
   try {
     const catId = Number(req.params.categoryId);
