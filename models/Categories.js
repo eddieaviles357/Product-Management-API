@@ -28,16 +28,6 @@ class Categories {
     console.log(`Successfully added ${newCategory} to DB`);
   }
 
-  // static async getCategoryId(category) {
-  //   if(typeof category !== 'string') throw new Error("Must be a string");
-
-  //   const result = await db.query(`
-  //     SELECT id FROM categories WHERE category = $1
-  //     `, [category]);
-
-  //     return result.rows[0]
-  // }
-
   static async updateCategory(category, updatedCategory) {
     
     // something aint right lets just return an error ❌
@@ -75,12 +65,31 @@ class Categories {
         p.price,
         p.image_url AS "imageURL",
         p.created_at AS "createdAt",
-        p.updated_at AS "updatedAt"
-      FROM products p
+        p.updated_at AS "updatedAt",
+        ARRAY_AGG(c.category) AS categories
+      FROM (SELECT 
+              product_id, 
+              sku, 
+              product_name, 
+              product_description, 
+              price, 
+              image_url, 
+              created_at, 
+              updated_at
+            FROM products LIMIT 20) AS p
       JOIN products_categories pc ON pc.product_id = p.product_id
       JOIN categories c ON c.id = pc.category_id
-      WHERE c.category = $1
-      LIMIT 20`, [category]);
+      WHERE (c.category = $1)
+      GROUP BY 
+        p.product_id,
+        p.sku,
+        p.product_name,
+        p.product_description,
+        p.price,
+        p.image_url,
+        p.created_at,
+        p.updated_at
+        `, [category]);
 
     return result.rows;
   }
