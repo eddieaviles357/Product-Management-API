@@ -2,8 +2,28 @@ INSERT INTO products (sku, product_name, product_description, price, image_url)
 VALUES 
 ('MC10SSMM', 'Shirt', 'White short sleeve medium', '10.99', 'https://image.product-management.com/1283859'),
 ('MC10LSLL', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283860'),
+('XKDFQKEL', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283811'),
+('AABBCCDD', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283812'),
+('BBCCDDEE', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283813'),
+('CCDDEEFF', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283814'),
+('DDEEFFGG', 'Shirt', 'White long sleeve large', '10.99', 'https://image.product-management.com/1283815'),
 ('MC10XXXX', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283861'),
-('MC12SLMM', 'Shirt', 'Red short sleeve medium', '10.99', 'https://image.product-management.com/1283862');
+('YC10LSLS', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283863'),
+('YC10LXYS', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283865'),
+('DC09LLVS', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283866'),
+('DC10VX03', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283869'),
+('ABDDFFEE', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283868'),
+('FFGGHHII', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283801'),
+('GGHHIIJJ', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283802'),
+('HHIIJJKK', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283803'),
+('IIJJKKLL', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283804'),
+('JJKKLLMM', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283805'),
+('KKLLMMNN', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283868'),
+('LLMMNNOO', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283806'),
+('MMNNOOPP', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283807'),
+('NNOOPPQQ', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283808'),
+('OOPPQQRR', 'Pants', 'Blue athletic cotton large', '20.99', 'https://image.product-management.com/1283809'),
+('MCXXLSXL', 'Shirt', 'Red short sleeve medium', '10.99', 'https://image.product-management.com/1283862');
 
 
 INSERT INTO categories (category)
@@ -35,7 +55,25 @@ VALUES
 (2, 6),
 (2, 16),
 (3, 5),
-(3, 12),
-(3, 15),
-(4, 1)
+(4, 12),
+(5, 15),
+(6, 15),
+(7, 15),
+(8, 15),
+(9, 15),
+(10, 15),
+(11, 15),
+(12, 15),
+(13, 15),
+(14, 15),
+(15, 15),
+(16, 1),
+(17, 1),
+(18, 1),
+(19, 1),
+(20, 1),
+(21, 1),
+(22, 1),
+(23, 1),
+(24, 1)
 
