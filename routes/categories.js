@@ -22,8 +22,11 @@ router
 
 router
   .route('/:category')
-  .get(getCategoryProducts)
   .put(validateUpdatedCategory, updateCategory)
   .delete(deleteCategory)
+
+router
+  .route('/:category/products')
+  .get(getCategoryProducts)
 
 module.exports = router;
