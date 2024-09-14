@@ -71,6 +71,28 @@ exports.updateProduct = async (req, res, next) => { // Needs json schema validat
   }
 };
 
+
+// @desc      Add category to product
+// @route     POST /api/v1/products/:productId/category/:categoryId
+// @access    Private/Admin ?????????
+exports.addCategoryToProduct = async (req, res, next) => { // Needs json schema validation
+  try {
+    const {pId, cId} = {
+      pId: Number(req.params.productId),
+      cId: Number(req.params.categoryId)
+    };
+
+    const result = await Products.addCategoryToProduct(pId, cId);
+
+    return res.status(200).json({ 
+      success: true,
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+
 // @desc      Delete product from db
 // @route     DELETE /api/v1/products/:id
 // @access    Private/Admin ?????????
