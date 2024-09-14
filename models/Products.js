@@ -30,27 +30,13 @@ class Products {
         p.created_at AS "createdAt",
         p.updated_at AS "updatedAt",
         ARRAY_AGG(c.category) AS categories
-      FROM (SELECT 
-              product_id, 
-              sku, 
-              product_name, 
-              product_description, 
-              price, 
-              image_url, 
-              created_at, 
-              updated_at
-            FROM products LIMIT 20) AS p
+      FROM products AS p
       JOIN products_categories AS p_c ON p.product_id = p_c.product_id
       JOIN categories AS c ON p_c.category_id = c.id
       GROUP BY 
-        p.product_id, 
-        p.sku, 
-        p.product_name, 
-        p.product_description, 
-        p.price, 
-        p.image_url,
-        p.created_at,
-        p.updated_at`);
+        p.product_id
+      ORDER BY p.product_id ASC
+      LIMIT 20`);
     
     return result.rows;
   }
@@ -166,6 +152,15 @@ class Products {
         sk, nm, desc, prc, imgURL, id]);
 
       return result.rows[0]
+  }
+
+  static async addCategoryToProduct(productId, categoryId) {
+    const result = await db.query(`
+      INSERT INTO products_categories (product_id, category_id)
+      VALUES ($1, $2)
+      `, [productId, categoryId]);
+    
+    return result.rows[0];
   }
 
   /*
