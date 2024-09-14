@@ -12,7 +12,7 @@ class Categories {
       ]
   */
   static async getAllCategories() {
-    const allCategories = await db.query(`SELECT id, category FROM categories`);
+    const allCategories = await db.query(`SELECT id, category FROM categories ORDER BY id ASC`);
 
     return ( allCategories.rows === 0 ) ? [] : allCategories.rows.map( c => ({id: c.id, category: c.category}) );
   }
@@ -93,6 +93,7 @@ class Categories {
           JOIN products_categories pc ON pc.product_id = p.product_id 
           JOIN categories c ON c.id = pc.category_id 
           WHERE c.category = $1
+          LIMIT 20
           ) 
         SELECT 
           prod.product_id AS id,
