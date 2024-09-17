@@ -21,7 +21,7 @@ router
   .post(validateNewCategory, addNewCategory)
 
 router
-  .route('/:category')
+  .route('/:categoryId')
   .put(validateUpdatedCategory, updateCategory)
   .delete(deleteCategory)
 
