@@ -28,11 +28,11 @@ class Categories {
     console.log(`Successfully added ${newCategory} to DB`);
   }
 
-  static async updateCategory(category, updatedCategory) {
+  static async updateCategory(catId, updatedCategory) {
     
     // something aint right lets just return an error ❌
     if(  typeof updatedCategory !== 'string' 
-      || typeof category !== 'string'
+      || typeof catId !== 'number'
       || updatedCategory.length === 0) {
         throw new Error('Please check inputs');
       }
@@ -40,51 +40,22 @@ class Categories {
     const catExist = await db.query(`
       SELECT id, category
       FROM categories 
-      WHERE category = $1
-      `, [category]);
+      WHERE id = $1
+      `, [catId]);
 
       // doesn't exist in db lets return error ❌
       if(catExist.rows.length === 0) throw new Error(`${updatedCategory} does not exist`);
-      const { category: cat } = catExist.rows[0];
+      const { category } = catExist.rows[0];
 
     const result = await db.query(`
       UPDATE categories 
       SET category = COALESCE( NULLIF( $1, '' ),$2 )
-      WHERE category = $3
-      `, [updatedCategory, cat, category]);
+      WHERE id = $3
+      `, [updatedCategory, category, catId]);
 
   }
   
-  static async getAllCategoryProducts(category) {
-    // const result = await db.query(`
-    //   SELECT 
-    //     p.product_id AS id,
-    //     p.sku,
-    //     p.product_name AS "productName",
-    //     p.product_description AS "productDescription",
-    //     p.price,
-    //     p.image_url AS "imageURL",
-    //     p.created_at AS "createdAt",
-    //     p.updated_at AS "updatedAt",
-    //     ARRAY_AGG(c.category) AS categories
-    //   FROM (
-    //         SELECT 
-    //           prod.product_id AS id,
-    //           prod.sku,
-    //           prod.product_name AS "productName",
-    //           prod.product_description AS "productDescription",
-    //           prod.price,
-    //           prod.image_url AS "imageURL",
-    //           prod.created_at AS "createdAt",
-    //           prod.updated_at AS "updatedAt"
-    //         FROM products prod
-    //         JOIN products_categories pc ON pc.product_id = prod.product_id
-    //         JOIN categories c ON c.id = pc.category_id
-    //         WHERE c.category = $1
-    //         GROUP BY prod.product_id
-    //       ) AS p
-    //   JOIN products_categories pc ON pc.product_id = p.product_id
-    //   JOIN categories c ON c.id = pc.category_id`, [category]);
+  static async getAllCategoryProducts(catId) {
 
       const result = await db.query(`
         WITH all_product_id AS (
@@ -92,7 +63,7 @@ class Categories {
           FROM products p 
           JOIN products_categories pc ON pc.product_id = p.product_id 
           JOIN categories c ON c.id = pc.category_id 
-          WHERE c.category = $1
+          WHERE c.id = $1
           LIMIT 20
           ) 
         SELECT 
@@ -110,17 +81,17 @@ class Categories {
         JOIN categories cat ON cat.id = p_c.category_id 
         WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
         GROUP BY prod.product_id
-        `, [category]);
+        `, [catId]);
 
     return result.rows;
   }
   
-  static async removeCategory(category) {
+  static async removeCategory(catId) {
 
     const result = await db.query(`
-      DELETE FROM categories WHERE category = $1
+      DELETE FROM categories WHERE id = $1
       RETURNING category
-    `, [category]);
+    `, [catId]);
     
     return (result.rows.length === 0) ? false : true;
   }

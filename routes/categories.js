@@ -26,7 +26,7 @@ router
   .delete(deleteCategory)
 
 router
-  .route('/:category/products')
+  .route('/:categoryId/products')
   .get(getCategoryProducts)
 
 module.exports = router;

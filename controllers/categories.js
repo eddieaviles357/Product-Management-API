@@ -30,10 +30,10 @@ exports.addNewCategory = async (req, res, next) => {
 
 exports.updateCategory = async (req, res, next) => {
   try {
-    const { category } = req.params;
+    const catId = Number(req.params.categoryId);
     const updatedCategory = req.body.category;
 
-    await Categories.updateCategory(category, updatedCategory);
+    await Categories.updateCategory(catId, updatedCategory);
     
     return res.status(200).json({
       success: true
@@ -45,9 +45,9 @@ exports.updateCategory = async (req, res, next) => {
 
 exports.getCategoryProducts = async (req, res, next) => {
   try {
-    const { category } = req.params
+    const catId = Number(req.params.categoryId);
 
-    const categoryProducts = await Categories.getAllCategoryProducts(category);
+    const categoryProducts = await Categories.getAllCategoryProducts(catId);
     
     return res.status(200).json({
       success: true,
@@ -60,13 +60,13 @@ exports.getCategoryProducts = async (req, res, next) => {
 
 exports.deleteCategory = async (req, res, next) => {
   try {
-    const { category } = req.params
+    const catId = req.params.categoryId
     
-    const success = await Categories.removeCategory(category);
+    const success = await Categories.removeCategory(catId);
 
     success 
       ? res.status(200).json({ success }) 
-      : res.status(200).json({ success, message: `Category ${category} does not exist` });
+      : res.status(200).json({ success, message: "Category does not exist" });
 
   } catch (err) {
     return next(err);
