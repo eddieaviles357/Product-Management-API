@@ -4,6 +4,7 @@ CREATE TABLE products (
   product_name VARCHAR(30) NOT NULL,
   product_description VARCHAR(255) NOT NULL,
   price NUMERIC(7,2) NOT NULL,
+  stock INTEGER NOT NULL,
   image_url VARCHAR(100) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
