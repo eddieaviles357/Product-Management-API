@@ -26,6 +26,7 @@ class Products {
         p.product_name AS "productName",
         p.product_description AS "productDescription",
         p.price,
+        p.stock,
         p.image_url AS "imageURL",
         p.created_at AS "createdAt",
         p.updated_at AS "updatedAt",
@@ -47,7 +48,6 @@ class Products {
 
   */
   static async findProductById(id) {
-    console.log(id)
     if(typeof id !== "number" || isNaN(id)) throw new UnprocessableEntityError("ID must be a number");
 
     const result = await db.query(`
@@ -56,10 +56,11 @@ class Products {
         p.sku,
         p.product_name AS name,
         p.product_description AS description,
-        p.price AS price,
-        p.image_url AS image_url,
-        p.created_at AS createdAt,
-        p.updated_at AS updatedAt,
+        p.price,
+        p.stock,
+        p.image_url,
+        p.created_at AS "createdAt",
+        p.updated_at AS "updatedAt",
         ARRAY_AGG(c.category) AS categories
       FROM products p
       JOIN products_categories pc ON pc.product_id = p.product_id
@@ -74,7 +75,7 @@ class Products {
   /*
   adds a new product to db -> void
   */
-  static async addProduct({ sku, name, description, price, imageURL }) {
+  static async addProduct({ sku, name, description, price, stock, imageURL }) {
 
     // const doesProductExist = await db.query(`SELECT sku FROM products WHERE sku = $1`, [sku]);
 
@@ -84,13 +85,13 @@ class Products {
     // insert product and use the id to insert into products_categories table inserting default 'none' category
     const result = await db.query(`
       WITH insert_to_prod AS (
-        INSERT INTO products (sku, product_name, product_description, price, image_url)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO products (sku, product_name, product_description, price, stock, image_url)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING product_id
       )
         INSERT INTO products_categories (product_id, category_id)
         SELECT product_id, 1 FROM insert_to_prod
-      `, [sku, name, description, price, imageURL]);
+      `, [sku, name, description, price, stock, imageURL]);
   }
 
   /*
@@ -101,7 +102,8 @@ class Products {
       sku, 
       name, 
       description, 
-      price, 
+      price,
+      stock,
       imageURL 
     } = product;
     
@@ -109,7 +111,8 @@ class Products {
     if(  sku.length === 0 
       & name.length === 0 
       & description.length === 0 
-      & price === 0 
+      & price < 0 
+      & stock < 0
       & imageURL.length === 0) {
         return {};
       }
@@ -122,36 +125,39 @@ class Products {
 
     // convert to Number
     parsedProduct.price = Number(parsedProduct.price);
+    parsedProduct.stock = Number(parsedProduct.stock);
     // must assign values different names to avoid collisions issues
     const {
       sku: sk, 
       name: nm, 
       description: desc, 
-      price: prc, 
+      price: prc,
+      stock: stck,
       image_url: imgURL
     } = parsedProduct;
     
     const result = await db.query(`
       UPDATE products SET
-        sku = COALESCE( NULLIF( $1, '' ),$6 ),
-        product_name = COALESCE( NULLIF( $2, '' ),$7 ),
-        product_description = COALESCE( NULLIF( $3, '' ),$8 ),
-        price = COALESCE( NULLIF( $4, 0.00 ),$9 ),
-        image_url = COALESCE( NULLIF( $5, '' ),$10 ),
+        sku = COALESCE( NULLIF( $1, '' ),$7 ),
+        product_name = COALESCE( NULLIF( $2, '' ),$8 ),
+        product_description = COALESCE( NULLIF( $3, '' ),$9 ),
+        price = COALESCE( NULLIF( $4, 0.00 ),$10 ),
+        stock = COALESCE( NULLIF( $5, 0 ), $11 ),
+        image_url = COALESCE( NULLIF( $6, '' ),$12 ),
         updated_at = NOW()
-      WHERE product_id = $11
+      WHERE product_id = $13
       RETURNING 
         sku, 
-        product_name AS productName,
-        product_description AS productDescription,
+        product_name AS "productName",
+        product_description AS "productDescription",
         price,
-        image_url AS imageURL,
-        created_at AS createdAt,
+        stock,
+        image_url AS "imageURL",
+        created_at AS "createdAt",
         updated_at AS updated
-      `, [sku, name, description, price, imageURL, 
-        sk, nm, desc, prc, imgURL, id]);
-
-      return result.rows[0]
+      `, [sku, name, description, price, stock, imageURL, 
+        sk, nm, desc, prc, stck, imgURL, id]);
+    return result.rows[0]
   }
 
   static async addCategoryToProduct(productId, categoryId) {

@@ -72,6 +72,7 @@ class Categories {
           prod.product_name AS "productName",
           prod.product_description AS "productDescription",
           prod.price,
+          prod.stock,
           prod.image_url AS "imageURL",
           prod.created_at AS "createdAt",
           prod.updated_at AS "updatedAt",

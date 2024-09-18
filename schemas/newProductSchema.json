@@ -30,6 +30,13 @@
       "minimum": 0,
       "exclusiveMaximum": 100000
     },
+    "stock": {
+      "description": "stock",
+      "type": "number",
+      "multipleOf" : 1,
+      "minimum": 0,
+      "exclusiveMaximum": 100000
+    },
     "imageURL": {
       "description": "image url",
       "type": "string",
@@ -43,6 +50,7 @@
     "name",
     "description",
     "price",
+    "stock",
     "imageURL"
   ]
 }
