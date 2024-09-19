@@ -43,10 +43,11 @@ exports.addProduct = async (req, res, next) => { // Needs json schema validation
   try {
 
     const productToAdd = req.body;
-    await Products.addProduct(productToAdd);
+    const product = await Products.addProduct(productToAdd);
     
-    return res.status(200).json({ 
+    return res.status(201).json({ 
       success: true, 
+      product
     });
   } catch (err) {
     return next(err);

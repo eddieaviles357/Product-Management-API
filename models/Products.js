@@ -87,11 +87,24 @@ class Products {
       WITH insert_to_prod AS (
         INSERT INTO products (sku, product_name, product_description, price, stock, image_url)
         VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING product_id
-      )
+        RETURNING 
+          product_id AS id, 
+          sku, 
+          product_name AS "productName", 
+          product_description AS "productDescription",
+          price,
+          stock,
+          image_url AS "imageURL",
+          created_at AS "createdAt"
+      ),
+      inserted AS (
         INSERT INTO products_categories (product_id, category_id)
-        SELECT product_id, 1 FROM insert_to_prod
+        SELECT id, 1 FROM insert_to_prod
+      )
+        SELECT * FROM insert_to_prod
       `, [sku, name, description, price, stock, imageURL]);
+    
+    return result.rows[0];
   }
 
   /*
