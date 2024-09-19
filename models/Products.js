@@ -111,8 +111,8 @@ class Products {
     if(  sku.length === 0 
       & name.length === 0 
       & description.length === 0 
-      & price < 0 
-      & stock < 0
+      & price === 0 
+      & stock === 0
       & imageURL.length === 0) {
         return {};
       }
@@ -138,15 +138,16 @@ class Products {
     
     const result = await db.query(`
       UPDATE products SET
-        sku = COALESCE( NULLIF( $1, '' ),$7 ),
-        product_name = COALESCE( NULLIF( $2, '' ),$8 ),
-        product_description = COALESCE( NULLIF( $3, '' ),$9 ),
-        price = COALESCE( NULLIF( $4, 0.00 ),$10 ),
-        stock = COALESCE( NULLIF( $5, 0 ), $11 ),
-        image_url = COALESCE( NULLIF( $6, '' ),$12 ),
+        sku = COALESCE(NULLIF($1, ''), NULLIF($1, $7), $7),
+        product_name = COALESCE(NULLIF($2, ''), NULLIF($2, $8), $8),
+        product_description = COALESCE(NULLIF($3, ''), NULLIF($3, $9), $9),
+        price = COALESCE(NULLIF($4::numeric, $10), $10),
+        stock = COALESCE(NULLIF($5::integer, $11), $11),
+        image_url = COALESCE(NULLIF($6, ''), NULLIF($6, $12), $12),
         updated_at = NOW()
       WHERE product_id = $13
       RETURNING 
+        product_id AS id,
         sku, 
         product_name AS "productName",
         product_description AS "productDescription",

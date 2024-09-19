@@ -49,7 +49,7 @@ class Categories {
 
     const result = await db.query(`
       UPDATE categories 
-      SET category = COALESCE( NULLIF( $1, '' ),$2 )
+      SET category = COALESCE(NULLIF($1, ''), NULLIF($1, $2), $2)
       WHERE id = $3
       `, [updatedCategory, category, catId]);
 
