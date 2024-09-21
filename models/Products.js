@@ -110,7 +110,8 @@ class Products {
   /*
   updates product
   */
-  static async updateProduct(id, product) {
+  static async updateProduct(id, prod) {
+
     const { 
       sku, 
       name, 
@@ -118,7 +119,9 @@ class Products {
       price,
       stock,
       imageURL 
-    } = product;
+    } = Object.assign({}, {
+      sku: '', name: '', description: '', price: 0, stock: 0, imageURL: ''
+    }, prod);
     
     // if values are empty then return an empty object {}
     if(  sku.length === 0 
@@ -128,17 +131,27 @@ class Products {
       & stock === 0
       & imageURL.length === 0) {
         return {};
-      }
-    
-    const existingProduct = JSON.stringify(await this.findProductById(id));
+      };
+      
+    const prd = await db.query(`
+      SELECT
+        product_id AS id,
+        sku,
+        product_name AS name,
+        product_description AS description,
+        price,
+        stock,
+        image_url,
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+      FROM products WHERE product_id = $1
+      `, [id]);
+
+    if(prd.rows.length === 0) return {};
+
+    const existingProduct = JSON.stringify(prd.rows[0]);
     const parsedProduct = JSON.parse(existingProduct);
 
-    // check if the object has any values if not return an empty object
-    if(Object.keys(parsedProduct).length === 0) return {};
-
-    // convert to Number
-    parsedProduct.price = Number(parsedProduct.price);
-    parsedProduct.stock = Number(parsedProduct.stock);
     // must assign values different names to avoid collisions issues
     const {
       sku: sk, 
@@ -151,12 +164,12 @@ class Products {
     
     const result = await db.query(`
       UPDATE products SET
-        sku = COALESCE(NULLIF($1, ''), NULLIF($1, $7), $7),
-        product_name = COALESCE(NULLIF($2, ''), NULLIF($2, $8), $8),
-        product_description = COALESCE(NULLIF($3, ''), NULLIF($3, $9), $9),
-        price = COALESCE(NULLIF($4::numeric, $10), $10),
-        stock = COALESCE(NULLIF($5::integer, $11), $11),
-        image_url = COALESCE(NULLIF($6, ''), NULLIF($6, $12), $12),
+        sku =                 COALESCE( NULLIF($1, ''), $7 ),
+        product_name =        COALESCE( NULLIF($2, ''), $8 ),
+        product_description = COALESCE( NULLIF($3, ''), $9 ),
+        price =               COALESCE( NULLIF($4, 0.00), $10 ),
+        stock =               COALESCE( NULLIF($5::integer, $11), $11 ),
+        image_url =           COALESCE( NULLIF($6, ''), $12 ),
         updated_at = NOW()
       WHERE product_id = $13
       RETURNING 
@@ -168,10 +181,11 @@ class Products {
         stock,
         image_url AS "imageURL",
         created_at AS "createdAt",
-        updated_at AS updated
+        updated_at AS "updatedAt"
       `, [sku, name, description, price, stock, imageURL, 
         sk, nm, desc, prc, stck, imgURL, id]);
-    return result.rows[0]
+
+    return result.rows[0];
   }
 
   static async addCategoryToProduct(productId, categoryId) {
