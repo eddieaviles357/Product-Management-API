@@ -1,9 +1,9 @@
 CREATE TABLE products (
   product_id SERIAL PRIMARY KEY,
-  sku VARCHAR(8) NOT NULL UNIQUE,
-  product_name VARCHAR(30) NOT NULL,
-  product_description VARCHAR(255) NOT NULL,
-  price NUMERIC(7,2) NOT NULL,
+  sku VARCHAR(8) NOT NULL UNIQUE CHECK(LENGTH(sku) > 0),
+  product_name VARCHAR(30) NOT NULL CHECK(LENGTH(product_name) > 0),
+  product_description VARCHAR(255) NOT NULL CHECK(LENGTH(product_description) > 0),
+  price NUMERIC(7,2) NOT NULL CHECK(price > 0.00),
   stock INTEGER NOT NULL,
   image_url VARCHAR(100) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
