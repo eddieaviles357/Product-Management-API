@@ -18,7 +18,7 @@ class Products {
       {...}
       ]
   */
-  static async getProducts() { // useful to use ARRAY_AGG(category)
+  static async getProducts(id = 100000000) { // useful to use ARRAY_AGG(category)
     const result = await db.query(`
       SELECT 
         p.product_id AS id,
@@ -34,10 +34,11 @@ class Products {
       FROM products AS p
       JOIN products_categories AS p_c ON p.product_id = p_c.product_id
       JOIN categories AS c ON p_c.category_id = c.id
-      GROUP BY 
-        p.product_id
-      ORDER BY p.product_id ASC
-      LIMIT 20`);
+      WHERE p.product_id < $1
+      GROUP BY p.product_id
+      ORDER BY p.product_id DESC
+      LIMIT 20
+      `, [id]);
     
     return result.rows;
   }
