@@ -8,7 +8,9 @@ const updateProductSchema = require("../schemas/updateProductSchema.json");
 // @access    Private/Admin ?????????
 exports.getProducts = async (req, res, next) => {
   try {
-    const productsList = await Products.getProducts();
+    // we will use cursor query to retrieve more products from db
+    const {cursor} = req.query;
+    const productsList = await Products.getProducts(cursor);
 
     return res.status(200).json({
       success: true,
