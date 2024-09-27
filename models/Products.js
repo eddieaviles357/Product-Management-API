@@ -111,28 +111,27 @@ class Products {
   /*
   updates product
   */
-  static async updateProduct(id, prod) {
+  static async updateProduct(id, productBody) {
+    const defVal = {
+      sku: '', 
+      name: '', 
+      description: '', 
+      price: 0, 
+      stock: 0, 
+      imageURL: ''
+    };
 
-    const { 
-      sku, 
-      name, 
-      description, 
-      price,
-      stock,
-      imageURL 
-    } = Object.assign({}, {
-      sku: '', name: '', description: '', price: 0, stock: 0, imageURL: ''
-    }, prod);
+    const { sku, name, description, price, stock, imageURL } = Object.assign( {}, defVal, productBody );
     
     // if values are empty then return an empty object {}
-    if(  sku.length === 0 
-      & name.length === 0 
-      & description.length === 0 
-      & price === 0 
-      & stock === 0
-      & imageURL.length === 0) {
-        return {};
-      };
+    if(  
+      sku.length === 0 & 
+      name.length === 0 & 
+      description.length === 0 & 
+      price === 0 & 
+      stock === 0 &
+      imageURL.length === 0
+      ) return {};
       
     const prd = await db.query(`
       SELECT
@@ -169,7 +168,7 @@ class Products {
         product_name =        COALESCE( NULLIF($2, ''), $8 ),
         product_description = COALESCE( NULLIF($3, ''), $9 ),
         price =               COALESCE( NULLIF($4, 0.00), $10 ),
-        stock =               COALESCE( NULLIF($5::integer, $11), $11 ),
+        stock =               $5::integer + $11,
         image_url =           COALESCE( NULLIF($6, ''), $12 ),
         updated_at = NOW()
       WHERE product_id = $13
