@@ -34,7 +34,6 @@
       "description": "stock",
       "type": "number",
       "multipleOf" : 1,
-      "minimum": 0,
       "exclusiveMaximum": 100000
     },
     "imageURL": {
