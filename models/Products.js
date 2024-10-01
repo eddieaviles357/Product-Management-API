@@ -189,12 +189,16 @@ class Products {
   }
 
   static async addCategoryToProduct(productId, categoryId) {
-    const result = await db.query(`
-      INSERT INTO products_categories (product_id, category_id)
-      VALUES ($1, $2)
-      `, [productId, categoryId]);
-    
-    return result.rows[0];
+    try {
+      const result = await db.query(`
+        INSERT INTO products_categories (product_id, category_id)
+        VALUES ($1, $2)
+        `, [productId, categoryId]);
+      
+      return result.rows[0];
+    } catch (err) {
+      throw new BadRequestError("Bad request, check product id or category id")
+    }
   }
 
   /*
