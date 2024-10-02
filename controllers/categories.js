@@ -19,9 +19,10 @@ exports.getCategories = async (req, res, next) => {
 exports.addNewCategory = async (req, res, next) => {
   try {
     const { category } = req.body;
-    await Categories.addCategory(category);
+    const newCategory = await Categories.addCategory(category);
     return res.status(200).json({
-      success: true
+      success: true,
+      newCategory
     });
   } catch (err) {
     return next(err);
