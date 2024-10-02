@@ -1,6 +1,7 @@
 "use strict";
 
 const db = require("../db.js");
+const removeAllSpecialChars = require("../helpers/removeAllSpecialCharacters");
 
 class Categories {
 
@@ -36,6 +37,8 @@ class Categories {
       || updatedCategory.length === 0) {
         throw new Error('Please check inputs');
       }
+    updatedCategory = removeAllSpecialChars(updatedCategory);
+
     // does category exist in db 🤔
     const catExist = await db.query(`
       SELECT id, category
@@ -49,7 +52,7 @@ class Categories {
 
     const result = await db.query(`
       UPDATE categories 
-      SET category = COALESCE(NULLIF($1, ''), NULLIF($1, $2), $2)
+      SET category = COALESCE(NULLIF($1, ''), $2)
       WHERE id = $3
       `, [updatedCategory, category, catId]);
 
