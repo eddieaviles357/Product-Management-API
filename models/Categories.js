@@ -19,14 +19,15 @@ class Categories {
   }
 
   static async addCategory(newCategory) {
-    if(typeof newCategory !== 'string') throw new Error('Must be a string');
+    newCategory = removeAllSpecialChars(newCategory);
 
     const result = await db.query(`
       INSERT INTO categories (category)
       VALUES ( LOWER($1) )
+      RETURNING id, category
       `, [newCategory]);
-
-    console.log(`Successfully added ${newCategory} to DB`);
+      
+    return result.rows[0];
   }
 
   static async updateCategory(catId, updatedCategory) {
