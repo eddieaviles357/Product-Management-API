@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db.js");
-const removeAllSpecialChars = require("../helpers/removeAllSpecialCharacters");
+const removeNonAlphabeticChars = require("../helpers/removeNonAlphabeticChars.js");
 
 class Categories {
 
@@ -19,7 +19,7 @@ class Categories {
   }
 
   static async addCategory(newCategory) {
-    newCategory = removeAllSpecialChars(newCategory);
+    newCategory = removeNonAlphabeticChars(newCategory);
 
     const result = await db.query(`
       INSERT INTO categories (category)
@@ -38,7 +38,7 @@ class Categories {
       || updatedCategory.length === 0) {
         throw new Error('Please check inputs');
       }
-    updatedCategory = removeAllSpecialChars(updatedCategory);
+    updatedCategory = removeNonAlphabeticChars(updatedCategory);
 
     // does category exist in db 🤔
     const catExist = await db.query(`

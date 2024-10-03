@@ -9,6 +9,7 @@ const {
   ForbiddenError,
   UnprocessableEntityError
 } = require("../AppError.js");
+const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars.js");
 
 class Products {
   /*
@@ -77,7 +78,7 @@ class Products {
   adds a new product to db -> void
   */
   static async addProduct({ sku, name, description, price, stock, imageURL }) {
-
+    sku = removeNonAlphaNumericChars(sku);
     // const doesProductExist = await db.query(`SELECT sku FROM products WHERE sku = $1`, [sku]);
 
     // // throw Error if product already exists
@@ -122,6 +123,7 @@ class Products {
     };
 
     const { sku, name, description, price, stock, imageURL } = Object.assign( {}, defVal, productBody );
+    sku = removeNonAlphaNumericChars(sku);
     
     // if values are empty then return an empty object {}
     if(  
