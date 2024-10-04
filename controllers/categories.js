@@ -5,7 +5,9 @@ const Categories = require("../models/Categories");
 
 exports.getCategories = async (req, res, next) => {
   try {
-    const categories = await Categories.getAllCategories();
+    // we will use cursor query to retrieve more categories from db
+    const {cursor} = req.query;
+    const categories = await Categories.getAllCategories(cursor);
 
     return res.status(200).json({ 
       success: true, 

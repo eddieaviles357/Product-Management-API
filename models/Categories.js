@@ -12,8 +12,14 @@ class Categories {
       {...}
       ]
   */
-  static async getAllCategories() {
-    const allCategories = await db.query(`SELECT id, category FROM categories ORDER BY id ASC`);
+  static async getAllCategories(id = 100000000) {
+    const allCategories = await db.query(`
+      SELECT id, category 
+      FROM categories 
+      WHERE id < $1
+      ORDER BY id DESC
+      LIMIT 20
+      `, [id]);
 
     return ( allCategories.rows === 0 ) ? [] : allCategories.rows.map( c => ({id: c.id, category: c.category}) );
   }
