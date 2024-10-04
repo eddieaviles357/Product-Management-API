@@ -2,6 +2,7 @@
 
 const db = require("../db.js");
 const removeNonAlphabeticChars = require("../helpers/removeNonAlphabeticChars.js");
+const { BadRequestError } = require("../AppError");
 
 class Categories {
 
@@ -39,10 +40,8 @@ class Categories {
   static async updateCategory(catId, updatedCategory) {
     
     // something aint right lets just return an error ❌
-    if(  typeof updatedCategory !== 'string' 
-      || typeof catId !== 'number'
-      || updatedCategory.length === 0) {
-        throw new Error('Please check inputs');
+    if(  typeof updatedCategory !== 'string' || updatedCategory.length === 0) {
+        throw new BadRequestError('Please check inputs');
       }
     updatedCategory = removeNonAlphabeticChars(updatedCategory);
 
@@ -54,7 +53,7 @@ class Categories {
       `, [catId]);
 
       // doesn't exist in db lets return error ❌
-      if(catExist.rows.length === 0) throw new Error(`${updatedCategory} does not exist`);
+      if(catExist.rows.length === 0) throw new BadRequestError(`${updatedCategory} does not exist`);
       const { category } = catExist.rows[0];
 
     const result = await db.query(`

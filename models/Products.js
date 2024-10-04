@@ -19,7 +19,7 @@ class Products {
       {...}
       ]
   */
-  static async getProducts(id = 100000000) { // useful to use ARRAY_AGG(category)
+  static async getProducts(id = 100000000) {
     const result = await db.query(`
       SELECT 
         p.product_id AS id,
@@ -50,7 +50,6 @@ class Products {
 
   */
   static async findProductById(id) {
-    if(typeof id !== "number" || isNaN(id)) throw new UnprocessableEntityError("ID must be a number");
 
     const result = await db.query(`
       SELECT
@@ -122,9 +121,15 @@ class Products {
       imageURL: ''
     };
 
-    const { sku, name, description, price, stock, imageURL } = Object.assign( {}, defVal, productBody );
-    sku = removeNonAlphaNumericChars(sku);
-    
+    let { 
+      sku: sku = removeNonAlphaNumericChars(sku), 
+      name, 
+      description, 
+      price, 
+      stock, 
+      imageURL 
+      } = Object.assign( {}, defVal, productBody );
+
     // if values are empty then return an empty object {}
     if(  
       sku.length === 0 & 
@@ -208,7 +213,6 @@ class Products {
   returns -> { product_name, success }
   */
   static async removeProduct(id) {
-    if(typeof id !== "number" || isNaN(id)) throw new UnprocessableEntityError("ID must be a number");
 
     const result = await db.query(`
       DELETE FROM products 
