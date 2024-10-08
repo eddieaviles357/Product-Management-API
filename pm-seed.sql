@@ -84,3 +84,11 @@ VALUES
 ('east', 'eas', 'eas123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'eas123@123.com'),
 ('south', 'sou', 'sou123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'sou123@123.com'),
 ('center', 'cen', 'cen123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'cen123@123.com');
+
+INSERT INTO addresses (user_id, address_1, address_2, city, state, zipcode)
+VALUES
+(1, '101 dolly', '', 'dalmation', 'MI', '01234'),
+(2, '201 disney st', '', 'dalmation', 'MI', '01234'),
+(3, '10201 storm blvd', '', 'dalmation', 'MI', '01234'),
+(4, '2004 godville ave', '', 'dalmation', 'MI', '01234'),
+(5, '690 richard st', '', 'dalmation', 'MI', '01234');
