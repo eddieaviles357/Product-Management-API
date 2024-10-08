@@ -42,7 +42,12 @@ CREATE TABLE addresses {
   zipcode VARCHAR(5) NOT NULL
 }
 
-
+CREATE TABLE reviews (
+  id SERIAL PRIMARY KEY,
+  product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
+  review VARCHAR(500) NOT NULL
+)
 
 CREATE  FUNCTION update_updated_at_product()
 RETURNS TRIGGER AS $$
