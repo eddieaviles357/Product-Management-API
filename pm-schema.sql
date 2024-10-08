@@ -21,6 +21,18 @@ CREATE TABLE products_categories (
   category_id INTEGER NOT NULL REFERENCES categories ON DELETE CASCADE
 );
 
+CREATE TABLE users {
+  id SERIAL PRIMARY KEY,
+  first_name VARCHAR(30) NOT NULL,
+  last_name VARCHAR(30) NOT NULL,
+  username VARCHAR(20) UNIQUE NOT NULL,
+  password VARCHAR(60) UNIQUE NOT NULL,
+  join_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  last_login_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  email VARCHAR(50) NOT NULL
+}
+
+
 CREATE  FUNCTION update_updated_at_product()
 RETURNS TRIGGER AS $$
 BEGIN
