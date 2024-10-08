@@ -21,7 +21,7 @@ CREATE TABLE products_categories (
   category_id INTEGER NOT NULL REFERENCES categories ON DELETE CASCADE
 );
 
-CREATE TABLE users {
+CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   first_name VARCHAR(30) NOT NULL,
   last_name VARCHAR(30) NOT NULL,
@@ -30,24 +30,24 @@ CREATE TABLE users {
   join_at TIMESTAMP NOT NULL DEFAULT NOW(),
   last_login_at TIMESTAMP NOT NULL DEFAULT NOW(),
   email VARCHAR(50) NOT NULL
-}
+);
 
-CREATE TABLE addresses {
+CREATE TABLE addresses (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
   address_1 VARCHAR(95) NOT NULL,
   address_2 VARCHAR(95),
-  city VARCHAR(35) NOT NULL,,
+  city VARCHAR(35) NOT NULL,
   state VARCHAR(2) NOT NULL,
   zipcode VARCHAR(5) NOT NULL
-}
+);
 
 CREATE TABLE reviews (
   id SERIAL PRIMARY KEY,
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
   review VARCHAR(500) NOT NULL
-)
+);
 
 CREATE  FUNCTION update_updated_at_product()
 RETURNS TRIGGER AS $$

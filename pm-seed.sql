@@ -75,7 +75,7 @@ VALUES
 (21, 1),
 (22, 1),
 (23, 1),
-(24, 1)
+(24, 1);
 
 INSERT INTO users (first_name, last_name, username, password, join_at, last_login_at, email)
 VALUES 
