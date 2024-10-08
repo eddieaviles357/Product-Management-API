@@ -32,6 +32,17 @@ CREATE TABLE users {
   email VARCHAR(50) NOT NULL
 }
 
+CREATE TABLE addresses {
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
+  address_1 VARCHAR(95) NOT NULL,
+  address_2 VARCHAR(95),
+  city VARCHAR(35) NOT NULL,,
+  state VARCHAR(2) NOT NULL,
+  zipcode VARCHAR(5) NOT NULL
+}
+
+
 
 CREATE  FUNCTION update_updated_at_product()
 RETURNS TRIGGER AS $$
