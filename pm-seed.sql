@@ -92,3 +92,21 @@ VALUES
 (3, '10201 storm blvd', '', 'dalmation', 'MI', '01234'),
 (4, '2004 godville ave', '', 'dalmation', 'MI', '01234'),
 (5, '690 richard st', '', 'dalmation', 'MI', '01234');
+
+INSERT INTO reviews (product_id, user_id, review)
+VALUES
+(1, 1, 'cool product'),
+(2, 1, 'cool product'),
+(3, 1, 'cool product'),
+(1, 2, 'nice item'),
+(2, 2, 'nice item'),
+(3, 2, 'nice item'),
+(1, 3, 'horrible'),
+(2, 3, 'horrible'),
+(3, 3, 'horrible'),
+(1, 4, 'best item'),
+(2, 4, 'best item'),
+(3, 4, 'best item'),
+(1, 5, 'useless'),
+(2, 5, 'useless'),
+(3, 5, 'useless');
