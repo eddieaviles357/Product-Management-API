@@ -8,25 +8,16 @@ exports.getCategories = async (req, res, next) => {
     // we will use cursor query to retrieve more categories from db
     const { cursor } = req.query;
 
-    if(cursor === undefined && Object.keys(req.query).length === 0) {
-      const categories = await Categories.getAllCategories(cursor);
-
-      return res.status(200).json({ 
-        success: true, 
-        categories
-      });
-    } else {
-      const { cursor } = req.query;
-      
+    if( !(cursor === undefined && Object.keys(req.query).length === 0) ) {
       if(isNaN(cursor)) throw new BadRequestError("cursor must be a number");
+    };
+    
+    const categories = await Categories.getAllCategories(cursor);
 
-      const categories = await Categories.getAllCategories(cursor);
-
-      return res.status(200).json({ 
-        success: true, 
-        categories
-      });
-    }
+    return res.status(200).json({ 
+      success: true, 
+      categories
+    });
 
 
   } catch (err) {
