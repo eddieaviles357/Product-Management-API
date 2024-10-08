@@ -11,25 +11,16 @@ exports.getProducts = async (req, res, next) => {
     // we will use cursor query to retrieve more products from db
     const { cursor } = req.query;
 
-    if(cursor === undefined && Object.keys(req.query).length === 0) {
-      const productsList = await Products.getProducts(cursor);
-
-      return res.status(200).json({
-        success: true,
-        products: productsList
-      });
-    } else {
-      const { cursor } = req.query;
-
-      const productsList = await Products.getProducts(cursor);
-      
+    if( !(cursor === undefined && Object.keys(req.query).length === 0) ) {
       if(isNaN(cursor))throw new BadRequestError("cursor must be a number");
-
-      return res.status(200).json({
-        success: true,
-        products: productsList
-      });
     };
+
+    const productsList = await Products.getProducts(cursor);
+
+    return res.status(200).json({
+      success: true,
+      products: productsList
+    });
 
   } catch (err) {
     return next(err);
