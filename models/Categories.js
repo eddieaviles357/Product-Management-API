@@ -21,8 +21,11 @@ class Categories {
       ORDER BY id DESC
       LIMIT 20
       `, [id]);
-
-    return ( allCategories.rows === 0 ) ? [] : allCategories.rows.map( c => ({id: c.id, category: c.category}) );
+      // !!!! NEEDS REVISION !!!!!
+      // !!!! NEEDS REVISION !!!!!
+      return ( allCategories.rows === 0 ) ? [] : allCategories.rows.map( c => ({id: c.id, category: c.category}) );
+      // !!!! NEEDS REVISION !!!!!
+      // !!!! NEEDS REVISION !!!!!
   }
 
   static async addCategory(newCategory) {
