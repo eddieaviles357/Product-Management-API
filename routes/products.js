@@ -10,6 +10,7 @@ const {
   deleteProductById,
   addCategoryToProduct
 } = require("../controllers/products");
+// const router = require("express").Router({mergeParams: true});
 const router = require("express").Router({mergeParams: true});
 const validateNewProduct = require("../middleware/validateNewProduct");
 const validateUpdatedProduct = require("../middleware/validateUpdatedProduct");

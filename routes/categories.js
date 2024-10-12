@@ -7,7 +7,7 @@ const {
   deleteCategory,
   getCategoryProducts,
 } = require("../controllers/categories");
-const router = require("express").Router({ mergeParams: true });
+const router = require("express").Router();
 const validateNewCategory = require("../middleware/validateNewCategory");
 const validateUpdatedCategory = require("../middleware/validateUpdatedCategory");
 
