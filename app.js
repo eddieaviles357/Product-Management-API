@@ -6,11 +6,13 @@ const app = express();
 
 const productsRoutes = require("./routes/products");
 const categoriesRoutes = require("./routes/categories");
+// const reviewsRoutes = require("./routes/reviews");
 
 app.use(express.json());
 
 app.use("/api/v1/products", productsRoutes);
 app.use("/api/v1/categories", categoriesRoutes);
+// app.use("/api/v1/reviews", reviewsRoutes);
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {
