@@ -7,7 +7,7 @@ const { BadRequestError } = require("../AppError");
 // @route     GET /api/v1/reviews/product/:id
 // @access    Private/Admin ?????????
 exports.getReviewsForProduct = async (req, res, next) => {
-  try {console.log(req.params.id)
+  try {
     const id = Number(req.params.id);
 
     if(isNaN(id)) throw new BadRequestError("Id must be a number");
