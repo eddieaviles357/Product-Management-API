@@ -2,6 +2,7 @@
 
 const {
   getReviewsForProduct,
+  getReview
 } = require("../controllers/reviews");
 const router = require("express").Router();
 
@@ -9,9 +10,11 @@ const router = require("express").Router();
 // addReview,
 // updateReview,
 // removeReview
-
 router
-  .route('/product/:id')
+  .route("/:reviewId")
+  .get(getReview)
+router
+  .route("/product/:id")
   .get(getReviewsForProduct)
 //   .post()
 //   .delete()
