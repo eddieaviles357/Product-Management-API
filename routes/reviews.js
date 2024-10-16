@@ -2,7 +2,8 @@
 
 const {
   getReviewsForProduct,
-  getReview
+  getReview,
+  addReviewToProduct
 } = require("../controllers/reviews");
 const router = require("express").Router();
 
@@ -16,7 +17,9 @@ router
 router
   .route("/product/:id")
   .get(getReviewsForProduct)
-//   .post()
+router
+  .route("/product/:productId/user/:userId")
+  .post(addReviewToProduct)
 //   .delete()
 
 module.exports = router;

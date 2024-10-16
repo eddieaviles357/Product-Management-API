@@ -19,7 +19,9 @@ class Reviews {
         id,
         product_id AS "productId",
         user_id AS "userId",
-        review
+        review,
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
       FROM reviews
       WHERE id = $1
       `, [reviewId]);
@@ -33,9 +35,12 @@ class Reviews {
     
     const result = await db.query(`
       SELECT 
-        r.id,
+        r.product_id AS "productId",
+        r.user_id AS "userId",
         u.first_name AS "firstName",
-        r.review
+        r.review,
+        r.created_at AS "createdAt",
+        r.updated_at AS "updatedAt"
       FROM reviews r
       JOIN products p ON p.product_id = r.product_id
       JOIN users u ON u.id = r.user_id
@@ -46,6 +51,22 @@ class Reviews {
     return result.rows;
   };
 
+  static async addReview(prodId, userId, review) { 
+
+    const result = await db.query(`
+      INSERT INTO reviews (product_id, user_id, review)
+      VALUES ($1, $2, $3)
+      RETURNING 
+        product_id AS "productId", 
+        user_id AS "userId", 
+        review,
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+      `, [prodId, userId, review]);
+
+      if(result.rows.length === 0) throw new NotFoundError(`Could not process review`)
+    return result.rows[0];
+  };
   
 };
 
