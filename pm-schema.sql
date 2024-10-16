@@ -43,10 +43,12 @@ CREATE TABLE addresses (
 );
 
 CREATE TABLE reviews (
-  id SERIAL PRIMARY KEY,
+  PRIMARY KEY (product_id, user_id),
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
-  review VARCHAR(500) NOT NULL
+  review VARCHAR(500) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE  FUNCTION update_updated_at_product()
