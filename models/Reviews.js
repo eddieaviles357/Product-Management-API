@@ -13,20 +13,19 @@ const {
 class Reviews {
   // returns single review
   // throws error if no review with vaild id exists
-  static async getSingleReview(reviewId) {
+  static async getSingleReview(productId, userId) {
     const result = await db.query(`
       SELECT 
-        id,
         product_id AS "productId",
         user_id AS "userId",
         review,
         created_at AS "createdAt",
         updated_at AS "updatedAt"
       FROM reviews
-      WHERE id = $1
-      `, [reviewId]);
+      WHERE product_id = $1 AND user_id = $2
+      `, [productId, userId]);
     
-    if (result.rows.length === 0) throw new NotFoundError(`No reviews with id ${reviewId} found`);
+    if (result.rows.length === 0) throw new NotFoundError(`No reviews found with product id ${productId} user id ${userId}`);
 
     return result.rows[0];
   };

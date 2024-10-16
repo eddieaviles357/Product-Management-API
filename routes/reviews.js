@@ -12,13 +12,11 @@ const router = require("express").Router();
 // updateReview,
 // removeReview
 router
-  .route("/:reviewId")
-  .get(getReview)
-router
   .route("/product/:id")
   .get(getReviewsForProduct)
 router
   .route("/product/:productId/user/:userId")
+  .get(getReview)
   .post(addReviewToProduct)
 //   .delete()
 

@@ -8,11 +8,12 @@ const { BadRequestError } = require("../AppError");
 // @access    Private/Admin ?????????
 exports.getReview = async (req, res, next) => {
   try {
-    const id = Number(req.params.reviewId);
+    const productId = Number(req.params.productId);
+    const userId = Number(req.params.userId)
 
-    if(isNaN(id)) throw new BadRequestError("Id must be a number");
+    if(isNaN(productId) || isNaN(userId)) throw new BadRequestError("Id must be a number");
 
-    const review = await Reviews.getSingleReview(id);
+    const review = await Reviews.getSingleReview(productId, userId);
 
     return res.status(200).json({
       success: true,
