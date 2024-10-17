@@ -93,17 +93,17 @@ VALUES
 (4, '2004 godville ave', '', 'dalmation', 'MI', '01234'),
 (5, '690 richard st', '', 'dalmation', 'MI', '01234');
 
-INSERT INTO reviews (product_id, user_id, review)
+INSERT INTO reviews (product_id, user_id, review, rating)
 VALUES
-(2, 2, 'nice item'),
-(2, 3, 'nice item'),
-(2, 4, 'nice item'),
-(2, 5, 'horrible'),
-(3, 2, 'horrible'),
-(3, 3, 'horrible'),
-(3, 4, 'best item'),
-(4, 2, 'best item'),
-(4, 3, 'best item'),
-(4, 4, 'useless'),
-(5, 2, 'useless'),
-(5, 3, 'useless');
+(2, 2, 'nice item', 1),
+(2, 3, 'nice item', 2),
+(2, 4, 'nice item', 3),
+(2, 5, 'horrible', 5),
+(3, 2, 'horrible', 3),
+(3, 3, 'horrible', 2),
+(3, 4, 'best item', 5),
+(4, 2, 'best item', 2),
+(4, 3, 'best item', 1),
+(4, 4, 'useless', 5),
+(5, 2, 'useless', 5),
+(5, 3, 'useless', 5);

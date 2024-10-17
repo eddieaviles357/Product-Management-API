@@ -47,6 +47,7 @@ CREATE TABLE reviews (
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
   review VARCHAR(500) NOT NULL,
+  rating SMALLINT NOT NULL CHECK ( rating >= 0 AND rating <= 5),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -65,3 +66,18 @@ CREATE TRIGGER update_product_updated_at
         products
     FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_product();
+
+CREATE  FUNCTION update_updated_at_review()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_review_updated_at
+    BEFORE UPDATE
+    ON
+        reviews
+    FOR EACH ROW
+EXECUTE PROCEDURE update_updated_at_review();
