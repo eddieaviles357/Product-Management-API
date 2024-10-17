@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.productmanagement.com/v1/addReview.schema.json",
+  "title": "AddReview",
+  "description": "Adds new review",
+  "type": "object",
+  "properties": {
+    "review": {
+      "description": "review",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "rating": {
+      "description": "rating",
+      "type": "number",
+      "multipleOf" : 1,
+      "minimum": 0,
+      "maximum": 5
+    }
+  },
+  "additionalProperties": false,
+  "required": ["review", "rating"]
+}
