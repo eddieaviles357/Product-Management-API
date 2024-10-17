@@ -52,7 +52,7 @@ class Reviews {
     return result.rows;
   };
 
-  static async addReview(prodId, userId, review, rating) { 
+  static async addReview(prodId, userId, {review, rating}) { 
 
     const result = await db.query(`
       INSERT INTO reviews (product_id, user_id, review, rating)
