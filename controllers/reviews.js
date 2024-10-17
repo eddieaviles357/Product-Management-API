@@ -53,7 +53,7 @@ exports.addReviewToProduct = async (req, res, next) => {
   try {
     const productId = Number(req.params.productId);
     const userId = Number(req.params.userId);
-    const reviewBody = req.body.review;
+    const reviewBody = req.body;
 
     if(isNaN(productId) || isNaN(userId)) throw new BadRequestError("Id must be a number");
 
