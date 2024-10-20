@@ -52,7 +52,7 @@ class Reviews {
     return result.rows;
   };
 
-  static async addReview(prodId, userId, {review, rating}) { 
+  static async addReview(prodId, userId, review, rating) { 
 
     const result = await db.query(`
       INSERT INTO reviews (product_id, user_id, review, rating)
@@ -69,7 +69,44 @@ class Reviews {
       if(result.rows.length === 0) throw new NotFoundError(`Could not process review`)
     return result.rows[0];
   };
-  
+
+  static async updateReview(prodId, userId, review, rating) { 
+    if(review.length === 0 & rating === 0) return {};
+
+    const reviewInDb = await db.query(`
+      SELECT 
+        review,
+        rating
+      FROM reviews
+      WHERE product_id = $1 AND user_id = $2
+      `, [prodId, userId]);
+    
+    if(reviewInDb.rows.length === 0) return {};
+
+    const existingReview = JSON.stringify(reviewInDb.rows[0]);
+    const parsedReview = JSON.parse(existingReview);
+
+    // must assign values different names to avoid collisions issues
+    const { review: rev } = parsedReview;
+
+    const result = await db.query(`
+      UPDATE reviews SET
+        review = COALESCE( NULLIF($3, ''), $5 ),
+        rating = $4,
+        updated_at = NOW()
+      WHERE product_id = $1 AND user_id = $2
+      RETURNING 
+        product_id AS "productId", 
+        user_id AS "userId", 
+        review,
+        rating,
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+      `, [prodId, userId, review, rating, rev]);
+
+      if(result.rows.length === 0) throw new NotFoundError(`Could not process review`)
+    return result.rows[0];
+  };
 };
 
 module.exports = Reviews;

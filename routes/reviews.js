@@ -3,10 +3,12 @@
 const {
   getReviewsForProduct,
   getReview,
-  addReviewToProduct
+  addReviewToProduct,
+  updateReviewToProduct,
 } = require("../controllers/reviews");
 const router = require("express").Router();
 const validateNewReview = require("../middleware/validateNewReview");
+const validateUpdatedReview = require("../middleware/validateUpdatedReview");
 
 // getReview
 // addReview,
@@ -19,6 +21,7 @@ router
   .route("/product/:productId/user/:userId")
   .get(getReview)
   .post(validateNewReview, addReviewToProduct)
+  .put(validateUpdatedReview, updateReviewToProduct)
 //   .delete()
 
 module.exports = router;
