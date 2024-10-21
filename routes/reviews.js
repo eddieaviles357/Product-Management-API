@@ -5,6 +5,7 @@ const {
   getReview,
   addReviewToProduct,
   updateReviewToProduct,
+  deleteReviewFromProduct
 } = require("../controllers/reviews");
 const router = require("express").Router();
 const validateNewReview = require("../middleware/validateNewReview");
@@ -22,6 +23,7 @@ router
   .get(getReview)
   .post(validateNewReview, addReviewToProduct)
   .put(validateUpdatedReview, updateReviewToProduct)
+  .delete(deleteReviewFromProduct)
 //   .delete()
 
 module.exports = router;

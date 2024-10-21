@@ -107,6 +107,22 @@ class Reviews {
       if(result.rows.length === 0) throw new NotFoundError(`Could not process review`)
     return result.rows[0];
   };
+
+  static async deleteReview(prodId, userId) {
+
+    const result = await db.query(`
+      DELETE FROM reviews 
+      WHERE product_id = $1 AND user_id = $2 
+      RETURNING 
+        user_id AS "userId",
+        product_id AS "productId",
+        review
+      `, [prodId, userId]);
+
+    return (result.rows.length === 0) 
+          ? { review: `Review with product id ${prodId} user id ${userId} not found`, success: false}
+          : { review: result.rows[0], success: true};
+  }
 };
 
 module.exports = Reviews;

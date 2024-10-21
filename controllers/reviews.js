@@ -71,7 +71,7 @@ exports.addReviewToProduct = async (req, res, next) => {
 };
 
 // @desc      Updates review to product
-// @route     PUT /api/v1/reviews/product/:id
+// @route     PUT /api/v1/reviews/product/:productId/user/:userId
 // @access    Private/Admin ?????????
 exports.updateReviewToProduct = async (req, res, next) => {
   try {
@@ -92,3 +92,24 @@ exports.updateReviewToProduct = async (req, res, next) => {
     return next(err);
   }
 };
+
+// @desc      Deletes a review
+// @route     DELETE /api/v1/reviews/product/:productId/user/:userId
+// @access    Private/Admin ?????????
+exports.deleteReviewFromProduct = async (req, res, next) => {
+  try {
+    const productId = Number(req.params.productId);
+    const userId = Number(req.params.userId);
+
+    const {success, review} = await Reviews.deleteReview(productId, userId);
+
+    const statusCode = success ? 200 : 204;
+
+    return res.status(statusCode).json({ 
+      success,
+      result: review
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
