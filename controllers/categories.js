@@ -80,12 +80,14 @@ exports.deleteCategory = async (req, res, next) => {
 
     if(isNaN(catId)) throw new BadRequest("category id must be a number");
     
-    const success = await Categories.removeCategory(catId);
+    const {success, category} = await Categories.removeCategory(catId);
+    
+    const statusCode = success ? 200 : 204;
 
-    success 
-      ? res.status(200).json({ success }) 
-      : res.status(200).json({ success, message: "Category does not exist" });
-
+    return res.status(statusCode).json({ 
+      success,
+      result: category
+    });
   } catch (err) {
     return next(err);
   }
