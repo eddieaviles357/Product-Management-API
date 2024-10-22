@@ -47,10 +47,11 @@ exports.updateCategory = async (req, res, next) => {
 
     if(isNaN(catId)) throw new BadRequestError("category id must be a number");
 
-    await Categories.updateCategory(catId, updatedCategory);
+    const category = await Categories.updateCategory(catId, updatedCategory);
     
     return res.status(200).json({
-      success: true
+      success: true,
+      category
     });
   } catch (err) {
     return next(err);

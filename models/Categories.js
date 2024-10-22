@@ -55,14 +55,15 @@ class Categories {
     if(catExist.rows.length === 0) throw new BadRequestError(`${updatedCategory} does not exist`);
     const { category } = catExist.rows[0];
 
+    if(category === updatedCategory) throw new BadRequestError(`${updatedCategory} already exists`);
+
     const result = await db.query(`
       UPDATE categories 
       SET category = COALESCE(NULLIF($1, ''), $2)
       WHERE id = $3
       RETURNING id, category
       `, [updatedCategory, category, catId]);
-    
-    if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
+
     return result.rows[0];
   }
   
