@@ -21,11 +21,7 @@ class Categories {
       ORDER BY id DESC
       LIMIT 20
       `, [id]);
-      // !!!! NEEDS REVISION !!!!!
-      // !!!! NEEDS REVISION !!!!!
-      return ( allCategories.rows === 0 ) ? [] : allCategories.rows.map( c => ({id: c.id, category: c.category}) );
-      // !!!! NEEDS REVISION !!!!!
-      // !!!! NEEDS REVISION !!!!!
+      return ( allCategories.rows === 0 ) ? [] : allCategories.rows;
   }
 
   static async addCategory(newCategory) {
@@ -106,7 +102,9 @@ class Categories {
       RETURNING category
     `, [catId]);
     
-    return (result.rows.length === 0) ? false : true;
+    return (result.rows.length === 0) 
+    ? { category: `Category with id ${catId} not found`, success: false } 
+    : { category: result.rows[0], success: true }
   }
 }
 
