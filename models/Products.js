@@ -20,28 +20,30 @@ class Products {
       ]
   */
   static async getProducts(id = 100000000) {
-    const result = await db.query(`
-      SELECT 
-        p.product_id AS id,
-        p.sku,
-        p.product_name AS "productName",
-        p.product_description AS "productDescription",
-        p.price,
-        p.stock,
-        p.image_url AS "imageURL",
-        p.created_at AS "createdAt",
-        p.updated_at AS "updatedAt",
-        ARRAY_AGG(c.category) AS categories
-      FROM products AS p
-      JOIN products_categories AS p_c ON p.product_id = p_c.product_id
-      JOIN categories AS c ON p_c.category_id = c.id
-      WHERE p.product_id < $1
-      GROUP BY p.product_id
-      ORDER BY p.product_id DESC
-      LIMIT 20
-      `, [id]);
+    // pg statement
+    const queryStatement = `SELECT 
+                              p.product_id AS id,
+                              p.sku,
+                              p.product_name AS "productName",
+                              p.product_description AS "productDescription",
+                              p.price,
+                              p.stock,
+                              p.image_url AS "imageURL",
+                              p.created_at AS "createdAt",
+                              p.updated_at AS "updatedAt",
+                              ARRAY_AGG(c.category) AS categories
+                            FROM products AS p
+                            JOIN products_categories AS p_c ON p.product_id = p_c.product_id
+                            JOIN categories AS c ON p_c.category_id = c.id
+                            WHERE p.product_id < $1
+                            GROUP BY p.product_id
+                            ORDER BY p.product_id DESC
+                            LIMIT 20`;
+    // pg values
+    const queryValues = [id];
+    const result = await db.query(queryStatement, queryValues);
     
-    return result.rows;
+    return (result.rows.length === 0) ? [] : result.rows;
   }
 
   /*
@@ -50,66 +52,75 @@ class Products {
 
   */
   static async findProductById(id) {
-
-    const result = await db.query(`
-      SELECT
-        p.product_id AS id,
-        p.sku,
-        p.product_name AS name,
-        p.product_description AS description,
-        p.price,
-        p.stock,
-        p.image_url,
-        p.created_at AS "createdAt",
-        p.updated_at AS "updatedAt",
-        ARRAY_AGG(c.category) AS categories
-      FROM products p
-      JOIN products_categories pc ON pc.product_id = p.product_id
-      JOIN categories c ON c.id = pc.category_id
-      WHERE p.product_id = $1
-      GROUP BY p.product_id
-    `, [id]);
+    // pg statement
+    const queryStatement = `SELECT
+                              p.product_id AS id,
+                              p.sku,
+                              p.product_name AS name,
+                              p.product_description AS description,
+                              p.price,
+                              p.stock,
+                              p.image_url,
+                              p.created_at AS "createdAt",
+                              p.updated_at AS "updatedAt",
+                              ARRAY_AGG(c.category) AS categories
+                            FROM products p
+                            JOIN products_categories pc ON pc.product_id = p.product_id
+                            JOIN categories c ON c.id = pc.category_id
+                            WHERE p.product_id = $1
+                            GROUP BY p.product_id`;
+    // pg values
+    const queryValues = [id];
+    const result = await db.query(queryStatement, queryValues);
     
     return (result.rows.length === 0) ? {} : result.rows[0];
   }
 
   /*
-  adds a new product to db -> void
+  adds a new product to db 
+  returns -> {
+    id, sku, productName, productDescription, 
+    price, stock, imageURL, createdAt
+    }
   */
   static async addProduct({ sku, name, description, price, stock, imageURL }) {
     sku = removeNonAlphaNumericChars(sku);
-    // const doesProductExist = await db.query(`SELECT sku FROM products WHERE sku = $1`, [sku]);
-
-    // // throw Error if product already exists
-    // if( doesProductExist.length === 0 ) throw new BadRequestError(`Product already exists`);
-
-    // insert product and use the id to insert into products_categories table inserting default 'none' category
-    const result = await db.query(`
-      WITH insert_to_prod AS (
-        INSERT INTO products (sku, product_name, product_description, price, stock, image_url)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING 
-          product_id AS id, 
-          sku, 
-          product_name AS "productName", 
-          product_description AS "productDescription",
-          price,
-          stock,
-          image_url AS "imageURL",
-          created_at AS "createdAt"
-      ),
-      inserted AS (
-        INSERT INTO products_categories (product_id, category_id)
-        SELECT id, 1 FROM insert_to_prod
-      )
-        SELECT * FROM insert_to_prod
-      `, [sku, name, description, price, stock, imageURL]);
+    /* 
+      insert to products table, and use the return value id.
+       Use return value id to our products_categories table setting default category to 'none' 
+    */
+    // pg statement
+    const queryStatement = `WITH insert_to_prod AS (
+                            INSERT INTO products (sku, product_name, product_description, price, stock, image_url)
+                            VALUES ($1, $2, $3, $4, $5, $6)
+                            RETURNING 
+                              product_id AS id, 
+                              sku, 
+                              product_name AS "productName", 
+                              product_description AS "productDescription",
+                              price,
+                              stock,
+                              image_url AS "imageURL",
+                              created_at AS "createdAt"
+                          ),
+                          inserted AS (
+                            INSERT INTO products_categories (product_id, category_id)
+                            SELECT id, 1 FROM insert_to_prod
+                          )
+                            SELECT * FROM insert_to_prod`;
+    // pg values
+    const queryValues = [sku, name, description, price, stock, imageURL]
+    const result = await db.query(queryStatement, queryValues);
     
-    return result.rows[0];
+    return (result.rows.length === 0) ? {} : result.rows[0];
   }
 
   /*
-  updates product
+    updates product
+    returns -> {
+      id, sku, productName, productDescription,
+      price, stock, imageURL, createdAt, updatedAt
+    }
   */
   static async updateProduct(id, productBody) {
     const defVal = {
@@ -121,6 +132,7 @@ class Products {
       imageURL: ''
     };
 
+    // set default values if no values are given
     let { 
       sku: sku = removeNonAlphaNumericChars(sku), 
       name, 
@@ -139,24 +151,24 @@ class Products {
       stock === 0 &
       imageURL.length === 0
       ) return {};
-      
-    const prd = await db.query(`
-      SELECT
-        product_id AS id,
-        sku,
-        product_name AS name,
-        product_description AS description,
-        price,
-        stock,
-        image_url,
-        created_at AS "createdAt",
-        updated_at AS "updatedAt"
-      FROM products WHERE product_id = $1
-      `, [id]);
 
-    if(prd.rows.length === 0) return {};
+    const productExistQueryStatement = `SELECT
+                                    product_id AS id,
+                                    sku,
+                                    product_name AS name,
+                                    product_description AS description,
+                                    price,
+                                    stock,
+                                    image_url,
+                                    created_at AS "createdAt",
+                                    updated_at AS "updatedAt"
+                                  FROM products WHERE product_id = $1`;
+    const productExistQueryValues = [id];
+    const existingProductQueryResults = await db.query(productExistQueryStatement, productExistQueryValues);
 
-    const existingProduct = JSON.stringify(prd.rows[0]);
+    if(existingProductQueryResults.rows.length === 0) return {};
+
+    const existingProduct = JSON.stringify(existingProductQueryResults.rows[0]);
     const parsedProduct = JSON.parse(existingProduct);
 
     // must assign values different names to avoid collisions issues
@@ -169,43 +181,41 @@ class Products {
       image_url: imgURL
     } = parsedProduct;
     
-    const result = await db.query(`
-      UPDATE products SET
-        sku =                 COALESCE( NULLIF($1, ''), $7 ),
-        product_name =        COALESCE( NULLIF($2, ''), $8 ),
-        product_description = COALESCE( NULLIF($3, ''), $9 ),
-        price =               COALESCE( NULLIF($4, 0.00), $10 ),
-        stock =               $5::integer + $11,
-        image_url =           COALESCE( NULLIF($6, ''), $12 ),
-        updated_at = NOW()
-      WHERE product_id = $13
-      RETURNING 
-        product_id AS id,
-        sku, 
-        product_name AS "productName",
-        product_description AS "productDescription",
-        price,
-        stock,
-        image_url AS "imageURL",
-        created_at AS "createdAt",
-        updated_at AS "updatedAt"
-      `, [sku, name, description, price, stock, imageURL, 
-        sk, nm, desc, prc, stck, imgURL, id]);
+    const queryStatement = `UPDATE products SET
+                              sku =                 COALESCE( NULLIF($1, ''), $7 ),
+                              product_name =        COALESCE( NULLIF($2, ''), $8 ),
+                              product_description = COALESCE( NULLIF($3, ''), $9 ),
+                              price =               COALESCE( NULLIF($4, 0.00), $10 ),
+                              stock =               $5::integer + $11,
+                              image_url =           COALESCE( NULLIF($6, ''), $12 ),
+                              updated_at = NOW()
+                            WHERE product_id = $13
+                            RETURNING 
+                              product_id AS id,
+                              sku, 
+                              product_name AS "productName",
+                              product_description AS "productDescription",
+                              price,
+                              stock,
+                              image_url AS "imageURL",
+                              created_at AS "createdAt",
+                              updated_at AS "updatedAt"`;
+    const queryValues = [sku, name, description, price, stock, imageURL, sk, nm, desc, prc, stck, imgURL, id];
+    const result = await db.query(queryStatement, queryValues);
 
-    return result.rows[0];
+    return (result.rows.length === 0) ? {} : result.rows[0];
   }
 
   static async addCategoryToProduct(productId, categoryId) {
-    try {
-      const result = await db.query(`
-        INSERT INTO products_categories (product_id, category_id)
-        VALUES ($1, $2)
-        `, [productId, categoryId]);
-      
-      return result.rows[0];
-    } catch (err) {
-      throw new BadRequestError("Bad request, check product id or category id")
-    }
+    const queryStatement = `INSERT INTO products_categories (product_id, category_id)
+                            VALUES ($1, $2)
+                            RETURNING 
+                              product_id AS "productId", 
+                              category_id AS "categoryId"`;
+    const queryValues = [productId, categoryId]
+    const result = await db.query(queryStatement, queryValues);
+    
+    return (result.rows.length === 0) ? {} : result.rows[0];
   }
 
   /*
@@ -213,12 +223,11 @@ class Products {
   returns -> { product_name, success }
   */
   static async removeProduct(id) {
-
-    const result = await db.query(`
-      DELETE FROM products 
-      WHERE product_id = $1
-      RETURNING product_name
-      `, [id]);
+    const queryStatement = `DELETE FROM products 
+                            WHERE product_id = $1
+                            RETURNING product_name`;
+    const queryValues = [id];
+    const result = await db.query(queryStatement, queryValues);
 
       return (result.rows.length === 0) 
             ? { product_name : `Product with id ${id} not found`, success: false } 

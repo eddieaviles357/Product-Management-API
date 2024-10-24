@@ -12,7 +12,7 @@ exports.getProducts = async (req, res, next) => {
     const { cursor } = req.query;
 
     if( !(cursor === undefined && Object.keys(req.query).length === 0) ) {
-      if(isNaN(cursor))throw new BadRequestError("cursor must be a number");
+      if( isNaN(cursor) ) throw new BadRequestError("cursor must be a number");
     };
 
     const productsList = await Products.getProducts(cursor);
@@ -97,6 +97,7 @@ exports.addCategoryToProduct = async (req, res, next) => { // Needs json schema 
 
     return res.status(200).json({ 
       success: true,
+      data: result
     });
   } catch (err) {
     return next(err);
