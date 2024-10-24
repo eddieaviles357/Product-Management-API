@@ -2,6 +2,7 @@
 
 const {
   getCategories,
+  getCategory,
   addNewCategory,
   updateCategory,
   deleteCategory,
@@ -22,6 +23,7 @@ router
 
 router
   .route('/:categoryId')
+  .get(getCategory)
   .put(validateUpdatedCategory, updateCategory)
   .delete(deleteCategory)
 
