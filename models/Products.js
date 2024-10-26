@@ -83,30 +83,31 @@ class Products {
       insert to products table, and use the return value id.
        Use return value id to our products_categories table setting default category to 'none' 
     */
-    // pg statement
-    const queryStatement = `WITH insert_to_prod AS (
-                            INSERT INTO products (sku, product_name, product_description, price, stock, image_url)
-                            VALUES ($1, $2, $3, $4, $5, $6)
-                            RETURNING 
-                              product_id AS id, 
-                              sku, 
-                              product_name AS "productName", 
-                              product_description AS "productDescription",
-                              price,
-                              stock,
-                              image_url AS "imageURL",
-                              created_at AS "createdAt"
-                          ),
-                          inserted AS (
-                            INSERT INTO products_categories (product_id, category_id)
-                            SELECT id, 1 FROM insert_to_prod
-                          )
+    const queryStatement = `WITH insert_to_prod AS ( 
+                                  INSERT INTO products ( 
+                                    sku, product_name, product_description, price, stock, image_url 
+                                    )
+                                  VALUES ($1, $2, $3, $4, $5, $6)
+                                  RETURNING 
+                                    product_id AS id, 
+                                    sku, 
+                                    product_name AS "productName", 
+                                    product_description AS "productDescription",
+                                    price,
+                                    stock,
+                                    image_url AS "imageURL",
+                                    created_at AS "createdAt" 
+                                  ),
+                            inserted AS ( 
+                                INSERT INTO products_categories (product_id, category_id)
+                                SELECT id, 1 FROM insert_to_prod 
+                                )
                             SELECT * FROM insert_to_prod`;
-    // pg values
     const queryValues = [sku, name, description, price, stock, imageURL]
     const result = await db.query(queryStatement, queryValues);
-    
-    return (result.rows.length === 0) ? {} : result.rows[0];
+
+    if(result.length === 0) throw new BadRequestError("Something went wrong");
+    return result.rows[0];
   }
 
   /*
@@ -147,19 +148,19 @@ class Products {
       ) return {};
 
     const productExistQueryStatement = `SELECT
-                                    product_id AS id,
-                                    sku,
-                                    product_name AS name,
-                                    product_description AS description,
-                                    price,
-                                    stock,
-                                    image_url,
-                                    created_at AS "createdAt",
-                                    updated_at AS "updatedAt"
-                                  FROM products WHERE product_id = $1`;
+                                          product_id AS id,
+                                          sku,
+                                          product_name AS name,
+                                          product_description AS description,
+                                          price,
+                                          stock,
+                                          image_url,
+                                          created_at AS "createdAt",
+                                          updated_at AS "updatedAt"
+                                        FROM products WHERE product_id = $1`;
     const existingProductQueryResults = await db.query(productExistQueryStatement, [id]);
 
-    if(existingProductQueryResults.rows.length === 0) return {};
+    if(existingProductQueryResults.rows.length === 0) throw new BadRequestError("No products to update");
 
     const existingProduct = JSON.stringify(existingProductQueryResults.rows[0]);
     const parsedProduct = JSON.parse(existingProduct);
@@ -196,7 +197,8 @@ class Products {
     const queryValues = [sku, name, description, price, stock, imageURL, sk, nm, desc, prc, stck, imgURL, id];
     const result = await db.query(queryStatement, queryValues);
 
-    return (result.rows.length === 0) ? {} : result.rows[0];
+    if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
+    return result.rows[0];
   }
 
   static async addCategoryToProduct(productId, categoryId) {
@@ -208,7 +210,8 @@ class Products {
     const queryValues = [productId, categoryId]
     const result = await db.query(queryStatement, queryValues);
     
-    return (result.rows.length === 0) ? {} : result.rows[0];
+    if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
+    return  result.rows[0];
   }
 
   /*
@@ -224,7 +227,6 @@ class Products {
       return (result.rows.length === 0) 
             ? { product_name : `Product with id ${id} not found`, success: false } 
             : { ...result.rows[0], success: true }
-    
   }
 
 }

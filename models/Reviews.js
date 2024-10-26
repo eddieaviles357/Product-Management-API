@@ -4,6 +4,7 @@ const db = require("../db.js");
 
 const {
   NotFoundError,
+  BadRequestError,
 //   UnauthorizedError,
 //   BadRequestError,
 //   ForbiddenError,
@@ -33,7 +34,6 @@ class Reviews {
 
   // GETS REVIEW FOR A PRODUCT
   static async getReviewsForOneProduct(prodId) { 
-    // pg statement
     const queryStatement = `SELECT 
                               r.product_id AS "productId",
                               r.user_id AS "userId",
@@ -47,11 +47,7 @@ class Reviews {
                             JOIN users u ON u.id = r.user_id
                             WHERE p.product_id = $1
                             LIMIT 20`;
-    // pg values
-    const values = [prodId];
-    // pg query
-    const result = await db.query(queryStatement, values);
-    // if no results found return empty array
+    const result = await db.query(queryStatement, [prodId]);
     return (result.rows.length === 0) ? [] : result.rows;
   };
 
@@ -69,33 +65,29 @@ class Reviews {
                               updated_at AS "updatedAt"`;
     // pg values
     const values = [prodId, userId, review, rating];
-    
     const result = await db.query(queryStatement, values);
-    // if no results found return empty object
-    return (result.rows.length === 0) ? {} : result.rows[0];
+
+    if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
+    return result.rows[0];
   };
 
   static async updateReview(prodId, userId, review, rating) { 
-    if(review.length === 0 & rating === 0) return {};
+    if(review.length === 0 & rating === 0) throw new BadRequestError("No Data");
 
     /************************************
      ****** CHECK IF REVIEW EXIST *******
      ************************************/
     
     // check if there is already a review in the database to update
-    // pg statments
-    const existingRevStatement = `SELECT 
-                                    review,
-                                    rating
-                                  FROM reviews
-                                  WHERE product_id = $1 AND user_id = $2`;
+    const existingReviewStatment = `SELECT 
+                                      review,
+                                      rating
+                                    FROM reviews
+                                    WHERE product_id = $1 AND user_id = $2`;
+    const existingReviewValues = [prodId, userId];
 
-    // pg values for checking an existing review
-    const existingRevValues = [prodId, userId];
-
-    const reviewInDbResult = await db.query(existingRevStatement, existingRevValues);
-    // no result in db return an empty object {}
-    if(reviewInDbResult.rows.length === 0) return {};
+    const reviewInDbResult = await db.query(existingReviewStatment, existingReviewValues);
+    if(reviewInDbResult.rows.length === 0) throw new BadRequestError("No review to update");
 
     // Review does exists
 
@@ -123,12 +115,11 @@ class Reviews {
                               rating,
                               created_at AS "createdAt",
                               updated_at AS "updatedAt"`;
-    // pg values for updating review
     const updatingValues = [prodId, userId, review, rating, rev];
-
     const result = await db.query(updateStatement, updatingValues);
-    // return an empty object if no data exists
-    return (result.rows.length === 0) ? {} : result.rows[0];
+
+    if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
+    return result.rows[0];
   };
 
   // DELETE REVIEW

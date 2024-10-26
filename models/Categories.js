@@ -34,6 +34,7 @@ class Categories {
                             VALUES ( LOWER($1) )
                             RETURNING id, category`;
     const result = await db.query(queryStatement, [newCategory]);
+    
     if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
     return result.rows[0];
   }
