@@ -20,7 +20,6 @@ class Products {
       ]
   */
   static async getProducts(id = 100000000) {
-    // pg statement
     const queryStatement = `SELECT 
                               p.product_id AS id,
                               p.sku,
@@ -39,9 +38,7 @@ class Products {
                             GROUP BY p.product_id
                             ORDER BY p.product_id DESC
                             LIMIT 20`;
-    // pg values
-    const queryValues = [id];
-    const result = await db.query(queryStatement, queryValues);
+    const result = await db.query(queryStatement, [id]);
     
     return (result.rows.length === 0) ? [] : result.rows;
   }
@@ -52,7 +49,6 @@ class Products {
 
   */
   static async findProductById(id) {
-    // pg statement
     const queryStatement = `SELECT
                               p.product_id AS id,
                               p.sku,
@@ -69,9 +65,7 @@ class Products {
                             JOIN categories c ON c.id = pc.category_id
                             WHERE p.product_id = $1
                             GROUP BY p.product_id`;
-    // pg values
-    const queryValues = [id];
-    const result = await db.query(queryStatement, queryValues);
+    const result = await db.query(queryStatement, [id]);
     
     return (result.rows.length === 0) ? {} : result.rows[0];
   }
@@ -163,8 +157,7 @@ class Products {
                                     created_at AS "createdAt",
                                     updated_at AS "updatedAt"
                                   FROM products WHERE product_id = $1`;
-    const productExistQueryValues = [id];
-    const existingProductQueryResults = await db.query(productExistQueryStatement, productExistQueryValues);
+    const existingProductQueryResults = await db.query(productExistQueryStatement, [id]);
 
     if(existingProductQueryResults.rows.length === 0) return {};
 
@@ -226,8 +219,7 @@ class Products {
     const queryStatement = `DELETE FROM products 
                             WHERE product_id = $1
                             RETURNING product_name`;
-    const queryValues = [id];
-    const result = await db.query(queryStatement, queryValues);
+    const result = await db.query(queryStatement, [id]);
 
       return (result.rows.length === 0) 
             ? { product_name : `Product with id ${id} not found`, success: false } 
