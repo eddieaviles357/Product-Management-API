@@ -2,7 +2,7 @@
 
 const {
   getCategories,
-  getCategory,
+  getSearchedCategory,
   addNewCategory,
   updateCategory,
   deleteCategory,
@@ -23,7 +23,6 @@ router
 
 router
   .route('/:categoryId')
-  .get(getCategory)
   .put(validateUpdatedCategory, updateCategory)
   .delete(deleteCategory)
 
@@ -31,4 +30,7 @@ router
   .route('/:categoryId/products')
   .get(getCategoryProducts)
 
+router
+  .route('/search/:searchTerm')
+  .get(getSearchedCategory)
 module.exports = router;
