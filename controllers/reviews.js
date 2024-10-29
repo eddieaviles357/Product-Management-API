@@ -9,15 +9,24 @@ const { BadRequestError } = require("../AppError");
 // @access    Private/Admin ?????????
 exports.getReviewsForProduct = async (req, res, next) => {
   try {
+    let totalReviews;
+    let averageRating;
+    let reviews;
+    let sum;
     const id = Number(req.params.id);
 
     if(isNaN(id)) throw new BadRequestError("Id must be a number");
-
-    const reviewList = await Reviews.getReviewsForOneProduct(id);
+    
+    reviews = await Reviews.getReviewsForOneProduct(id);
+    totalReviews = reviews.length;
+    sum = reviews.reduce( (acc, {rating}) => acc + rating, 0 ); // add up all the ratings
+    averageRating = sum / totalReviews; // get the average rating
 
     return res.status(200).json({
       success: true,
-      reviews: reviewList
+      totalReviews,
+      averageRating,
+      reviews
     });
 
   } catch (err) {
