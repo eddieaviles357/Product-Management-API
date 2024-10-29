@@ -45,8 +45,7 @@ class Reviews {
                             FROM reviews r
                             JOIN products p ON p.product_id = r.product_id
                             JOIN users u ON u.id = r.user_id
-                            WHERE p.product_id = $1
-                            LIMIT 20`;
+                            WHERE p.product_id = $1`;
     const result = await db.query(queryStatement, [prodId]);
     return (result.rows.length === 0) ? [] : result.rows;
   };
