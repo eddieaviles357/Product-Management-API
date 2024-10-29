@@ -23,6 +23,20 @@ class Categories {
       return (result.rows.length === 0) ? [] : result.rows;
   }
 
+
+  /*
+  gets a category,
+  returns [
+    {id: 1, category: 'category'}, {...}
+  ]
+  */
+  static async searchCategory(searchTerm) {
+    const term = removeNonAlphabeticChars(searchTerm);
+    const queryStatement = `SELECT id, category FROM categories WHERE category ILIKE $1`;
+    const result = await db.query(queryStatement, [`%${term}%`]);
+    return (result.rows.length === 0) ? [] : result.rows;
+  }
+  
   /*
     add a category
     returns {id, category}
@@ -34,7 +48,7 @@ class Categories {
                             VALUES ( LOWER($1) )
                             RETURNING id, category`;
     const result = await db.query(queryStatement, [newCategory]);
-    
+
     if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
     return result.rows[0];
   }
