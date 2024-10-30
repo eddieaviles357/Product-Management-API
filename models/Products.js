@@ -201,12 +201,19 @@ class Products {
     return result.rows[0];
   }
 
+  /*
+    adds a category to a product
+    returns { productId, categoryId }
+  */
   static async addCategoryToProduct(productId, categoryId) {
-    const hasDefaultNoneCategory = await this.findProductById(productId);
-    // remove default category 'none' if exist
-    if(hasDefaultNoneCategory.categories.includes('none')) {
-      await db.query(`DELETE FROM products_categories WHERE product_id = $1 AND category_id = 1`, [productId])
-    }
+    // check if product exist in db
+    const product = await this.findProductById(productId);
+    if(product.rows.length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
+
+    // does product contain default category 'none' if so remove from db
+    const hasDefaultCategory = product.categories.includes('none');
+    if(hasDefaultCategory) await db.query(`DELETE FROM products_categories WHERE product_id = $1 AND category_id = 1`, [productId]);
+    
     // insert category to product
     const queryStatement = `INSERT INTO products_categories (product_id, category_id)
                             VALUES ($1, $2)
