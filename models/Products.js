@@ -202,6 +202,12 @@ class Products {
   }
 
   static async addCategoryToProduct(productId, categoryId) {
+    const hasDefaultNoneCategory = await this.findProductById(productId);
+    // remove default category 'none' if exist
+    if(hasDefaultNoneCategory.categories.includes('none')) {
+      await db.query(`DELETE FROM products_categories WHERE product_id = $1 AND category_id = 1`, [productId])
+    }
+    // insert category to product
     const queryStatement = `INSERT INTO products_categories (product_id, category_id)
                             VALUES ($1, $2)
                             RETURNING 
