@@ -8,7 +8,8 @@ const {
   getProductById,
   updateProduct,
   deleteProductById,
-  addCategoryToProduct
+  addCategoryToProduct,
+  deleteCategoryFromProduct,
 } = require("../controllers/products");
 // const router = require("express").Router({mergeParams: true});
 const router = require("express").Router({mergeParams: true});
@@ -30,6 +31,7 @@ router
 router
   .route('/:productId/category/:categoryId')
   .post(addCategoryToProduct)
+  .delete(deleteCategoryFromProduct,)
 
 module.exports = router;
 

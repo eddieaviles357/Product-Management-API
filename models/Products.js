@@ -208,12 +208,12 @@ class Products {
   static async addCategoryToProduct(productId, categoryId) {
     // check if product exist in db
     const product = await this.findProductById(productId);
-    if(product.rows.length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
+    if(Object.keys(product).length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
 
-    // does product contain default category 'none' if so remove from db
+    // does product contain default category "none" if so remove from db
     const hasDefaultCategory = product.categories.includes('none');
     if(hasDefaultCategory) await db.query(`DELETE FROM products_categories WHERE product_id = $1 AND category_id = 1`, [productId]);
-    
+
     // insert category to product
     const queryStatement = `INSERT INTO products_categories (product_id, category_id)
                             VALUES ($1, $2)
@@ -226,6 +226,39 @@ class Products {
     if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
     return  result.rows[0];
   }
+
+  /*
+    removes a category from a product
+  */
+    static async removeCategoryFromProduct(productId, categoryId) {
+      let categoryCount;
+      // check if product exist in db
+      const product = await this.findProductById(productId);
+      categoryCount = product.categories.length;
+
+      if(Object.keys(product).length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
+
+      const queryStatement = `DELETE FROM products_categories 
+                              WHERE product_id = $1 AND category_id = $2
+                              RETURNING
+                                product_id AS "productId", 
+                                category_id AS "categoryId"`;
+      const queryValues = [productId, categoryId];
+      
+      const result = await db.query(queryStatement, queryValues);
+      // if delete query was successful then we subtract from categoryCount
+      if(result.rows.length > 0) --categoryCount;
+      // if there are no categories then we add our default category "none"
+      if(categoryCount === 0) {
+        const insertQueryStatement = `INSERT INTO products_categories (product_id, category_id)
+                                      VALUES ($1, 1)`;
+        await db.query(insertQueryStatement, [productId]);
+      }
+      
+      return (result.rows.length === 0) 
+      ? { message : "nothing to remove", success: false } 
+      : { message : "removed category", success: true }
+    }
 
   /*
   removes a product from db

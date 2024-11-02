@@ -87,7 +87,7 @@ exports.updateProduct = async (req, res, next) => { // Needs json schema validat
 // @desc      Add category to product
 // @route     POST /api/v1/products/:productId/category/:categoryId
 // @access    Private/Admin ?????????
-exports.addCategoryToProduct = async (req, res, next) => { // Needs json schema validation
+exports.addCategoryToProduct = async (req, res, next) => {
   try {
     const pId = Number(req.params.productId);
     const cId = Number(req.params.categoryId);
@@ -103,6 +103,26 @@ exports.addCategoryToProduct = async (req, res, next) => { // Needs json schema 
     return next(err);
   }
 };
+
+// @desc      Delete category from product
+// @route     DELETE /api/v1/products/:productId/category/:categoryId
+// @access    Private/Admin ?????????
+exports.deleteCategoryFromProduct = async (req, res, next) => {
+  try {
+    const pId = Number(req.params.productId);
+    const cId = Number(req.params.categoryId);
+    if(isNaN(pId) || isNaN(cId)) throw new BadRequestError("ids must be a number")
+
+    const { success, message } = await Products.removeCategoryFromProduct(pId, cId);
+
+    return res.status(200).json({ 
+      success,
+      message
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
 
 
 // @desc      Delete product from db
