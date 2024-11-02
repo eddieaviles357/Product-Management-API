@@ -269,11 +269,11 @@ class Products {
                             WHERE product_id = $1
                             RETURNING product_name`;
     const result = await db.query(queryStatement, [id]);
-
-      return (result.rows.length === 0) 
-            ? { product_name : `Product with id ${id} not found`, success: false } 
-            : { ...result.rows[0], success: true }
-  }
+    console.log(result.rows)
+    return (result.rows.length === 0) 
+          ? { message : `Product with id ${id} not found`, success: false } 
+          : { message : `Removed product`, success: true }
+}
 
 }
 
