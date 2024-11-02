@@ -115,7 +115,9 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
 
     const { success, message } = await Products.removeCategoryFromProduct(pId, cId);
 
-    return res.status(200).json({ 
+    const statusCode = success ? 200 : 204;
+
+    return res.status(statusCode).json({ 
       success,
       message
     });
@@ -134,13 +136,13 @@ exports.deleteProductById = async (req, res, next) => {
     
     if(isNaN(id)) throw new BadRequestError("id must be a number");
 
-    const { success, product_name: productName } = await Products.removeProduct(id);
+    const { success, message } = await Products.removeProduct(id);
 
     const statusCode = success ? 200 : 204;
 
     return res.status(statusCode).json({ 
       success,
-      productName
+      message
     });
   } catch (err) {
     return next(err);
