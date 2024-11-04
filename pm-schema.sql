@@ -29,7 +29,8 @@ CREATE TABLE users (
   password VARCHAR(60) NOT NULL,
   join_at TIMESTAMP NOT NULL DEFAULT NOW(),
   last_login_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  email VARCHAR(50) NOT NULL
+  email VARCHAR(50) NOT NULL CHECK (position('@' IN email) > 1),
+  is_admin BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE addresses (
