@@ -77,13 +77,13 @@ VALUES
 (23, 1),
 (24, 1);
 
-INSERT INTO users (first_name, last_name, username, password, join_at, last_login_at, email)
+INSERT INTO users (first_name, last_name, username, password, join_at, last_login_at, email, is_admin)
 VALUES 
-('west', 'wes', 'west123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'west123@123.com'),
-('north', 'nor', 'nor123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'nor123@123.com'),
-('east', 'eas', 'eas123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'eas123@123.com'),
-('south', 'sou', 'sou123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'sou123@123.com'),
-('center', 'cen', 'cen123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'cen123@123.com');
+('west', 'wes', 'west123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'west123@123.com', true),
+('north', 'nor', 'nor123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'nor123@123.com', false),
+('east', 'eas', 'eas123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'eas123@123.com', false),
+('south', 'sou', 'sou123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'sou123@123.com', false),
+('center', 'cen', 'cen123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', NOW(), NOW(), 'cen123@123.com', false);
 
 INSERT INTO addresses (user_id, address_1, address_2, city, state, zipcode)
 VALUES
