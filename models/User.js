@@ -7,12 +7,18 @@ const { BCRYPT_WORK_FACTOR } = require("../config");
 
 class User {
 
-  static async register({firstName, lastName, username, password, email, isAdmin}) {
+  static async register({firstName, lastName, username, password, email, isAdmin=false}) {
     try {
-      const salt = await bcrypt.genSalt(BCRYPT_WORK_FACTOR);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      console.log("SALT: ", salt);
-      console.log("HASHED_PASSWORD: ", hashedPassword);
+      const queryStatement = `INSERT INTO users (first_name, last_name, username, password, email, is_admin
+                              VALUES 
+                                ($1, $2, $3, $4, $5, $6)
+                              RETURNING *`;
+      const queryValues = [firstName, lastName, username, password, email, isAdmin];
+      // hash password
+      const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
+      // store user in database
+      const result = await db.query(queryStatement, queryValues);
+      console.log(result.rows[0]);
     } catch (err) {
       console.log("ERROR\n", err);
     }
