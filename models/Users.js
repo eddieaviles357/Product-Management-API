@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { BCRYPT_WORK_FACTOR } = require("../config");
 
-class User {
+class Users {
 
   static async register({firstName, lastName, username, password, email, isAdmin=false}) {
     try {
@@ -25,4 +25,4 @@ class User {
   }
 };
 
-module.exports = User;
+module.exports = Users;
