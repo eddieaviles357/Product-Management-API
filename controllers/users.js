@@ -8,13 +8,12 @@ const { BadRequestError } = require("../AppError");
 // @access    Private/Admin ?????????
 exports.addUser = async (req, res, next) => {
   try {
-    const body = req.params
-    console.log("BODY \n", body);
-    // const registeredUser = await Users.register(body);
+    const body = req.body
+    const result = await Users.register(body);
 
     return res.status(200).json({
       success: true,
-      // registeredUser
+      result
     });
     } catch(err) {
       return next(err);
