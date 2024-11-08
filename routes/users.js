@@ -15,7 +15,7 @@ const router = require("express").Router();
 // updateUser,
 // removeUser
 router
-  .route("/user/")
+  .route("/")
   // .get(getUser)
   .post(addUser)
   // .put(updateUser)
