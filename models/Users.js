@@ -24,7 +24,7 @@ class Users {
                               VALUES 
                                 ($1, $2, $3, $4, $5, $6)
                               RETURNING 
-                                id, first_name AS "firstName", last_name AS "lastName", username, email`;
+                                id, first_name AS "firstName", last_name AS "lastName", username, email, is_admin AS "isAdmin"`;
       const queryValues = [firstName, lastName, username, hashedPassword, email, isAdmin];
       // hash password
       // store user in database
@@ -35,6 +35,7 @@ class Users {
       return { error: err.message }
     }
   }
+
 };
 
 module.exports = Users;
