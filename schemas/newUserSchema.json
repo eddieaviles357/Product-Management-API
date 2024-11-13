@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.productmanagement.com/v1/registerUser.schema.json",
+  "title": "RegisterUser",
+  "description": "Adds new user",
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "description": "firstName",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "lastName": {
+      "description": "lastName",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "username": {
+      "description": "username",
+      "type": "string",
+      "multipleOf" : 1,
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "password": {
+      "description": "password",
+      "type": "string",
+      "multipleOf" : 1,
+      "minLength": 8,
+      "maxLength": 60
+    },
+    "email": {
+      "description": "email",
+      "type": "string",
+      "multipleOf" : 1,
+      "minLength": 5,
+      "maxLength": 50,
+      "format": "email"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["firstName", "lastName", "username", "password"]
+}
