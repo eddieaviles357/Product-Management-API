@@ -2,22 +2,22 @@
 
 const {
   // getUser,
-  addUser,
+  registerUser,
   // updateUser,
   // deleteUser,
-} = require("../controllers/users");
+} = require("../controllers/auth");
 const router = require("express").Router();
-// const validateNewUser = require("../middleware/validateNewUser");
+const validateNewUser = require("../middleware/validateNewUser");
 // const validateUpdatedUser = require("../middleware/validateUpdatedUser");
 
 // getUser
-// addUser,
+// registerUser,
 // updateUser,
 // removeUser
 router
   .route("/")
   // .get(getUser)
-  .post(addUser)
+  .post(validateNewUser,registerUser)
   // .put(updateUser)
   // .delete(deleteUser)
 
