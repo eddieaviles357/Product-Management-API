@@ -7,7 +7,7 @@ const { BCRYPT_WORK_FACTOR } = require("../config");
 const {
   NotFoundError,
   BadRequestError,
-//   UnauthorizedError,
+  UnauthorizedError,
 //   BadRequestError,
 //   ForbiddenError,
 //   UnprocessableEntityError
@@ -36,6 +36,42 @@ class Users {
     }
   }
 
+  static async authenticate(username, password) {
+    try {
+      const userQuery = `SELECT
+                          id, 
+                          first_name AS "firstName", 
+                          last_name AS "lastName", 
+                          username, 
+                          password,
+                          email,
+                          is_admin as "isAdmin",
+                          join_at AS "joinAt",
+                          last_login_at AS "lastLogin"
+                         FROM users
+                         WHERE username = ${username}`;
+      const userValues = [username];
+      const userResult = await db.query(userQuery, userValues);
+      const user = userResult.rows[0];
+
+      // is there a user in db
+      if(user) {
+        // is user input password the correct password against hashed password
+        const isValid = bcrypt.compare(password, user.password);
+        // its the correct user now lets delete password we don't need it anymore
+        if(!!isValid) {
+          delete user.password;
+          return user;
+        }
+      };
+
+      throw new UnauthorizedError("Invalid User");
+      
+    } catch (err) {
+      return { error: err.message };
+    }
+
+  }
 };
 
 module.exports = Users;
