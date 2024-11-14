@@ -50,8 +50,7 @@ class Users {
                           last_login_at AS "lastLogin"
                          FROM users
                          WHERE username = ${username}`;
-      const userValues = [username];
-      const userResult = await db.query(userQuery, userValues);
+      const userResult = await db.query(userQuery, [username]);
       const user = userResult.rows[0];
 
       // is there a user in db
