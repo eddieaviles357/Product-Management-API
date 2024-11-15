@@ -32,11 +32,11 @@ class Users {
       if(result.rows.length === 0) throw new BadRequestError('Invalid, something went wrong');
       return result.rows[0];
     } catch (err) {
-      return { error: err.message }
+      throw new BadRequestError(err.message);
     }
   }
 
-  static async authenticate(username, password) {
+  static async authenticate(username, password) { // need to update last login row ***********
     try {
       const userQuery = `SELECT
                           id, 
@@ -49,7 +49,7 @@ class Users {
                           join_at AS "joinAt",
                           last_login_at AS "lastLogin"
                          FROM users
-                         WHERE username = ${username}`;
+                         WHERE username = $1`;
       const userResult = await db.query(userQuery, [username]);
       const user = userResult.rows[0];
 
@@ -67,7 +67,7 @@ class Users {
       throw new UnauthorizedError("Invalid User");
       
     } catch (err) {
-      return { error: err.message };
+      throw new BadRequestError(err.message);
     }
 
   }
