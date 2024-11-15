@@ -69,7 +69,7 @@ exports.addReviewToProduct = async (req, res, next) => {
 
     const rev = await Reviews.addReview(productId, userId, review, rating);
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       review: rev
     });
