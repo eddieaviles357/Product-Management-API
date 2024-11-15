@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.productmanagement.com/v1/userAuth.schema.json",
+  "title": "userAuth",
+  "description": "User Auth",
+  "type": "object",
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": "1",
+      "maxLength": "20"
+    },
+    "password": {
+      "type": "string",
+      "minLength": "1",
+      "maxLength": "60"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["username","password"]
+}
