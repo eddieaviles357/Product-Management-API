@@ -95,7 +95,7 @@ exports.addCategoryToProduct = async (req, res, next) => {
 
     const result = await Products.addCategoryToProduct(pId, cId);
 
-    return res.status(200).json({ 
+    return res.status(201).json({ 
       success: true,
       data: result
     });
