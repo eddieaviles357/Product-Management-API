@@ -1,24 +1,20 @@
 "user strict";
 
 const {
-  // getUser,
   registerUser,
-  // updateUser,
-  // deleteUser,
+  token,
 } = require("../controllers/auth");
 const router = require("express").Router();
 const validateNewUser = require("../middleware/validateNewUser");
+const validateUserAuth = require("../middleware/validateUserAuth");
 // const validateUpdatedUser = require("../middleware/validateUpdatedUser");
 
-// getUser
-// registerUser,
-// updateUser,
-// removeUser
 router
   .route("/")
-  // .get(getUser)
   .post(validateNewUser,registerUser)
-  // .put(updateUser)
-  // .delete(deleteUser)
+
+router
+  .route("/token")
+  .post(validateUserAuth, token)
 
 module.exports = router;
