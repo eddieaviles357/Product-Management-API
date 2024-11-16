@@ -46,14 +46,18 @@ class Users {
                           password,
                           email,
                           is_admin as "isAdmin",
-                          join_at AS "joinAt",
-                          last_login_at AS "lastLoginAt"
+                          join_at AS "joinAt"
                          FROM users
                          WHERE username = $1`;
+
+      const updateQuery = `UPDATE users 
+                           SET last_login_at = NOW() 
+                           WHERE username = $1 
+                           RETURNING last_login_at AS "lastLoginAt"`;
       const userResult = await db.query(userQuery, [username]);
+      const lastUpdate = await db.query(updateQuery, [username]);
+      
       const user = userResult.rows[0];
-      // update last login
-      const lastUpdate = await db.query(`UPDATE users SET last_login_at = NOW() WHERE username = $1 RETURNING last_login_at AS "lastLoginAt"`, [username]);
       user.lastLoginAt = lastUpdate.rows[0].lastLoginAt;
   
       // is there a user in db
