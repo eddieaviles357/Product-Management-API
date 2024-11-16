@@ -25,7 +25,7 @@ exports.registerUser = async (req, res, next) => {
 // @desc      Creates a token when user is autherized
 // @route     POST /api/v1/auth/token
 // @access    Private/Admin ?????????
-exports.token = async (req, res, next) => {
+exports.authenticateUser = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     const user = await Users.authenticate(username, password);
