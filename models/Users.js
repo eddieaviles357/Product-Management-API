@@ -47,12 +47,15 @@ class Users {
                           email,
                           is_admin as "isAdmin",
                           join_at AS "joinAt",
-                          last_login_at AS "lastLogin"
+                          last_login_at AS "lastLoginAt"
                          FROM users
                          WHERE username = $1`;
       const userResult = await db.query(userQuery, [username]);
       const user = userResult.rows[0];
-
+      // update last login
+      const lastUpdate = await db.query(`UPDATE users SET last_login_at = NOW() WHERE username = $1 RETURNING last_login_at AS "lastLoginAt"`, [username]);
+      user.lastLoginAt = lastUpdate.rows[0].lastLoginAt;
+  
       // is there a user in db
       if(user) {
         // is user input password the correct password against hashed password
