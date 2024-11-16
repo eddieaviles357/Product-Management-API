@@ -2,7 +2,7 @@
 
 const {
   registerUser,
-  token,
+  authenticateUser,
 } = require("../controllers/auth");
 const router = require("express").Router();
 const validateNewUser = require("../middleware/validateNewUser");
@@ -14,7 +14,7 @@ router
   .post(validateNewUser,registerUser)
 
 router
-  .route("/token")
-  .post(validateUserAuth, token)
+  .route("/authenticate")
+  .post(validateUserAuth, authenticateUser)
 
 module.exports = router;
