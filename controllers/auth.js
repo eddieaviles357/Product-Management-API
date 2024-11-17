@@ -13,10 +13,7 @@ exports.registerUser = async (req, res, next) => {
     const newUser = await Users.register(body);
     const token = createToken(newUser);
 
-    return res.status(201).json({ 
-      result: newUser, 
-      token 
-    });
+    return res.status(201).json({ token });
     } catch(err) {
       return next(err);
     }
@@ -31,7 +28,7 @@ exports.authenticateUser = async (req, res, next) => {
     const user = await Users.authenticate(username, password);
     const token = createToken(user);
     
-    return res.json({ result: user, token });
+    return res.json({ token });
   } catch (err) {
     return next(err);
   }

@@ -30,7 +30,10 @@ class Users {
       // store user in database
       const result = await db.query(queryStatement, queryValues);
       if(result.rows.length === 0) throw new BadRequestError('Invalid, something went wrong');
-      return result.rows[0];
+      
+      const user = result.rows[0];
+      return user;
+      
     } catch (err) {
       throw new BadRequestError(err.message);
     }
