@@ -8,8 +8,8 @@ const {
   deleteReviewFromProduct
 } = require("../controllers/reviews");
 const router = require("express").Router();
-const validateNewReview = require("../middleware/validateNewReview");
-const validateUpdatedReview = require("../middleware/validateUpdatedReview");
+const validateNewReview = require("../middleware/validation/validateNewReview");
+const validateUpdatedReview = require("../middleware/validation/validateUpdatedReview");
 
 // getReview
 // addReview,

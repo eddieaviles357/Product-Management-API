@@ -1,8 +1,8 @@
 "use strict";
 
+const { BadRequestError } = require("../../AppError");
 const jsonSchema = require("jsonschema")
-const userAuthSchema = require("../schemas/userAuthSchema.json");
-const { BadRequestError } = require("../AppError");
+const userAuthSchema = require("../../schemas/userAuthSchema.json");
 
 const validateUserAuth = (req, res, next) => {
   const validatedSchema = jsonSchema.validate(req.body, userAuthSchema);

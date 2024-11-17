@@ -1,11 +1,11 @@
 "use strict";
 
 const jsonSchema = require("jsonschema")
-const newReviewSchema = require("../schemas/newReviewSchema.json");
+const newCategorySchema = require("../../schemas/newCategorySchema.json")
 
-const validateNewReview = (req, res, next) => {
+const validateNewCategory = (req, res, next) => {
 
-  const validatedSchema = jsonSchema.validate(req.body, newReviewSchema);
+  const validatedSchema = jsonSchema.validate(req.body, newCategorySchema);
   
   if(!validatedSchema.valid) {
     console.log(validatedSchema);
@@ -17,4 +17,4 @@ const validateNewReview = (req, res, next) => {
   next();
 }
   
-module.exports = validateNewReview;
+module.exports = validateNewCategory;

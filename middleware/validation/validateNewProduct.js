@@ -1,9 +1,9 @@
 "use strict";
 
 const jsonSchema = require("jsonschema")
-const newProductSchema = require("../schemas/updateProductSchema.json");
+const newProductSchema = require("../../schemas/newProductSchema.json");
 
-const validateUpdatedProduct = (req, res, next) => {
+const validateNewProduct = (req, res, next) => {
 
   const validatedSchema = jsonSchema.validate(req.body, newProductSchema);
   
@@ -16,5 +16,5 @@ const validateUpdatedProduct = (req, res, next) => {
 
   next();
 }
-
-module.exports = validateUpdatedProduct;
+  
+module.exports = validateNewProduct;

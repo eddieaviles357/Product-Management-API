@@ -9,8 +9,8 @@ const {
   getCategoryProducts,
 } = require("../controllers/categories");
 const router = require("express").Router();
-const validateNewCategory = require("../middleware/validateNewCategory");
-const validateUpdatedCategory = require("../middleware/validateUpdatedCategory");
+const validateNewCategory = require("../middleware/validation/validateNewCategory");
+const validateUpdatedCategory = require("../middleware/validation/validateUpdatedCategory");
 
 // addNewCategory,
 // updateCategory,

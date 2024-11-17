@@ -13,8 +13,8 @@ const {
 } = require("../controllers/products");
 // const router = require("express").Router({mergeParams: true});
 const router = require("express").Router({mergeParams: true});
-const validateNewProduct = require("../middleware/validateNewProduct");
-const validateUpdatedProduct = require("../middleware/validateUpdatedProduct");
+const validateNewProduct = require("../middleware/validation/validateNewProduct");
+const validateUpdatedProduct = require("../middleware/validation/validateUpdatedProduct");
 // const validateCategoryToProduct = require("../middleware/validateCategoryToProduct");
 
 router
