@@ -4,12 +4,14 @@ const express = require('express');
 
 const app = express();
 
+const { authenticateJWT } = require("./middleware/auth/auth")
 const productsRoutes = require("./routes/products");
 const categoriesRoutes = require("./routes/categories");
 const reviewsRoutes = require("./routes/reviews");
 const authRoutes = require("./routes/auth");
 
 app.use(express.json());
+app.use(authenticateJWT);
 
 app.use("/api/v1/products", productsRoutes);
 app.use("/api/v1/categories", categoriesRoutes);
