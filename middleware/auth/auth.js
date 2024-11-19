@@ -17,8 +17,12 @@ const { UnauthorizedError } = require("../../AppError");
 
 function authenticateJWT(req, res, next) {
   try {
+    console.log("REQ[ HEADERS ]\n", req.headers);
+    console.log("REQ[ HEADERS ][ AUTHORIZATION ]\N", req.headers.authorization);
     const authHeader = req.headers && req.headers.authorization;
+    console.log("AUTHHEADER", authHeader);
     if (authHeader) {
+      console.log("authHeader is TRUE");
       const token = authHeader.replace(/^[Bb]earer /, "").trim();
       res.locals.user = jwt.verify(token, SECRET_KEY);
     }
@@ -35,6 +39,7 @@ function authenticateJWT(req, res, next) {
 
 function ensureLoggedIn(req, res, next) {
   try {
+    console.log("RES[ LOCALS ][ USER ]\n", res.locals.user);
     if (!res.locals.user) throw new UnauthorizedError();
     return next();
   } catch (err) {
@@ -48,6 +53,7 @@ function ensureLoggedIn(req, res, next) {
  */
 function ensureAdmin(req, res, next) {
   try {
+    console.log("res[ locals ][ user ][ isAdmin ]\n", res.locals.user.isAdmin)
     if (res.locals.user.isAdmin === false) throw new UnauthorizedError();
     return next();
   } catch (err) {
@@ -61,6 +67,9 @@ function ensureAdmin(req, res, next) {
  */
 function ensureUserOrAdmin(req, res, next) {
   try {
+    console.log("res.locals.user\n", res.locals.user);
+    console.log("req.params.username", req.params.username);
+
     const {isAdmin, username} = res.locals.user
     if (!isAdmin && username !== req.params.username) {
       throw new UnauthorizedError();
