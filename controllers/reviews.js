@@ -35,7 +35,7 @@ exports.getReviewsForProduct = async (req, res, next) => {
 };
 
 // @desc      Get single review
-// @route     GET /api/v1/reviews/product/:productId/user/:userId
+// @route     GET /api/v1/reviews/product/:productId/:username/:userId
 // @access    Private/Admin ?????????
 exports.getReview = async (req, res, next) => {
   try {
@@ -57,7 +57,7 @@ exports.getReview = async (req, res, next) => {
 };
 
 // @desc      Add review to product
-// @route     POST /api/v1/reviews/product/:productId/user/:userId
+// @route     POST /api/v1/reviews/product/:productId/:username/:userId
 // @access    Private/Admin ?????????
 exports.addReviewToProduct = async (req, res, next) => {
   try {
@@ -80,7 +80,7 @@ exports.addReviewToProduct = async (req, res, next) => {
 };
 
 // @desc      Updates review to product
-// @route     PUT /api/v1/reviews/product/:productId/user/:userId
+// @route     PUT /api/v1/reviews/product/:productId/:username/:userId
 // @access    Private/Admin ?????????
 exports.updateReviewToProduct = async (req, res, next) => {
   try {
@@ -103,7 +103,7 @@ exports.updateReviewToProduct = async (req, res, next) => {
 };
 
 // @desc      Deletes a review
-// @route     DELETE /api/v1/reviews/product/:productId/user/:userId
+// @route     DELETE /api/v1/reviews/product/:productId/:username/:userId
 // @access    Private/Admin ?????????
 exports.deleteReviewFromProduct = async (req, res, next) => {
   try {
