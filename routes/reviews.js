@@ -10,6 +10,7 @@ const {
 const router = require("express").Router();
 const validateNewReview = require("../middleware/validation/validateNewReview");
 const validateUpdatedReview = require("../middleware/validation/validateUpdatedReview");
+const {ensureLoggedIn, ensureUserOrAdmin, ensureAdmin} = require("../middleware/auth/auth");
 
 // getReview
 // addReview,
@@ -19,11 +20,11 @@ router
   .route("/product/:id")
   .get(getReviewsForProduct)
 router
-  .route("/product/:productId/user/:userId")
+  .route("/product/:productId/:username/:userId")
   .get(getReview)
-  .post(validateNewReview, addReviewToProduct)
-  .put(validateUpdatedReview, updateReviewToProduct)
-  .delete(deleteReviewFromProduct)
+  .post(ensureLoggedIn, ensureUserOrAdmin, validateNewReview, addReviewToProduct)
+  .put(ensureLoggedIn, ensureUserOrAdmin, validateUpdatedReview, updateReviewToProduct)
+  .delete(ensureLoggedIn, ensureUserOrAdmin, deleteReviewFromProduct)
 //   .delete()
 
 module.exports = router;
