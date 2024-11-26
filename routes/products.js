@@ -15,23 +15,23 @@ const {
 const router = require("express").Router({mergeParams: true});
 const validateNewProduct = require("../middleware/validation/validateNewProduct");
 const validateUpdatedProduct = require("../middleware/validation/validateUpdatedProduct");
-// const validateCategoryToProduct = require("../middleware/validateCategoryToProduct");
+const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth/auth");
 
 router
   .route('/', )
   .get(getProducts)
-  .post(validateNewProduct,addProduct)
+  .post(ensureLoggedIn, ensureAdmin, validateNewProduct,addProduct)
 
 router
   .route('/:id')
   .get(getProductById)
-  .put(validateUpdatedProduct, updateProduct)
-  .delete(deleteProductById)
+  .put(ensureLoggedIn, ensureAdmin, validateUpdatedProduct, updateProduct)
+  .delete(ensureLoggedIn, ensureAdmin, deleteProductById)
 
 router
   .route('/:productId/category/:categoryId')
-  .post(addCategoryToProduct)
-  .delete(deleteCategoryFromProduct,)
+  .post(ensureLoggedIn, ensureAdmin, addCategoryToProduct)
+  .delete(ensureLoggedIn, ensureAdmin,deleteCategoryFromProduct,)
 
 module.exports = router;
 
