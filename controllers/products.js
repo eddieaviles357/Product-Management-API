@@ -112,7 +112,7 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
     const pId = Number(req.params.productId);
     const cId = Number(req.params.categoryId);
     if(isNaN(pId) || isNaN(cId)) throw new BadRequestError("ids must be a number")
-
+    
     const { success, message } = await Products.removeCategoryFromProduct(pId, cId);
 
     const statusCode = success ? 200 : 204;

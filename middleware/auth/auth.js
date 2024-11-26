@@ -17,9 +17,9 @@ const { UnauthorizedError } = require("../../AppError");
 
 function authenticateJWT(req, res, next) {
   try {
-    console.log("\n*********AUTHENTICATE_JWT*********\n");
-    console.log("REQ[ HEADERS ]\n", req.headers);
-    console.log("\nREQ[ HEADERS ][ AUTHORIZATION ]\n", req.headers.authorization);
+    // console.log("\n*********AUTHENTICATE_JWT*********\n");
+    // console.log("REQ[ HEADERS ]\n", req.headers);
+    // console.log("\nREQ[ HEADERS ][ AUTHORIZATION ]\n", req.headers.authorization);
      // LEFT and RIGTH expressions are True so return the RIGHT expression
      // If LEFT expression is False return the LEFT expression
     const authHeader = req.headers && req.headers.authorization;
@@ -32,9 +32,9 @@ function authenticateJWT(req, res, next) {
       const token = authHeader.replace(/^[Bb]earer /, "").trim();
       res.locals.user = jwt.verify(token, SECRET_KEY);
 
-      console.log("\nRES[ LOCALS ][ USER ]\n", res.locals.user);
+      // console.log("\nRES[ LOCALS ][ USER ]\n", res.locals.user);
     }
-    console.log("***************************************\n");
+    // console.log("***************************************\n");
     return next();
   } catch (err) {
     return next();
@@ -48,12 +48,12 @@ function authenticateJWT(req, res, next) {
 
 function ensureLoggedIn(req, res, next) {
   try {
-    console.log("\n**********ENSURE_LOGGED_IN**********\n");
-    console.log("RES[ LOCALS ][ USER ]\n", res.locals.user);
+    // console.log("\n**********ENSURE_LOGGED_IN**********\n");
+    // console.log("RES[ LOCALS ][ USER ]\n", res.locals.user);
 
     if (!res.locals.user) throw new UnauthorizedError();
 
-    console.log("\n************************************\n")
+    // console.log("\n************************************\n")
     return next();
   } catch (err) {
     return next(err);
@@ -66,12 +66,12 @@ function ensureLoggedIn(req, res, next) {
  */
 function ensureAdmin(req, res, next) {
   try {
-    console.log("\n**********ENSURE_ADMIN**********\n");
-    console.log("RES[ LOCALS ][ USER ][ IS_ADMIN ]\n", res.locals.user.isAdmin)
+    // console.log("\n**********ENSURE_ADMIN**********\n");
+    // console.log("RES[ LOCALS ][ USER ][ IS_ADMIN ]\n", res.locals.user.isAdmin)
 
     if (res.locals.user.isAdmin === false) throw new UnauthorizedError();
 
-    console.log("\n***********************************\n")
+    // console.log("\n***********************************\n")
     return next();
   } catch (err) {
     return next(err);
@@ -84,12 +84,12 @@ function ensureAdmin(req, res, next) {
  */
 function ensureUserOrAdmin(req, res, next) {
   try {
-    console.log("\n**********ENSURE_USER_OR_ADMIN**********\n");
+    // console.log("\n**********ENSURE_USER_OR_ADMIN**********\n");
     const {isAdmin, username} = res.locals.user
     if (!isAdmin && username !== req.params.username) {
       throw new UnauthorizedError();
     }
-    console.log("\n***********************************\n")
+    // console.log("\n***********************************\n")
     return next();
   } catch (err) {
     return next(err);
