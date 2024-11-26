@@ -260,9 +260,11 @@ class Products {
         let categoryCount;
         // check if product exist in db
         const product = await this.findProductById(productId);
+
+        if(Object.keys(product).length === 0) return { message : "nothing to remove", success: false };
+
         categoryCount = product.categories.length;
   
-        if(Object.keys(product).length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
   
         const queryStatement = `DELETE FROM products_categories 
                                 WHERE product_id = $1 AND category_id = $2
