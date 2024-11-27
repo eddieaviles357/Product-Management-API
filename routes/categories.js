@@ -11,7 +11,7 @@ const {
 const router = require("express").Router();
 const validateNewCategory = require("../middleware/validation/validateNewCategory");
 const validateUpdatedCategory = require("../middleware/validation/validateUpdatedCategory");
-
+const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth/auth");
 // addNewCategory,
 // updateCategory,
 // removeCategory
@@ -19,12 +19,12 @@ const validateUpdatedCategory = require("../middleware/validation/validateUpdate
 router
   .route('/')
   .get(getCategories)
-  .post(validateNewCategory, addNewCategory)
+  .post(ensureLoggedIn, ensureAdmin, validateNewCategory, addNewCategory)
 
 router
   .route('/:categoryId')
-  .put(validateUpdatedCategory, updateCategory)
-  .delete(deleteCategory)
+  .put(ensureLoggedIn, ensureAdmin, validateUpdatedCategory, updateCategory)
+  .delete(ensureLoggedIn, ensureAdmin, deleteCategory)
 
 router
   .route('/:categoryId/products')
