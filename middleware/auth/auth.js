@@ -78,6 +78,21 @@ function ensureAdmin(req, res, next) {
   }
 }
 
+/** Middleware to use when they must be Current user.
+ * 
+ * If not current user raise Unauthorized
+ */
+function ensureUser(req, res, next) {
+  try {
+    const {username} = res.locals.user
+    if( username !== req.params.username) throw new UnauthorizedError();
+    
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+};
+
 /** Middleware to use when they must be Current user or Admin.
  * 
  * If not current user or admin raise Unauthorized
@@ -86,11 +101,14 @@ function ensureUserOrAdmin(req, res, next) {
   try {
     // console.log("\n**********ENSURE_USER_OR_ADMIN**********\n");
     const {isAdmin, username} = res.locals.user
-    if (!isAdmin && username !== req.params.username) {
-      throw new UnauthorizedError();
+    console.log(req.params.username)
+    console.log("\n*******\nusername === req.params.username = \n", username === req.params.username)
+    console.log("\nisAdmin = \n", isAdmin, '\n********')
+    if( username === req.params.username || isAdmin) {
+      return next();
     }
-    // console.log("\n***********************************\n")
-    return next();
+
+    throw new UnauthorizedError();
   } catch (err) {
     return next(err);
   }
@@ -99,6 +117,7 @@ function ensureUserOrAdmin(req, res, next) {
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
+  ensureUser,
   ensureAdmin,
   ensureUserOrAdmin
 };
