@@ -10,21 +10,17 @@ const {
 const router = require("express").Router();
 const validateNewReview = require("../middleware/validation/validateNewReview");
 const validateUpdatedReview = require("../middleware/validation/validateUpdatedReview");
-const {ensureLoggedIn, ensureUserOrAdmin, ensureAdmin} = require("../middleware/auth/auth");
+const {ensureLoggedIn, ensureUser, ensureUserOrAdmin, ensureAdmin} = require("../middleware/auth/auth");
 
-// getReview
-// addReview,
-// updateReview,
-// removeReview
 router
   .route("/product/:id")
   .get(getReviewsForProduct)
+
 router
-  .route("/product/:productId/:username/:userId")
+  .route("/product/:productId/:username")
   .get(getReview)
-  .post(ensureLoggedIn, ensureUserOrAdmin, validateNewReview, addReviewToProduct)
-  .put(ensureLoggedIn, ensureUserOrAdmin, validateUpdatedReview, updateReviewToProduct)
+  .post(ensureLoggedIn, ensureUser, validateNewReview, addReviewToProduct)
+  .put(ensureLoggedIn, ensureUser, validateUpdatedReview, updateReviewToProduct)
   .delete(ensureLoggedIn, ensureUserOrAdmin, deleteReviewFromProduct)
-//   .delete()
 
 module.exports = router;
