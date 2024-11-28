@@ -35,16 +35,15 @@ exports.getReviewsForProduct = async (req, res, next) => {
 };
 
 // @desc      Get single review
-// @route     GET /api/v1/reviews/product/:productId/:username/:userId
+// @route     GET /api/v1/reviews/product/:productId/:username
 // @access    Private/Admin ?????????
 exports.getReview = async (req, res, next) => {
   try {
     const productId = Number(req.params.productId);
-    const userId = Number(req.params.userId)
 
-    if(isNaN(productId) || isNaN(userId)) throw new BadRequestError("Id must be a number");
+    if(isNaN(productId)) throw new BadRequestError("Id must be a number");
 
-    const review = await Reviews.getSingleReview(productId, userId);
+    const review = await Reviews.getSingleReview(productId, req.params.username);
 
     return res.status(200).json({
       success: true,
@@ -57,17 +56,17 @@ exports.getReview = async (req, res, next) => {
 };
 
 // @desc      Add review to product
-// @route     POST /api/v1/reviews/product/:productId/:username/:userId
+// @route     POST /api/v1/reviews/product/:productId/:username
 // @access    Private/Admin ?????????
 exports.addReviewToProduct = async (req, res, next) => {
   try {
     const productId = Number(req.params.productId);
-    const userId = Number(req.params.userId);
+    const username = req.params.username;
     const {review, rating} = req.body;
 
-    if(isNaN(productId) || isNaN(userId)) throw new BadRequestError("Id must be a number");
+    if(isNaN(productId)) throw new BadRequestError("Id must be a number");
 
-    const rev = await Reviews.addReview(productId, userId, review, rating);
+    const rev = await Reviews.addReview(productId, username, review, rating);
 
     return res.status(201).json({
       success: true,
@@ -80,17 +79,17 @@ exports.addReviewToProduct = async (req, res, next) => {
 };
 
 // @desc      Updates review to product
-// @route     PUT /api/v1/reviews/product/:productId/:username/:userId
+// @route     PUT /api/v1/reviews/product/:productId/:username
 // @access    Private/Admin ?????????
 exports.updateReviewToProduct = async (req, res, next) => {
   try {
     const productId = Number(req.params.productId);
-    const userId = Number(req.params.userId);
+    const username = req.params.username;
     const {review, rating} = req.body;
 
-    if(isNaN(productId) || isNaN(userId)) throw new BadRequestError("Id must be a number");
+    if(isNaN(productId)) throw new BadRequestError("Id must be a number");
 
-    const updatedReview = await Reviews.updateReview(productId, userId, review, rating);
+    const updatedReview = await Reviews.updateReview(productId, username, review, rating);
 
     return res.status(200).json({
       success: true,
@@ -102,15 +101,15 @@ exports.updateReviewToProduct = async (req, res, next) => {
   }
 };
 
-// @desc      Deletes a review
-// @route     DELETE /api/v1/reviews/product/:productId/:username/:userId
-// @access    Private/Admin ?????????
+// // @desc      Deletes a review
+// // @route     DELETE /api/v1/reviews/product/:productId/:username
+// // @access    Private/Admin ?????????
 exports.deleteReviewFromProduct = async (req, res, next) => {
   try {
     const productId = Number(req.params.productId);
-    const userId = Number(req.params.userId);
+    const username = req.params.username;
 
-    const {success, review} = await Reviews.deleteReview(productId, userId);
+    const {success, review} = await Reviews.deleteReview(productId, username);
 
     const statusCode = success ? 200 : 204;
 
