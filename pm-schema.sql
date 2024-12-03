@@ -53,6 +53,19 @@ CREATE TABLE reviews (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE orders (
+  order_id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
+  amount NUMERIC(7,2) NOT NULL CHECK(price > 0.00),
+  order_created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+)
+
+CREATE TABLE users_orders (
+  PRIMARY KEY (user_id, order_id),
+  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
+  order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE
+)
+
 CREATE  FUNCTION update_updated_at_product()
 RETURNS TRIGGER AS $$
 BEGIN
