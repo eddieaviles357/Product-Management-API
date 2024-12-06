@@ -9,6 +9,7 @@ const productsRoutes = require("./routes/products");
 const categoriesRoutes = require("./routes/categories");
 const reviewsRoutes = require("./routes/reviews");
 const authRoutes = require("./routes/auth");
+const wishlistRoutes = require("./routes/wishlist");
 
 app.use(express.json());
 app.use(authenticateJWT);
@@ -17,6 +18,7 @@ app.use("/api/v1/products", productsRoutes);
 app.use("/api/v1/categories", categoriesRoutes);
 app.use("/api/v1/reviews", reviewsRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/wishlist", wishlistRoutes);
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {
