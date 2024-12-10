@@ -1,13 +1,15 @@
 "use strict";
 
 const {
-  addToWishlist
+  addToWishlist,
+  deleteToWishlist
 } = require("../controllers/wishlist");
 const router = require("express").Router();
 const {ensureLoggedIn, ensureUser} = require("../middleware/auth/auth");
 
 router
-  .route("/:username/addToWishlist/:productId")
+  .route("/:username/:productId")
   .post(addToWishlist)
+  .delete(deleteToWishlist)
 
 module.exports = router;
