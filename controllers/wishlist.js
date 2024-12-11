@@ -31,3 +31,17 @@ exports.deleteToWishlist = async (req, res, next) => {
     return next(err);
   }
 };
+
+// @desc      Deletes all products in wishlist
+// @route     DELETE /api/v1/wishlist/:username
+// @access    Private/Admin ?????????
+exports.clearWishlist = async (req, res, next) => {
+  try {
+    const username = req.params.username;
+    const result = await Wishlist.removeAll(username);
+
+    return res.status(200).json({ success: true, result});
+  } catch (err) {
+    return next(err);
+  }
+}; 
