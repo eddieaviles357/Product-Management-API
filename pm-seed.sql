@@ -107,3 +107,12 @@ VALUES
 (4, 4, 'useless', 5),
 (5, 2, 'useless', 5),
 (5, 3, 'useless', 5);
+
+INSERT INTO wishlist (user_id, product_id)
+VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(2, 4),
+(3, 4);
