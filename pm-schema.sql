@@ -61,7 +61,7 @@ CREATE TABLE reviews (
 
 
 CREATE TABLE wishlist (
-  PRIMARY KEY (user_id, product_id) SERIAL PRIMARY KEY,
+  PRIMARY KEY (user_id, product_id),
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE
 );
