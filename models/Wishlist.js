@@ -40,9 +40,10 @@ class Wishlist {
                                 user_id AS "userId",
                                 product_id AS "productId"`;
       const values = [userId, productId];
-      const wishlistValues = await db.query(queryStatement, values);
-
-      return wishlistValues.rows[0];
+      const removedResult = await db.query(queryStatement, values);
+      const rowsRemoved = removedResult.rowCount;
+      // if no rows were removed then we will return false
+      return (rowsRemoved !== 0) ? true : false;
     } catch (err) {
       throw new BadRequestError(err.message);
     }
@@ -56,10 +57,12 @@ class Wishlist {
       const userId = userResult.rows[0].id;
       
       // Clear entire wishlist using user id
-      const queryStatement = `DELETE FROM wishlist WHERE user_id = $1 RETURNING user_id AS "userId"`;
+      const queryStatement = `DELETE FROM wishlist WHERE user_id = $1`;
       const removedResult = await db.query(queryStatement, [userId]);
+      const rowsRemoved = removedResult.rowCount;
+      // if no rows were removed then we will return false
+      return (rowsRemoved !== 0) ? true : false;
 
-      return removedResult.rows[0];
     } catch (err) {
       throw new BadRequestError(err.message);
     }
