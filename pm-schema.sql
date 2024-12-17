@@ -69,24 +69,25 @@ CREATE TABLE wishlist (
 CREATE TABLE cart (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
-  total NUMERIC(7,2) NOT NULL CHECK(total > 0.00),
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE cart_item (
-  id SERIAL PRIMARY KEY,
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
   quantity INTEGER NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  added_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
-  total NUMERIC(7,2) NOT NULL CHECK(total > 0.00),
+  total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE order_products (
+  id SERIAL PRIMARY KEY,
+  product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
+  quantity INTEGER NOT NULL,
+  total_amount NUMERIC(7,2) NOT NULL CHECK(total_amount > 0.00),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE payment_details (
@@ -97,14 +98,6 @@ CREATE TABLE payment_details (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-
-CREATE TABLE order_item (
-  id SERIAL PRIMARY KEY,
-  product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
-  quantity INTEGER NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
 
 
 
