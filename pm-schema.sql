@@ -84,6 +84,7 @@ CREATE TABLE orders (
 
 CREATE TABLE order_products (
   id SERIAL PRIMARY KEY,
+  order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
   quantity INTEGER NOT NULL,
   total_amount NUMERIC(7,2) NOT NULL CHECK(total_amount > 0.00),
