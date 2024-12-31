@@ -79,7 +79,7 @@ CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE order_products (
