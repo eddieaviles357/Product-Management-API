@@ -5,7 +5,7 @@ const db = require("../db");
 const {BadRequestError} = require("../AppError");
 
 class Cart {
-  static async addToCart(username, productId, quantity) {
+  static async addToCart(username, productId, quantity = 1) {
     try {
       // check if username exist, if so get the id reference
       const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
