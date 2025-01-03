@@ -11,5 +11,6 @@ router
   .route("/:username/:productId")
   .post(addToCart)
   .put(updateCartItemQty)
+  .delete(deleteCartItem)
 
 module.exports = router;
