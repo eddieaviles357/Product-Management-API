@@ -2,7 +2,8 @@
 
 const {
   addToCart,
-  updateCartItemQty
+  updateCartItemQty,
+  deleteCartItem
 } = require("../controllers/cart");
 const router = require("express").Router();
 const {ensureLoggedIn, ensureUser} = require("../middleware/auth/auth");
