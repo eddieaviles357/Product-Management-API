@@ -50,6 +50,22 @@ class Cart {
       throw new BadRequestError(err.message);
     }
   }
+
+  static async removeCartItem (username, productId) {
+    try {
+      // check if username already exists. If so, get the id reference
+      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
+      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
+      const userId = userResult.rows[0].id;
+
+      const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2`;
+      const values = [userId, productId];
+      const deleteResult = await db.query(queryStatement, values);
+      return deleteResult.rows;
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
 }
 
 module.exports = Cart;
