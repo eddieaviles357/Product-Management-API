@@ -11,6 +11,11 @@ class Cart {
       const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
       if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
       const userId = userResult.rows[0].id;
+
+      // We are only going to allow one product per cart. We will have to use updateCartItemQty to increase the quantity
+      const cartItemResult = await db.query(`SELECT user_id, product_id, quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
+      if(cartItemResult.rows.length > 0) return cartItemResult.rows[0];
+      
       // add product to cart using user id and product id
       const queryStatement = `INSERT INTO cart(user_id, product_id, quantity) 
                               VALUES($1, $2, $3) 
@@ -58,9 +63,11 @@ class Cart {
       if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
       const userId = userResult.rows[0].id;
 
-      const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2`;
+      const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2 RETURNING id`;
       const values = [userId, productId];
       const deleteResult = await db.query(queryStatement, values);
+
+      if(deleteResult.rows.length === 0) return 'Nothing to delete';
       return deleteResult.rows;
     } catch (err) {
       throw new BadRequestError(err.message);
