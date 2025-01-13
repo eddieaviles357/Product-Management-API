@@ -12,6 +12,20 @@ exports.getCart = async (req, res, next) => {
     return next(err);
   }
 }
+
+exports.clearCart = async (req, res, next) => {
+  try {
+    const {username} = req.params;
+    const success = await Cart.clear(username);
+
+    const message = success ? "Cart cleared" : "Nothing to remove";
+
+    return res.status(200).json({ success, message });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 exports.addToCart = async (req, res, next) => {
   try {
     const {username, productId} = req.params;
@@ -46,14 +60,5 @@ exports.deleteCartItem = async (req, res, next) => {
     return res.status(200).json({success: true, result})
   } catch (err) {
     return next(err);  
-  }
-}
-
-exports.clearCart = async (req, res, next) => {
-  try {
-    const {username} = req.params;
-    const result = await Cart.clear(username);
-  } catch (err) {
-    return next(err);
   }
 }

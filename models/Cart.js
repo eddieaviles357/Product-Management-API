@@ -8,6 +8,11 @@ class Cart {
 
   static async get(username) {
     try {
+      // check if username already exists. If so, get the id reference
+      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
+      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
+      const userId = userResult.rows[0].id;
+
       const queryStatement = `SELECT 
                                 id, 
                                 user_id AS "userId", 
@@ -16,14 +21,28 @@ class Cart {
                                 added_at AS "addedAt", 
                                 updated_at AS "updatedAt"
                               FROM cart
-                              WHERE username = $1`;
-      const cartResult = await db.query(queryStatement, [username]);
-      console.log(cartResult.rows);
-      if(cartResult.rows.length === 0) return {}
+                              WHERE user_id = $1`;
+      const cartResult = await db.query(queryStatement, [userId]);
+      return (cartResult.rows.length === 0) ? {} : cartResult.rows;
     } catch (err) {
       throw new BadRequestError(err.message);
     }
   }
+
+  static async clear (username) {
+    try {
+      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
+      if(userResult.rows.length === 0) throw new BadRequestError(`user ${username} does not exist`);
+      const userId = userResult.rows[0].id;
+
+      const removedResult = await db.query(`DELETE FROM cart WHERE user_id = $1 RETURNING *`, [userId])
+      console.log(removedResult.rows);
+      return (removedResult.rows.length > 0) ? true : false; 
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
+
   static async addToCart(username, productId, quantity = 1) {
     try {
       // check if username already exists. If so, get the id reference
@@ -88,17 +107,6 @@ class Cart {
 
       if(deleteResult.rows.length === 0) return 'Nothing to delete';
       return deleteResult.rows;
-    } catch (err) {
-      throw new BadRequestError(err.message);
-    }
-  }
-
-  static async clearCart (username) {
-    try {
-      const userResult = await db.query(`SELECT id FROM users WHERE id = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`user ${username} does not exist`);
-
-      const removedResult = await db.query(`DELETE FROM cart WHERE id = $1`, [username])
     } catch (err) {
       throw new BadRequestError(err.message);
     }

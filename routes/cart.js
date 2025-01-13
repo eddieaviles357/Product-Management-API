@@ -13,12 +13,13 @@ const {ensureLoggedIn, ensureUser} = require("../middleware/auth/auth");
 router
   .route("/:username")
   .get(getCart)
+  .delete(clearCart)
   
 router
   .route("/:username/:productId")
   .post(addToCart)
   .put(updateCartItemQty)
   .delete(deleteCartItem)
-  .delete(clearCart)
+
 
 module.exports = router;
