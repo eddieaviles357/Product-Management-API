@@ -5,6 +5,25 @@ const db = require("../db");
 const {BadRequestError} = require("../AppError");
 
 class Cart {
+
+  static async get(username) {
+    try {
+      const queryStatement = `SELECT 
+                                id, 
+                                user_id AS "userId", 
+                                product_id AS "productId", 
+                                quantity, 
+                                added_at AS "addedAt", 
+                                updated_at AS "updatedAt"
+                              FROM cart
+                              WHERE username = $1`;
+      const cartResult = await db.query(queryStatement, [username]);
+      console.log(cartResult.rows);
+      if(cartResult.rows.length === 0) return {}
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
   static async addToCart(username, productId, quantity = 1) {
     try {
       // check if username already exists. If so, get the id reference
@@ -15,7 +34,7 @@ class Cart {
       // We are only going to allow one product per cart. We will have to use updateCartItemQty to increase the quantity
       const cartItemResult = await db.query(`SELECT user_id, product_id, quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
       if(cartItemResult.rows.length > 0) return cartItemResult.rows[0];
-      
+
       // add product to cart using user id and product id
       const queryStatement = `INSERT INTO cart(user_id, product_id, quantity) 
                               VALUES($1, $2, $3) 
@@ -40,7 +59,7 @@ class Cart {
       const currItemQty = await db.query(`SELECT quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
       if(currItemQty.rows.length === 0) throw new BadRequestError(`Nothing to update`);
       const currQty = currItemQty.rows[0].quantity;
-      console.log(`curr quantity ${currQty} + ${quantity}`);
+
       // update qty 
       const queryStatement = `UPDATE cart SET
                               quantity = $4::integer + $3
@@ -69,6 +88,17 @@ class Cart {
 
       if(deleteResult.rows.length === 0) return 'Nothing to delete';
       return deleteResult.rows;
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
+
+  static async clearCart (username) {
+    try {
+      const userResult = await db.query(`SELECT id FROM users WHERE id = $1`, [username]);
+      if(userResult.rows.length === 0) throw new BadRequestError(`user ${username} does not exist`);
+
+      const removedResult = await db.query(`DELETE FROM cart WHERE id = $1`, [username])
     } catch (err) {
       throw new BadRequestError(err.message);
     }
