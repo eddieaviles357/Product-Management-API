@@ -35,8 +35,8 @@ class Cart {
       if(userResult.rows.length === 0) throw new BadRequestError(`user ${username} does not exist`);
       const userId = userResult.rows[0].id;
 
-      const removedResult = await db.query(`DELETE FROM cart WHERE user_id = $1 RETURNING *`, [userId])
-      console.log(removedResult.rows);
+      const removedResult = await db.query(`DELETE FROM cart WHERE user_id = $1 RETURNING *`, [userId]);
+      
       return (removedResult.rows.length > 0) ? true : false; 
     } catch (err) {
       throw new BadRequestError(err.message);
