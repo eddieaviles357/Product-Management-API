@@ -9,7 +9,7 @@ const {
 
 class Orders {
   
-  static async create(username, total) {
+  static async create(username, {orderId, productId, qty, totalAmount}) {
     try {
       // check if username exist, if so get the id reference
       const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
@@ -21,6 +21,16 @@ class Orders {
                               RETURNING id, user_id AS "userId", total_amount AS "totalAmount"`;
       const values = [userId, total];
       const orderResult = await db.query(queryStatement, values);
+      /********************************* NEEDS WORK ************************* */
+      /********************************* NEEDS WORK ************************* */
+      /********************************* NEEDS WORK ************************* */
+      /********************************* NEEDS WORK ************************* */
+      /********************************* NEEDS WORK ************************* */
+      /********************************* NEEDS WORK ************************* */
+      /********************************* NEEDS WORK ************************* */
+      const orderProductQuery = `INSERT INTO order_products VALUES($1, $2, $3, $4)`;
+      const ordProdValues = [orderId, productId, qty, totalAmount];
+      const orderProductsResult = await db.query(orderProductQuery, ordProdValues);
 
       return orderResult.rows[0];
     } catch (err) {
