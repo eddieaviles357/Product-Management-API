@@ -17,7 +17,8 @@ class Cart {
                                 id, 
                                 user_id AS "userId", 
                                 product_id AS "productId", 
-                                quantity, 
+                                quantity,
+                                price,
                                 added_at AS "addedAt", 
                                 updated_at AS "updatedAt"
                               FROM cart
@@ -45,20 +46,27 @@ class Cart {
 
   static async addToCart(username, productId, quantity = 1) {
     try {
+      let price;
       // check if username already exists. If so, get the id reference
       const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
       if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
       const userId = userResult.rows[0].id;
 
+      // get price from product we will use this to total up price
+      const priceResult = await db.query(`SELECT price FROM products WHERE product_id = $1`, [productId]);
+      if(priceResult.rows.length === 0) throw new BadRequestError(`Item ${productId} does not exist`);
+      price = Number(priceResult.rows[0].price);
+      console.log(`Price typeof = ${typeof price}, price = ${price}`);
+
       // We are only going to allow one product per cart. We will have to use updateCartItemQty to increase the quantity
       const cartItemResult = await db.query(`SELECT user_id, product_id, quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
       if(cartItemResult.rows.length > 0) return cartItemResult.rows[0];
 
-      // add product to cart using user id and product id
-      const queryStatement = `INSERT INTO cart(user_id, product_id, quantity) 
-                              VALUES($1, $2, $3) 
-                              RETURNING user_id, product_id, quantity`;
-      const values = [userId, productId, quantity];
+      // add product to cart using user id, product id, and price
+      const queryStatement = `INSERT INTO cart(user_id, product_id, quantity, price) 
+                              VALUES($1, $2, $3, $4) 
+                              RETURNING user_id, product_id, quantity, price::integer`;
+      const values = [userId, productId, quantity, price];
       const cartResult = await db.query(queryStatement, values);
 
       return cartResult.rows[0];
