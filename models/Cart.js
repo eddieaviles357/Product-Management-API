@@ -56,7 +56,6 @@ class Cart {
       const priceResult = await db.query(`SELECT price FROM products WHERE product_id = $1`, [productId]);
       if(priceResult.rows.length === 0) throw new BadRequestError(`Item ${productId} does not exist`);
       price = Number(priceResult.rows[0].price);
-      console.log(`Price typeof = ${typeof price}, price = ${price}`);
 
       // We are only going to allow one product per cart. We will have to use updateCartItemQty to increase the quantity
       const cartItemResult = await db.query(`SELECT user_id, product_id, quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
@@ -77,23 +76,39 @@ class Cart {
 
   static async updateCartItemQty(username, productId, quantity = 0) {
     try {
+      let price;
       // check if username already exists. If so, get the id reference
       const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
       if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
       const userId = userResult.rows[0].id;
 
-      // get cart item details, if no data exist throw error
-      const currItemQty = await db.query(`SELECT quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
-      if(currItemQty.rows.length === 0) throw new BadRequestError(`Nothing to update`);
-      const currQty = currItemQty.rows[0].quantity;
+      // get price from product we will use this to total up price
+      const priceResult = await db.query(`SELECT price FROM products WHERE product_id = $1`, [productId]);
+      if(priceResult.rows.length === 0) throw new BadRequestError(`Item ${productId} does not exist`);
+      price = Number(priceResult.rows[0].price);
 
-      // update qty 
+      // get cart item details, if no data exist throw error
+      const itemResult = await db.query(`SELECT quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
+      if(itemResult.rows.length === 0) throw new BadRequestError(`Nothing to update`);
+      // Object that contains { quantity, price}
+      const { quantity: currentQty } = itemResult.rows[0];
+      price = price * ( currentQty + quantity );
+
+
+
+      /***********************************************************************************
+      ************************************************************************************
+      ********************* NEEDS TO CHECK AGAINST 0 quantity ****************************
+      ************************************************************************************
+      ************************************************************************************/
+      // update
       const queryStatement = `UPDATE cart SET
-                              quantity = $4::integer + $3
+                              quantity = $4::integer + $3,
+                              price = $5
                               WHERE user_id = $1 AND product_id = $2
-                              RETURNING user_id, product_id, quantity`;
+                              RETURNING user_id, product_id, quantity, price`;
                               
-      const values = [userId, productId, quantity, currQty];
+      const values = [userId, productId, quantity, currentQty, price];
       const updatedResult = await db.query(queryStatement, values);
 
       return updatedResult.rows;
