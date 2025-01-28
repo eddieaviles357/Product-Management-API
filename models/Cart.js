@@ -4,14 +4,13 @@ const db = require("../db");
 
 const {BadRequestError} = require("../AppError");
 
+const getUserId = require("../helpers/getUserId");
+
 class Cart {
 
   static async get(username) {
     try {
-      // check if username already exists. If so, get the id reference
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      const userId = await getUserId(username);
 
       const queryStatement = `SELECT 
                                 id, 
@@ -32,9 +31,7 @@ class Cart {
 
   static async clear (username) {
     try {
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`user ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      const userId = await getUserId(username);
 
       const removedResult = await db.query(`DELETE FROM cart WHERE user_id = $1 RETURNING *`, [userId]);
       
@@ -47,10 +44,7 @@ class Cart {
   static async addToCart(username, productId, quantity = 1) {
     try {
       let price;
-      // check if username already exists. If so, get the id reference
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      const userId = await getUserId(username);
 
       // get price from product we will use this to total up price
       const priceResult = await db.query(`SELECT price FROM products WHERE product_id = $1`, [productId]);
@@ -64,7 +58,7 @@ class Cart {
       // add product to cart using user id, product id, and price
       const queryStatement = `INSERT INTO cart(user_id, product_id, quantity, price) 
                               VALUES($1, $2, $3, $4) 
-                              RETURNING user_id, product_id, quantity, price::integer`;
+                              RETURNING user_id, product_id, quantity, price`;
       const values = [userId, productId, quantity, price];
       const cartResult = await db.query(queryStatement, values);
 
@@ -77,10 +71,8 @@ class Cart {
   static async updateCartItemQty(username, productId, quantity = 0) {
     try {
       let price;
-      // check if username already exists. If so, get the id reference
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      let qty;
+      const userId = await getUserId(username);
 
       // get price from product we will use this to total up price
       const priceResult = await db.query(`SELECT price FROM products WHERE product_id = $1`, [productId]);
@@ -93,22 +85,18 @@ class Cart {
       // Object that contains { quantity, price}
       const { quantity: currentQty } = itemResult.rows[0];
       price = price * ( currentQty + quantity );
+      qty = currentQty + quantity;
+      
+      if(qty <= 0) await db.query(`DELETE FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
 
-
-
-      /***********************************************************************************
-      ************************************************************************************
-      ********************* NEEDS TO CHECK AGAINST 0 quantity ****************************
-      ************************************************************************************
-      ************************************************************************************/
       // update
       const queryStatement = `UPDATE cart SET
-                              quantity = $4::integer + $3,
-                              price = $5
+                              quantity = $3,
+                              price = $4
                               WHERE user_id = $1 AND product_id = $2
                               RETURNING user_id, product_id, quantity, price`;
                               
-      const values = [userId, productId, quantity, currentQty, price];
+      const values = [userId, productId, qty, price];
       const updatedResult = await db.query(queryStatement, values);
 
       return updatedResult.rows;
@@ -119,10 +107,7 @@ class Cart {
 
   static async removeCartItem (username, productId) {
     try {
-      // check if username already exists. If so, get the id reference
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      const userId = await getUserId(username);
 
       const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2 RETURNING id`;
       const values = [userId, productId];
