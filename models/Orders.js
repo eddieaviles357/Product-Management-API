@@ -1,38 +1,62 @@
 "use strict";
 
 const db = require("../db");
+
 const {
   NotFoundError,
   BadRequestError,
   UnauthorizedError
 } = require("../AppError.js");
 
+const getUserId = require("../helpers/getUserId");
+
 class Orders {
   
-  static async create(username, {orderId, productId, qty, totalAmount}) {
+  // static async create(username, {orderId, productId, qty, totalAmount}) {
+  static async create(username, {cart}) {
     try {
-      // check if username exist, if so get the id reference
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      const userId = getUserId(username);
 
-      const queryStatement = `INSERT INTO orders(user_id, total_amount) 
-                              VALUES($1, $2) 
-                              RETURNING id, user_id AS "userId", total_amount AS "totalAmount"`;
-      const values = [userId, total];
-      const orderResult = await db.query(queryStatement, values);
-      /********************************* NEEDS WORK ************************* */
-      /********************************* NEEDS WORK ************************* */
-      /********************************* NEEDS WORK ************************* */
-      /********************************* NEEDS WORK ************************* */
-      /********************************* NEEDS WORK ************************* */
-      /********************************* NEEDS WORK ************************* */
-      /********************************* NEEDS WORK ************************* */
-      const orderProductQuery = `INSERT INTO order_products VALUES($1, $2, $3, $4)`;
-      const ordProdValues = [orderId, productId, qty, totalAmount];
-      const orderProductsResult = await db.query(orderProductQuery, ordProdValues);
+      // returns an array of objects containing productId, quantity, and price
+      // the first value of the array will always be the total amount (eg 10.99 )
+      let products = cart.reduce( (accum, next) => {
+        // extract important values from cart
+        const { productId, quantity, price } = next;
+        
+        const reducedBody = { productId, quantity, price };
 
-      return orderResult.rows[0];
+        accum[0] += Number(price);
+        
+        accum.push(reducedBody);
+        return accum;
+      }, [0.00]);
+      console.log(products);
+      
+
+      // const getCartStatement = `SELECT 
+      //                           id, 
+      //                           user_id AS "userId", 
+      //                           product_id AS "productId", 
+      //                           quantity,
+      //                           price,
+      //                           added_at AS "addedAt", 
+      //                           updated_at AS "updatedAt"
+      //                         FROM cart
+      //                         WHERE user_id = $1`;
+      // const cartResult = await db.query(getCartStatement, [userId]);
+
+      // const createOrderStatement = `INSERT INTO orders(user_id, total_amount) 
+      //                         VALUES($1, $2) 
+      //                         RETURNING id, user_id AS "userId", total_amount AS "totalAmount"`;
+      // const values = [userId, totalAmount];
+      // const orderResult = await db.query(createOrderStatement, values);
+
+      /********************************* NEEDS WORK ************************* */
+      // const orderProductQuery = `INSERT INTO order_products VALUES($1, $2, $3, $4)`;
+      // const ordProdValues = [orderId, productId, qty, totalAmount];
+      // const orderProductsResult = await db.query(orderProductQuery, ordProdValues);
+
+      // return orderResult.rows[0];
     } catch (err) {
       throw new BadRequestError(err.message);
     }
