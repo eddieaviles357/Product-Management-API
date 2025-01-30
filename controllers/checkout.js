@@ -10,8 +10,8 @@ const { BadRequestError } = require("../AppError");
 exports.createOrder = async (req, res, next) => {
   try {
     const { username } = req.params;
-    const body = req.body || {};
-    const order = await Orders.create(username, body);
+    const cartOrder = req.body || {};
+    const order = await Orders.create(username, cartOrder);
 
     return res.status(200).json({success: order});
   } catch (err) {
