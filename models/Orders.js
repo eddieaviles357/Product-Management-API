@@ -15,10 +15,10 @@ class Orders {
   // static async create(username, {orderId, productId, qty, totalAmount}) {
   static async create(username, {cart}) {
     try {
-      const userId = getUserId(username);
+      const userId = await getUserId(username);
 
       // returns an array of objects containing productId, quantity, and price
-      // the first value of the array will always be the total amount (eg 10.99 )
+      // the first value of the array will always be the price ( total amount int )
       let products = cart.reduce( (accum, next) => {
         // extract important values from cart
         const { productId, quantity, price } = next;
@@ -30,26 +30,43 @@ class Orders {
         accum.push(reducedBody);
         return accum;
       }, [0.00]);
-      console.log(products);
       
+      // remove first value from products which is the price and store in variable
+      let totalPrice = products.shift();
+      
+      const createOrderStatement = `INSERT INTO orders(user_id, total_amount) 
+                                    VALUES($1, $2) 
+                                    RETURNING id`;
+      const values = [userId, totalPrice];
+      
+      const orderResult = await db.query(createOrderStatement, values);
+      let orderId = orderResult.rows[0].id;
+      
+      // Insert into order_products table
+      // Multiple queries
+      const orderProductsStatement = `INSERT INTO order_products(order_id, product_id, quantity, total_amount)
+                                      VALUES($1, $2, $3, $4)`;
+      async function insertIntoOrderProductsTable(queryValues) {
+        const {productId, quantity, price} = queryValues;
+        try {
+          const result = db.query(orderProductsStatement, [orderId, productId, quantity, price]);
+          return result.rows;
+        } catch (error) {
+          console.log(error)
+        }
+        // return new Promise((resolve) => {
+        //   resolve(db.query(orderProductsStatement, [productId, quantity, price]))
+        // });
+      }
+      console.log('hit')
+      return Promise.all(
+        products.map( (prodValues) => {
+          insertIntoOrderProductsTable(prodValues)
+        })
+      ).then((val) => { console.log('complete', val); return val})
 
-      // const getCartStatement = `SELECT 
-      //                           id, 
-      //                           user_id AS "userId", 
-      //                           product_id AS "productId", 
-      //                           quantity,
-      //                           price,
-      //                           added_at AS "addedAt", 
-      //                           updated_at AS "updatedAt"
-      //                         FROM cart
-      //                         WHERE user_id = $1`;
-      // const cartResult = await db.query(getCartStatement, [userId]);
-
-      // const createOrderStatement = `INSERT INTO orders(user_id, total_amount) 
-      //                         VALUES($1, $2) 
-      //                         RETURNING id, user_id AS "userId", total_amount AS "totalAmount"`;
-      // const values = [userId, totalAmount];
-      // const orderResult = await db.query(createOrderStatement, values);
+      
+      // const orderProductsResult = await db.query(orderProductsStatement, [orderId, productId, quantity]);
 
       /********************************* NEEDS WORK ************************* */
       // const orderProductQuery = `INSERT INTO order_products VALUES($1, $2, $3, $4)`;
