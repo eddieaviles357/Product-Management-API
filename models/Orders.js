@@ -11,7 +11,22 @@ const {
 const getUserId = require("../helpers/getUserId");
 
 class Orders {
-  
+  // Only to be used inside class since JS does't support private methods
+  // orderId = Int, queryValues = {productId: Int, quantity: Int, price: String}
+  // Returns { id: Int }
+  static async _insertOrderProducts(orderId, queryValues) {
+    try {
+      const {productId, quantity, price} = queryValues;
+      const orderProductsStatement = `INSERT INTO order_products(order_id, product_id, quantity, total_amount)
+                                      VALUES($1, $2, $3, $4)
+                                      RETURNING id`;
+      const result = await db.query(orderProductsStatement, [orderId, productId, quantity, price]);
+      return result.rows[0];
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  };
+
   // static async create(username, {orderId, productId, qty, totalAmount}) {
   static async create(username, {cart}) {
     try {
@@ -41,39 +56,17 @@ class Orders {
       
       const orderResult = await db.query(createOrderStatement, values);
       let orderId = orderResult.rows[0].id;
-      
+
       // Insert into order_products table
       // Multiple queries
-      const orderProductsStatement = `INSERT INTO order_products(order_id, product_id, quantity, total_amount)
-                                      VALUES($1, $2, $3, $4)`;
-      async function insertIntoOrderProductsTable(queryValues) {
-        const {productId, quantity, price} = queryValues;
-        try {
-          const result = db.query(orderProductsStatement, [orderId, productId, quantity, price]);
-          return result.rows;
-        } catch (error) {
-          console.log(error)
-        }
-        // return new Promise((resolve) => {
-        //   resolve(db.query(orderProductsStatement, [productId, quantity, price]))
-        // });
-      }
       console.log('hit')
       return Promise.all(
         products.map( (prodValues) => {
-          insertIntoOrderProductsTable(prodValues)
+          return Orders._insertOrderProducts(orderId, prodValues);
+          
         })
       ).then((val) => { console.log('complete', val); return val})
 
-      
-      // const orderProductsResult = await db.query(orderProductsStatement, [orderId, productId, quantity]);
-
-      /********************************* NEEDS WORK ************************* */
-      // const orderProductQuery = `INSERT INTO order_products VALUES($1, $2, $3, $4)`;
-      // const ordProdValues = [orderId, productId, qty, totalAmount];
-      // const orderProductsResult = await db.query(orderProductQuery, ordProdValues);
-
-      // return orderResult.rows[0];
     } catch (err) {
       throw new BadRequestError(err.message);
     }
