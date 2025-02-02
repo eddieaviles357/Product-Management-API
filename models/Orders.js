@@ -58,14 +58,10 @@ class Orders {
       let orderId = orderResult.rows[0].id;
 
       // Insert into order_products table
-      // Multiple queries
-      console.log('hit')
+      // Multiple async queries
       return Promise.all(
-        products.map( (prodValues) => {
-          return Orders._insertOrderProducts(orderId, prodValues);
-          
-        })
-      ).then((val) => { console.log('complete', val); return val})
+        products.map( (prodValues) => Orders._insertOrderProducts(orderId, prodValues) )
+      ).then( (val) => val).catch( (err) => { throw new BadRequestError(err.message) });
 
     } catch (err) {
       throw new BadRequestError(err.message);
