@@ -1,9 +1,7 @@
 "use strict";
 
 const db = require("../db");
-
 const {BadRequestError} = require("../AppError");
-
 const getUserId = require("../helpers/getUserId");
 
 class Cart {
