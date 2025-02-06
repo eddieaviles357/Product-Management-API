@@ -9,8 +9,7 @@ const getUserId = async (username) => {
   const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
 
   if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-  const userId = userResult.rows[0].id;
-  return userId;
+  return userResult.rows[0].id;;
 }
 
 module.exports = getUserId;
