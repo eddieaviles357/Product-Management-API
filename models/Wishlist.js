@@ -30,7 +30,7 @@ class Wishlist {
     try {
       const userId = await getUserId(username);
       
-      // Delete product to wishlist using user id and product id
+      // Delete product from wishlist using user id and product id
       const queryStatement = `DELETE FROM wishlist 
                               WHERE user_id = $1 AND product_id = $2
                               RETURNING 
@@ -39,6 +39,7 @@ class Wishlist {
       const values = [userId, productId];
       const removedResult = await db.query(queryStatement, values);
       const rowsRemoved = removedResult.rowCount;
+
       // if no rows were removed then we will return false
       return (rowsRemoved !== 0) ? true : false;
     } catch (err) {
@@ -54,6 +55,7 @@ class Wishlist {
       const queryStatement = `DELETE FROM wishlist WHERE user_id = $1`;
       const removedResult = await db.query(queryStatement, [userId]);
       const rowsRemoved = removedResult.rowCount;
+      
       // if no rows were removed then we will return false
       return (rowsRemoved !== 0) ? true : false;
 
