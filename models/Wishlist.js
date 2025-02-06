@@ -7,14 +7,14 @@ const {
   UnauthorizedError
 } = require("../AppError.js");
 
+const getUserId = require("../helpers/getUserId");
+
 class Wishlist {
   
   static async addProduct(username, productId) {
     try {
-      // check if username exist, if so get the id reference
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      const userId = await getUserId(username);
+
       // add product to wishlist using user id and product id
       const queryStatement = `INSERT INTO wishlist(user_id, product_id) VALUES($1, $2) RETURNING user_id, product_id`;
       const values = [userId, productId];
@@ -28,10 +28,7 @@ class Wishlist {
 
   static async removeProduct(username, productId) {
     try {
-      // check if username exist, if so get the id reference
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      const userId = await getUserId(username);
       
       // Delete product to wishlist using user id and product id
       const queryStatement = `DELETE FROM wishlist 
@@ -51,10 +48,7 @@ class Wishlist {
 
   static async removeAll(username) {
     try {
-      // check if username exist, if so get the id reference
-      const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-      const userId = userResult.rows[0].id;
+      const userId = await getUserId(username);
       
       // Clear entire wishlist using user id
       const queryStatement = `DELETE FROM wishlist WHERE user_id = $1`;
