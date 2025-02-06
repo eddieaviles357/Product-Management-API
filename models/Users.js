@@ -1,16 +1,11 @@
 "use strict";
 
 const db = require("../db");
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { BCRYPT_WORK_FACTOR } = require("../config");
 const {
-  NotFoundError,
   BadRequestError,
   UnauthorizedError,
-//   BadRequestError,
-//   ForbiddenError,
-//   UnprocessableEntityError
 } = require("../AppError.js");
 
 class Users {

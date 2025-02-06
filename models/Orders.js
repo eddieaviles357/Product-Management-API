@@ -1,13 +1,7 @@
 "use strict";
 
 const db = require("../db");
-
-const {
-  NotFoundError,
-  BadRequestError,
-  UnauthorizedError
-} = require("../AppError.js");
-
+const { BadRequestError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
 
 class Orders {

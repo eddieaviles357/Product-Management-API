@@ -1,15 +1,7 @@
 "use strict";
 
 const db = require("../db.js");
-
-const {
-  NotFoundError,
-  BadRequestError,
-//   UnauthorizedError,
-//   BadRequestError,
-//   ForbiddenError,
-//   UnprocessableEntityError
-} = require("../AppError.js");
+const { BadRequestError } = require("../AppError");
 
 class Reviews {
   // GETS SINGLE REVIEW

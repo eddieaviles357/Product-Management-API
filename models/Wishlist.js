@@ -1,11 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const {
-  NotFoundError,
-  BadRequestError,
-  UnauthorizedError
-} = require("../AppError.js");
+const { BadRequestError } = require("../AppError");
 
 const getUserId = require("../helpers/getUserId");
 
@@ -55,7 +51,7 @@ class Wishlist {
       const queryStatement = `DELETE FROM wishlist WHERE user_id = $1`;
       const removedResult = await db.query(queryStatement, [userId]);
       const rowsRemoved = removedResult.rowCount;
-      
+
       // if no rows were removed then we will return false
       return (rowsRemoved !== 0) ? true : false;
 

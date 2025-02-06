@@ -1,14 +1,7 @@
 'use strict';
 
 const db = require("../db.js");
-const {
-  AppError,
-  NotFoundError,
-  UnauthorizedError,
-  BadRequestError,
-  ForbiddenError,
-  UnprocessableEntityError
-} = require("../AppError.js");
+const { BadRequestError } = require("../AppError");
 const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars.js");
 
 class Products {
