@@ -3,7 +3,7 @@
 const express = require('express');
 
 const app = express();
-
+// cors
 const { authenticateJWT } = require("./middleware/auth/auth")
 const productsRoutes = require("./routes/products");
 const categoriesRoutes = require("./routes/categories");
