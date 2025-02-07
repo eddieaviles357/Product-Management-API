@@ -2,14 +2,13 @@
 
 const db = require("../db.js");
 const { BadRequestError } = require("../AppError");
+const getUserId = require("../helpers/getUserId");
 
 class Reviews {
   // GETS SINGLE REVIEW
   static async getSingleReview(productId, username) {
     try{
-      const user = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(user.rows.length === 0) throw new BadRequestError(`Nothing with username ${username} found`);
-      const userId = user.rows[0].id;
+      const userId = await getUserId(username);
 
       const queryStatement = `SELECT 
                                 product_id AS "productId",
@@ -25,8 +24,7 @@ class Reviews {
       
       return (result.rows.length === 0) ? {} : result.rows[0];
     } catch(err) {
-      console.log(err);
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   };
 
@@ -48,17 +46,14 @@ class Reviews {
       const result = await db.query(queryStatement, [prodId]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
-      console.log(err);
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   };
 
   // ADDS REVIEW
   static async addReview(prodId, username, review, rating) { 
     try {
-      const user = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(user.rows.length === 0) throw new BadRequestError(`Username ${username} not found`);
-      const userId = user.rows[0].id;
+      const userId = await getUserId(username);
 
       const queryStatement = `INSERT INTO reviews (product_id, user_id, review, rating)
                               VALUES ($1, $2, $3, $4)
@@ -75,8 +70,7 @@ class Reviews {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      console.log(err);
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   };
 
@@ -85,9 +79,7 @@ class Reviews {
     try {
       if(review.length === 0 & rating === 0) throw new BadRequestError("No Data");
 
-      const user = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(user.rows.length === 0) throw new BadRequestError(`Username ${username} not found`);
-      const userId = user.rows[0].id;
+      const userId = await getUserId(username);
 
       /************************************
        ****** CHECK IF REVIEW EXIST *******
@@ -136,17 +128,14 @@ class Reviews {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      console.log(err);
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   };
 
   // DELETES A REVIEW
   static async deleteReview(prodId, username) {
     try {
-      const user = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
-      if(user.rows.length === 0) throw new BadRequestError(`Username ${username} not found`);
-      const userId = user.rows[0].id;
+      const userId = await getUserId(username);
 
       const queryStatement = `DELETE FROM reviews 
                               WHERE product_id = $1 AND user_id = $2 
@@ -162,8 +151,7 @@ class Reviews {
             ? { review: `Review with product id ${prodId} user id ${userId} not found`, success: false}
             : { review: result.rows[0], success: true};
     } catch (err) {
-      console.log(err);
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   }
 };
