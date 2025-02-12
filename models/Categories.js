@@ -104,7 +104,23 @@ class Categories {
       throw new BadRequestError();
     }
   }
-  
+  /* returns an array [
+    {
+      "id": 22,
+      "sku": "NNOOPPQQ",
+      "productName": "Pants",
+      "productDescription": "Blue athletic cotton large",
+      "price": "20.99",
+      "stock": 7,
+      "imageURL": "https://image.product-management.com/1283808",
+      "createdAt": "2025-01-31T05:58:50.407Z",
+      "updatedAt": "2025-01-31T05:58:50.407Z",
+      "categories": [
+          "none"
+      ]
+    },
+  ]
+  */
   static async getAllCategoryProducts(catId) {
     try {
       const queryStatement = `WITH all_product_id AS 
@@ -137,7 +153,7 @@ class Categories {
       throw new BadRequestError();
     }
   }
-  
+  // returns { category: String}
   static async removeCategory(catId) {
     try {
       const queryStatement = `DELETE FROM categories WHERE id = $1
