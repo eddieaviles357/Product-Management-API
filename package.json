@@ -4,7 +4,7 @@
   "description": "Management of products",
   "main": "server.js",
   "scripts": {
-    "test": "NODE_ENV=test node server.js",
+    "test": "NODE_ENV=test jest",
     "start": "node server.js"
   },
   "keywords": [
@@ -14,9 +14,14 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
     "express": "^4.19.2",
     "jsonschema": "^1.4.1",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
   }
 }
