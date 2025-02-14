@@ -1,9 +1,8 @@
 "use strict";
 
 const express = require('express');
-
+const cors = require('cors');
 const app = express();
-// cors
 const { authenticateJWT } = require("./middleware/auth/auth")
 const productsRoutes = require("./routes/products");
 const categoriesRoutes = require("./routes/categories");
@@ -12,7 +11,9 @@ const authRoutes = require("./routes/auth");
 const wishlistRoutes = require("./routes/wishlist");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/checkout");
+const { NotFoundError } = require("./AppError");
 
+app.use(cors())
 app.use(express.json());
 app.use(authenticateJWT);
 
@@ -27,7 +28,7 @@ app.use("/api/v1/checkout", orderRoutes);
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {
-    return next(new Error("NOT FOUND"));
+    return next(new NotFoundError());
 });
 
 /** Generic error handler. Anything unhandled goes here. */
@@ -46,7 +47,7 @@ app.use(function (err, req, res, next) {
     if (process.env.NODE_ENV !== "test") console.error(err.stack);
     const status = err.status || 500;
     const message = err.message;
-    console.log("STATUS:::::", status, "MESSAGE:::::", message);
+    console.log(`STATUS:::::${status}\nMESSAGE:::::${message}`);
 
     return res.status(status).json({
         error: { message, status },
