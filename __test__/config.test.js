@@ -7,7 +7,7 @@ describe("config can come from env", function () {
     process.env.DATABASE_URL = "test-database";
     process.env.NODE_ENV = "other";
 
-    const config = require("./config");
+    const config = require("../config");
     expect(config.SECRET_KEY).toEqual("test-secret");
     expect(config.PORT).toEqual(5000);
     expect(config.getDatabaseUri()).toEqual("test-database");
