@@ -9,7 +9,7 @@ const {
   commonAfterAll,
   productIds,
   categoryIds,
-  userIds,
+  userIdUsername,
   addressIds
 } = require("./_testCommon");
 
@@ -19,9 +19,11 @@ afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
 describe("helper get user id from db", () => {
-  test('testing', () => {
-    console.log(productIds);
-    expect(true).toEqual(true)
-  }
+  test('testing', async () => {
+    const {id, username} = userIdUsername[0];
+    const userId = await getUserId(username);
+    expect(id).toEqual(userId)
+    }
   )
 })
+test('test', () => expect(true).toBe(true) )

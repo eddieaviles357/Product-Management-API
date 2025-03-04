@@ -44,7 +44,7 @@ app.use(function (err, req, res, next) {
             err.message = 'Price needs to be a Number no greater than 5 digits';
             break;
     }
-    if (process.env.NODE_ENV !== "test") console.error(err.stack);
+    // if (process.env.NODE_ENV !== "test") console.error(err.stack);
     const status = err.status || 500;
     const message = err.message;
     console.log(`STATUS:::::${status}\nMESSAGE:::::${message}`);

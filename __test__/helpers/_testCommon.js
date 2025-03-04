@@ -3,10 +3,10 @@ const bcrypt = require("bcrypt");
 const db = require("../../db.js");
 const { BCRYPT_WORK_FACTOR } = require("../../config");
 
-let productIds,
-    categoryIds,
-    userIds,
-    addressIds;
+let productIds = [],
+    categoryIds = [],
+    userIdUsername = [],
+    addressIds = [];
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
@@ -22,106 +22,65 @@ async function commonBeforeAll() {
   await db.query("DELETE FROM order_products");
   await db.query("DELETE FROM payment_details");
 
+  const productDataSeed = ['shirt', 'white short', '10.99', '3', 'https://image.product-management.com/1283859']
   // seeds
   const productsResult = await db.query(`
     INSERT INTO products (sku, product_name, product_description, price, stock, image_url)
     VALUES 
-    ('MC10SSMM', 'Shirt', 'White short sleeve medium', '10.99', '3', 'https://image.product-management.com/1283859'),
-    ('MC10LSLL', 'Shirt', 'White long sleeve large', '10.99', '3', 'https://image.product-management.com/1283860'),
-    ('XKDFQKEL', 'Shirt', 'White long sleeve large', '10.99', '3', 'https://image.product-management.com/1283811'),
-    ('AABBCCDD', 'Shirt', 'White long sleeve large', '10.99', '3', 'https://image.product-management.com/1283812'),
-    ('BBCCDDEE', 'Shirt', 'White long sleeve large', '10.99', '4', 'https://image.product-management.com/1283813'),
-    ('CCDDEEFF', 'Shirt', 'White long sleeve large', '10.99', '4', 'https://image.product-management.com/1283814'),
-    ('DDEEFFGG', 'Shirt', 'White long sleeve large', '10.99', '4', 'https://image.product-management.com/1283815'),
-    ('MC10XXXX', 'Pants', 'Blue athletic cotton large', '20.99', '4', 'https://image.product-management.com/1283861'),
-    ('YC10LSLS', 'Pants', 'Blue athletic cotton large', '20.99', '4', 'https://image.product-management.com/1283863'),
-    ('YC10LXYS', 'Pants', 'Blue athletic cotton large', '20.99', '4', 'https://image.product-management.com/1283865'),
-    ('DC09LLVS', 'Pants', 'Blue athletic cotton large', '20.99', '4', 'https://image.product-management.com/1283866'),
-    ('DC10VX03', 'Pants', 'Blue athletic cotton large', '20.99', '3', 'https://image.product-management.com/1283869'),
-    ('ABDDFFEE', 'Pants', 'Blue athletic cotton large', '20.99', '3', 'https://image.product-management.com/1283868'),
-    ('FFGGHHII', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283801'),
-    ('GGHHIIJJ', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283802'),
-    ('HHIIJJKK', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283803'),
-    ('IIJJKKLL', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283804'),
-    ('JJKKLLMM', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283805'),
-    ('KKLLMMNN', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283868'),
-    ('LLMMNNOO', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283806'),
-    ('MMNNOOPP', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283807'),
-    ('NNOOPPQQ', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283808'),
-    ('OOPPQQRR', 'Pants', 'Blue athletic cotton large', '20.99', '7', 'https://image.product-management.com/1283809'),
-    ('MCXXLSXL', 'Shirt', 'Red short sleeve medium', '10.99', '2', 'https://image.product-management.com/1283862')
-    RETURNING product_id`);
+    ($1, $4, $5, $6, $7, $8),
+    ($2, $4, $5, $6, $7, $8),
+    ($3, $4, $5, $6, $7, $8)
+    RETURNING product_id`
+    , ['MC10SSMM', 'MC10LSLL', 'XKDFQKEL', productDataSeed[0], productDataSeed[1], productDataSeed[2], productDataSeed[3], productDataSeed[4]]);
+  // contains product id
+  productIds.splice(0, 0, ...productsResult.rows.map(({product_id}) => product_id));
 
-  const categoryResult = await db.query(`
-    INSERT INTO categories (category)
-    VALUES 
-    ('none'),('expensive'),('inexpensive'),('xs'),('sm'),('mm'),('ll'),('xl'),
-    ('soft'),('hard'),('white'),('black'),('red'),('yellow'),('blue'),('ss'),('ls')
+
+  const categoriesResult = await db.query(`
+    INSERT INTO categories(category) 
+    VALUES ('none'), ('expensive'), ('savy')
     RETURNING id`);
+  // contains category id
+  categoryIds.splice(0, 0, ...categoriesResult.rows.map( ({id}) => id));
 
-  await db.query(`
-    INSERT INTO products_categories (product_id, category_id)
-    VALUES
-    (1, 10),(1, 5),(1, 15),(2, 10),(2, 6),(2, 16),(3, 5),(4, 12),(5, 15),
-    (6, 15),(7, 15),(8, 15),(9, 15),(10, 15),(11, 15),(12, 15),(13, 15),(14, 15),
-    (15, 15),(16, 1),(17, 1),(18, 1),(19, 1),(20, 1),(21, 1),(22, 1),(23, 1),(24, 1)`);
 
-    const userResult = await db.query(`
-      INSERT INTO users(sku, product_name, product_description, price, stock, image_url)
-      VALUES 
-      ('west', 'wes', 'west123', $1, NOW(), NOW(), 'west123@123.com', true),
-      ('north', 'nor', 'nor123', $2, NOW(), NOW(), 'nor123@123.com', false),
-      ('east', 'eas', 'eas123', $3, NOW(), NOW(), 'eas123@123.com', false),
-      ('south', 'sou', 'sou123', $4, NOW(), NOW(), 'sou123@123.com', false),
-      ('center', 'cen', 'cen123', $5, NOW(), NOW(), 'cen123@123.com', false)
-      RETURNING id, username`,
-    [
-      await bcrypt.hash("password1", BCRYPT_WORK_FACTOR),
-      await bcrypt.hash("password2", BCRYPT_WORK_FACTOR),
-      await bcrypt.hash("password3", BCRYPT_WORK_FACTOR),
-      await bcrypt.hash("password4", BCRYPT_WORK_FACTOR),
-      await bcrypt.hash("password5", BCRYPT_WORK_FACTOR),
-    ]);
+  const userResult = await db.query(`INSERT INTO users (first_name, last_name, username, password, join_at, last_login_at, email, is_admin) 
+                  VALUES 
+                  ('west', 'wes', 'west123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', '2025-02-25 20:11:06.339921-08', '2025-02-25 20:11:06.339921-08', 'west123@123.com', true),
+                  ('north', 'nor', 'north123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', '2025-02-25 20:11:06.339921-08', '2025-02-25 20:11:06.339921-08', 'north123@123.com', false)
+                  RETURNING id, username`);
+  // contains user id
+  userIdUsername.splice(0, 0, ...userResult.rows.map( ({id, username}) => ({id, username}) ));
 
-  const addressesResult = await db.query(`
+  const addressResult = await db.query(`
     INSERT INTO addresses (user_id, address_1, address_2, city, state, zipcode)
     VALUES
-    (1, '101 dolly', '', 'dalmation', 'MI', '01234'),
-    (2, '201 disney st', '', 'dalmation', 'MI', '01234'),
-    (3, '10201 storm blvd', '', 'dalmation', 'MI', '01234'),
-    (4, '2004 godville ave', '', 'dalmation', 'MI', '01234'),
-    (5, '690 richard st', '', 'dalmation', 'MI', '01234')
-    RETURNING id`);
+    ($1, '101 dolly', '', 'Dalmation', 'MI', '01234'),
+    ($2, '201 disney st', '', 'Santa Ana', 'CA', '92626')
+    RETURNING id`
+    , [ userIdUsername[0].id, userIdUsername[1].id ] );
+  // contains id
+  addressIds.splice(0, 0, ...addressResult.rows.map(({id}) => id));
+
 
   await db.query(`
     INSERT INTO reviews (product_id, user_id, review, rating)
     VALUES
-    (2, 2, 'nice item', 1),
-    (2, 3, 'nice item', 2),
-    (2, 4, 'nice item', 3),
-    (2, 5, 'horrible', 5),
-    (3, 2, 'horrible', 3),
-    (3, 3, 'horrible', 2),
-    (3, 4, 'best item', 5),
-    (4, 2, 'best item', 2),
-    (4, 3, 'best item', 1),
-    (4, 4, 'useless', 5),
-    (5, 2, 'useless', 5),
-    (5, 3, 'useless', 5)`);
+    ($1, $3, 'nice item', 1),
+    ($2, $3, 'nice item', 2),
+    ($1, $4, 'horrible', 5)`
+    , [ productIds[0], productIds[1], userIdUsername[0].id, userIdUsername[1].id ]);
 
-  await db.query(`INSERT INTO wishlist (user_id, product_id) VALUES (1, 1),(1, 2),(1, 3),(1, 4),(2, 4),(3, 4)`);
+  await db.query(`
+    INSERT INTO wishlist (user_id, product_id) VALUES ($1, $3),($1, $4),($2, $3)`
+    , [ userIdUsername[0].id, userIdUsername[1].id, productIds[0], productIds[1] ]);
 
-  // [ids]
-  // contains id
-  productIds = productsResult.rows;
-  // contains id
-  categoryIds = categoryResult.rows;
-  // contains id username
-  userIds = userResult.rows;
-  // contains id
-  // const addressesIds = addressesResult.rows;
-  // contains id
-  addressIds = addressesResult.rows;
+  await db.query(`
+    INSERT INTO products_categories (product_id, category_id)
+    VALUES
+    ($1, $3),
+    ($2, $4)`
+    , [ productIds[0], productIds[1], categoryIds[0], categoryIds[1] ]);
 };
 
 async function commonBeforeEach() {
@@ -138,12 +97,12 @@ async function commonAfterAll() {
 
 
 module.exports = {
+  productIds,
+  categoryIds,
+  userIdUsername,
+  addressIds,
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  productIds,
-  categoryIds,
-  userIds,
-  addressIds
 };
