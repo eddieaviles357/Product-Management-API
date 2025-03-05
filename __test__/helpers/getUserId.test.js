@@ -19,11 +19,14 @@ afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
 describe("helper get user id from db", () => {
-  test('testing', async () => {
+  test("testing", async () => {
     const {id, username} = userIdUsername[0];
     const userId = await getUserId(username);
     expect(id).toEqual(userId)
-    }
-  )
-})
-test('test', () => expect(true).toBe(true) )
+  })
+
+  test("throws error", async () => {
+    await expect( () => getUserId("test") ).rejects.toThrow();
+  })
+});
+// test("test", () => expect(true).toBe(true) )
