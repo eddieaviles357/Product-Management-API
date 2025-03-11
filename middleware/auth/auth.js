@@ -49,9 +49,8 @@ function authenticateJWT(req, res, next) {
 function ensureLoggedIn(req, res, next) {
   try {
     // console.log("\n**********ENSURE_LOGGED_IN**********\n");
-    // console.log("RES[ LOCALS ][ USER ]\n", res.locals.user);
 
-    if (!res.locals.user || !res.locals.user.isAdmin) throw new UnauthorizedError();
+    if (!res.locals.user) throw new UnauthorizedError();
 
     // console.log("\n************************************\n")
     return next();
@@ -69,7 +68,7 @@ function ensureAdmin(req, res, next) {
     // console.log("\n**********ENSURE_ADMIN**********\n");
     // console.log("RES[ LOCALS ][ USER ][ IS_ADMIN ]\n", res.locals.user.isAdmin)
 
-    if (res.locals.user.isAdmin === false) throw new UnauthorizedError();
+    if (!res.locals.user || !res.locals.user.isAdmin) throw new UnauthorizedError();
 
     // console.log("\n***********************************\n")
     return next();
@@ -84,10 +83,21 @@ function ensureAdmin(req, res, next) {
  */
 function ensureUser(req, res, next) {
   try {
-    const {username} = res.locals.user
-    if( username !== req.params.username) throw new UnauthorizedError();
-    
-    return next();
+    // if no params detected assign empty object {}
+    const params = req.params ?? {};
+    // to avoid an error that is not an instanceof UnautherizedError 
+    // we will assign username undefined if none exist
+    // if a username exist in params object then assign value
+    const paramsUsername = params.username;
+
+    // if no user assign empty object {}
+    const resLocals = res.locals.user ?? {};
+    // if no username assign empty object {}
+    const userUsername = resLocals.username ?? {};
+    console.log("\n**********ENSURE_USER**********\n")
+    if( paramsUsername === userUsername ) return next();
+
+    throw new UnauthorizedError();
   } catch (err) {
     return next(err);
   }
@@ -100,15 +110,13 @@ function ensureUser(req, res, next) {
 function ensureUserOrAdmin(req, res, next) {
   try {
     // console.log("\n**********ENSURE_USER_OR_ADMIN**********\n");
-    const {isAdmin, username} = res.locals.user
-    console.log(req.params.username)
-    console.log("\n*******\nusername === req.params.username = \n", username === req.params.username)
-    console.log("\nisAdmin = \n", isAdmin, '\n********')
-    if( username === req.params.username || isAdmin) {
-      return next();
+    const user = res.locals.user;
+    
+    if( !(user && (user.isAdmin || user.username === req.params.username) ) ) {
+      throw new UnauthorizedError();
     }
-
-    throw new UnauthorizedError();
+    
+    return next();
   } catch (err) {
     return next(err);
   }
