@@ -86,7 +86,7 @@ function ensureUser(req, res, next) {
     if(!res.locals.hasOwnProperty("user")
       || !req.params) throw new UnauthorizedError();
     // console.log("\n**********ENSURE_USER**********\n")
-    if( paramsUsername === userUsername ) return next();
+    if( req.params.username === res.locals.user.username ) return next();
 
     throw new UnauthorizedError();
   } catch (err) {
