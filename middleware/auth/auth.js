@@ -83,18 +83,9 @@ function ensureAdmin(req, res, next) {
  */
 function ensureUser(req, res, next) {
   try {
-    // if no params detected assign empty object {}
-    const params = req.params ?? {};
-    // to avoid an error that is not an instanceof UnautherizedError 
-    // we will assign username undefined if none exist
-    // if a username exist in params object then assign value
-    const paramsUsername = params.username;
-
-    // if no user assign empty object {}
-    const resLocals = res.locals.user ?? {};
-    // if no username assign empty object {}
-    const userUsername = resLocals.username ?? {};
-    console.log("\n**********ENSURE_USER**********\n")
+    if(!res.locals.hasOwnProperty("user")
+      || !req.params) throw new UnauthorizedError();
+    // console.log("\n**********ENSURE_USER**********\n")
     if( paramsUsername === userUsername ) return next();
 
     throw new UnauthorizedError();
