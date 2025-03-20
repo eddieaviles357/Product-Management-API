@@ -19,6 +19,8 @@ class Cart {
     try {
       const userId = await getUserId(username);
 
+      if(userId === 0) return [];
+      
       const queryStatement = `SELECT 
                                 id, 
                                 user_id AS "userId", 
