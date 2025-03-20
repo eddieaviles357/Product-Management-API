@@ -25,8 +25,9 @@ describe("helper get user id from db", () => {
     expect(id).toEqual(userId)
   })
 
-  test("throws error", async () => {
-    await expect( () => getUserId("test") ).rejects.toThrow();
+  test("no user exist should equal 0", async () => {
+    const userId = await getUserId('fail');
+    expect(userId).toEqual(0);
   })
 });
 // test("test", () => expect(true).toBe(true) )

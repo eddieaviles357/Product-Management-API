@@ -19,16 +19,23 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
-test("test", () => expect(true).toBe(true) )
-
-// describe("get cart using username", () => {
+describe("get cart using username", () => {
 
 
-//   test("works", async () => {
-//     console.log('CART_TEST')
-//     expect.assertions(1)
-//     const cart = await Cart.get(username1);
-//     console.log('CART_TEST', cart)
-//     await expect(cart).toBeTruthy();
-//   })
-// })
+  test("works", async () => {
+    expect.assertions(3)
+    const cart = await Cart.get(username1);
+    expect(cart).toBeTruthy();
+    expect(cart).not.toHaveLength(0);
+
+    const {id, userId, productId, quantity, price} = cart[0];
+    expect(userId).toEqual(userIdUsername[0].id);
+  });
+
+  test("no user exist should be empty array []", async () => {
+    expect.assertions(2)
+    const cart = await Cart.get('Janai');
+    expect(cart).toBeInstanceOf(Array);
+    expect(cart).toHaveLength(0);
+  })
+})
