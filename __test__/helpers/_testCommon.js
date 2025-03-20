@@ -7,6 +7,8 @@ let productIds = [],
     categoryIds = [],
     userIdUsername = [],
     addressIds = [];
+const username1 = 'west123';
+const username2 = 'north123';
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
@@ -44,11 +46,12 @@ async function commonBeforeAll() {
   categoryIds.splice(0, 0, ...categoriesResult.rows.map( ({id}) => id));
 
 
-  const userResult = await db.query(`INSERT INTO users (first_name, last_name, username, password, join_at, last_login_at, email, is_admin) 
-                  VALUES 
-                  ('west', 'wes', 'west123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', '2025-02-25 20:11:06.339921-08', '2025-02-25 20:11:06.339921-08', 'west123@123.com', true),
-                  ('north', 'nor', 'north123', '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', '2025-02-25 20:11:06.339921-08', '2025-02-25 20:11:06.339921-08', 'north123@123.com', false)
-                  RETURNING id, username`);
+  const userResult = await db.query(`
+    INSERT INTO users (first_name, last_name, username, password, join_at, last_login_at, email, is_admin) 
+    VALUES 
+    ('west', 'wes', $1, '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', '2025-02-25 20:11:06.339921-08', '2025-02-25 20:11:06.339921-08', 'west123@123.com', true),
+    ('north', 'nor', $2, '$2a$12$S8vO5lapyxXiUUVk2e5WXeQQCyugjUo5J9DWD9mTmfefkbQSdQc9q', '2025-02-25 20:11:06.339921-08', '2025-02-25 20:11:06.339921-08', 'north123@123.com', false)
+    RETURNING id, username`, [username1, username2]);
   // contains user id
   userIdUsername.splice(0, 0, ...userResult.rows.map( ({id, username}) => ({id, username}) ));
 
@@ -81,6 +84,12 @@ async function commonBeforeAll() {
     ($1, $3),
     ($2, $4)`
     , [ productIds[0], productIds[1], categoryIds[0], categoryIds[1] ]);
+
+  await db.query(`
+    INSERT INTO cart (user_id, product_id, quantity, price)
+    VALUES
+    ($1, $2, $3, $4)`
+    , [ userIdUsername[0].id, productIds[0], 1, 2.00 ]);
 };
 
 async function commonBeforeEach() {
@@ -101,6 +110,8 @@ module.exports = {
   categoryIds,
   userIdUsername,
   addressIds,
+  username1,
+  username2,
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
