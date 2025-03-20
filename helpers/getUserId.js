@@ -8,8 +8,8 @@ const {BadRequestError} = require("../AppError");
 const getUserId = async (username) => {
   const userResult = await db.query(`SELECT id FROM users WHERE username = $1`, [username]);
 
-  if(userResult.rows.length === 0) throw new BadRequestError(`User ${username} does not exist`);
-  return userResult.rows[0].id;;
+  // return 0 is no user exist
+  return (userResult.rows.length === 0) ? 0 : userResult.rows[0].id
 }
 
 module.exports = getUserId;
