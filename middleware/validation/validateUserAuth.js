@@ -8,10 +8,9 @@ const validateUserAuth = (req, res, next) => {
   const validatedSchema = jsonSchema.validate(req.body, userAuthSchema);
   
   if(!validatedSchema.valid) {
-    // console.log(validatedSchema);
-    const errors = validatedSchema.errors.map( e => ({ property: e.property.slice(9), message: e.stack.slice(9) }))
-    
-    throw new BadRequestError(errors);
+    return res.status(400).json({
+      errors: validatedSchema.errors.map( errors => ({ property: errors.property.slice(9), message: errors.stack.slice(9) }))
+    });
   };
 
   next();
