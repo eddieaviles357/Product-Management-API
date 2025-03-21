@@ -1,16 +1,16 @@
 "use strict";
 
 const jwt = require("jsonwebtoken");
-const { UnauthorizedError } = require("../../AppError");
+const { UnauthorizedError } = require("../../../AppError");
 const {
   authenticateJWT,
   ensureLoggedIn,
   ensureUser,
   ensureAdmin,
   ensureUserOrAdmin,
-} = require("../../middleware/auth/auth");
+} = require("../../../middleware/auth/auth");
 
-const { SECRET_KEY } = require("../../config");
+const { SECRET_KEY } = require("../../../config");
 const TEST_USER = "testWithSecret"
 const testJwt = jwt.sign({ username: TEST_USER, isAdmin: false }, SECRET_KEY);
 const badJwt = jwt.sign({ username: TEST_USER, isAdmin: false }, "wrong");
