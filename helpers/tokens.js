@@ -2,6 +2,7 @@
 
 const jwt = require("jsonwebtoken");
 const { SECRET_KEY } = require("../config");
+const { BadRequestError } = require("../AppError");
 
 // return signed JWT token from user data
 const createToken = (user) => {
@@ -12,6 +13,7 @@ const createToken = (user) => {
     isAdmin: user.isAdmin || false
   };
 
+  if(!user.username) throw new BadRequestError('No username');
   return jwt.sign(payload, SECRET_KEY);
 }
 
