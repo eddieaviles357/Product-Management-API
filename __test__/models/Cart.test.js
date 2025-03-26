@@ -14,14 +14,13 @@ const {
   commonAfterAll
 } = require("../helpers/_testCommon");
 
-beforeAll(commonBeforeAll);
-beforeEach(commonBeforeEach);
-afterEach(commonAfterEach);
-afterAll(commonAfterAll);
-
 describe("get cart using username", () => {
 
-
+  beforeAll(commonBeforeAll);
+  beforeEach(commonBeforeEach);
+  afterEach(commonAfterEach);
+  afterAll(commonAfterAll);
+  
   test("works", async () => {
     expect.assertions(3)
     const cart = await Cart.get(username1);
