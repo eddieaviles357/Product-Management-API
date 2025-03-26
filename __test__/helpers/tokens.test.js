@@ -40,4 +40,22 @@ describe("token creations", () => {
       isAdmin: false
     })
   });
+
+  test("missing username", async () => {
+    expect(() => {
+      createToken({ isAdmin: true });
+    }).toThrow();
+  });
+
+  test("missing isAdmin", async () => {
+    let username = "meow";
+    const token = createToken({ username });
+    const payload = jwt.verify(token, SECRET_KEY);
+    
+    expect(payload).toEqual({
+      iat: expect.any(Number),
+      username,
+      isAdmin: false
+    });
+  });
 })
