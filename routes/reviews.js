@@ -8,8 +8,11 @@ const {
   deleteReviewFromProduct
 } = require("../controllers/reviews");
 const router = require("express").Router();
-const validateNewReview = require("../middleware/validation/validateNewReview");
-const validateUpdatedReview = require("../middleware/validation/validateUpdatedReview");
+
+const validateSchema = require("../middleware/validation/validateSchema");
+const newReviewSchema = require("../schemas/newReviewSchema.json");
+const updateReviewSchema = require("../schemas/updateReviewSchema.json");
+
 const {ensureLoggedIn, ensureUser, ensureUserOrAdmin, ensureAdmin} = require("../middleware/auth/auth");
 
 router
@@ -19,8 +22,8 @@ router
 router
   .route("/product/:productId/:username")
   .get(getReview)
-  .post(ensureLoggedIn, ensureUser, validateNewReview, addReviewToProduct)
-  .put(ensureLoggedIn, ensureUser, validateUpdatedReview, updateReviewToProduct)
+  .post(ensureLoggedIn, ensureUser, validateSchema(newReviewSchema), addReviewToProduct)
+  .put(ensureLoggedIn, ensureUser, validateSchema(updateReviewSchema), updateReviewToProduct)
   .delete(ensureLoggedIn, ensureUserOrAdmin, deleteReviewFromProduct)
 
 module.exports = router;

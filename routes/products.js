@@ -13,19 +13,21 @@ const {
 } = require("../controllers/products");
 // const router = require("express").Router({mergeParams: true});
 const router = require("express").Router({mergeParams: true});
-const validateNewProduct = require("../middleware/validation/validateNewProduct");
-const validateUpdatedProduct = require("../middleware/validation/validateUpdatedProduct");
 const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth/auth");
+
+const validateSchema = require("../middleware/validation/validateSchema");
+const newProductSchema = require("../schemas/newProductSchema.json");
+const updatedProductSchema = require("../schemas/updateProductSchema.json");
 
 router
   .route('/', )
   .get(getProducts)
-  .post(ensureLoggedIn, ensureAdmin, validateNewProduct,addProduct)
+  .post(ensureLoggedIn, ensureAdmin, validateSchema(newProductSchema),addProduct)
 
 router
   .route('/:id')
   .get(getProductById)
-  .put(ensureLoggedIn, ensureAdmin, validateUpdatedProduct, updateProduct)
+  .put(ensureLoggedIn, ensureAdmin, validateSchema(updatedProductSchema), updateProduct)
   .delete(ensureLoggedIn, ensureAdmin, deleteProductById)
 
 router

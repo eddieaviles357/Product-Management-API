@@ -5,16 +5,16 @@ const {
   authenticateUser,
 } = require("../controllers/auth");
 const router = require("express").Router();
-const validateNewUser = require("../middleware/validation/validateNewUser");
-const validateUserAuth = require("../middleware/validation/validateUserAuth");
-// const validateUpdatedUser = require("../middleware/validateUpdatedUser");
+const validateSchema = require("../middleware/validation/validateSchema");
+const userAuthSchema = require("../schemas/userAuthSchema.json");
+const newUserSchema = require("../schemas/newUserSchema.json");
 
 router
   .route("/")
-  .post(validateNewUser,registerUser)
+  .post(validateSchema(newUserSchema),registerUser)
 
 router
   .route("/authenticate")
-  .post(validateUserAuth, authenticateUser)
+  .post(validateSchema(userAuthSchema), authenticateUser)
 
 module.exports = router;

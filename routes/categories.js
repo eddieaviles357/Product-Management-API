@@ -9,8 +9,11 @@ const {
   getCategoryProducts,
 } = require("../controllers/categories");
 const router = require("express").Router();
-const validateNewCategory = require("../middleware/validation/validateNewCategory");
-const validateUpdatedCategory = require("../middleware/validation/validateUpdatedCategory");
+
+const validateSchema = require("../middleware/validation/validateSchema");
+const newCategorySchema = require("../schemas/newCategorySchema.json");
+const updatedCategorySchema = require("../schemas/updateCategorySchema.json");
+
 const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth/auth");
 // addNewCategory,
 // updateCategory,
@@ -19,11 +22,11 @@ const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth/auth");
 router
   .route('/')
   .get(getCategories)
-  .post(ensureLoggedIn, ensureAdmin, validateNewCategory, addNewCategory)
+  .post(ensureLoggedIn, ensureAdmin, validateSchema(newCategorySchema), addNewCategory)
 
 router
   .route('/:categoryId')
-  .put(ensureLoggedIn, ensureAdmin, validateUpdatedCategory, updateCategory)
+  .put(ensureLoggedIn, ensureAdmin, validateSchema(newCategorySchema), updateCategory)
   .delete(ensureLoggedIn, ensureAdmin, deleteCategory)
 
 router
