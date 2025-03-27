@@ -22,12 +22,23 @@ describe("helper get user id from db", () => {
   test("testing", async () => {
     const {id, username} = userIdUsername[0];
     const userId = await getUserId(username);
-    expect(id).toEqual(userId)
+    expect(id).toEqual(userId);
+    expect(Number.isInteger(userId)).toBe(true);
   })
 
   test("no user exist should equal 0", async () => {
     const userId = await getUserId('fail');
     expect(userId).toEqual(0);
-  })
+    expect(Number.isInteger(userId)).toBe(true);
+  });
+  
+  // test("should throw", async () => {
+  //   try {
+  //     await getUserId();
+  //     fail();
+  //     } catch (err) {
+  //       expect(err instanceof BadRequestError).toBeTruthy();
+  //     }
+  //   })
 });
 // test("test", () => expect(true).toBe(true) )
