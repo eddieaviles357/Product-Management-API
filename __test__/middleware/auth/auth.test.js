@@ -12,14 +12,14 @@ const {
 
 const { SECRET_KEY } = require("../../../config");
 const TEST_USER = "testWithSecret"
-const testJwt = jwt.sign({ username: TEST_USER, isAdmin: false }, SECRET_KEY);
+const goodJwt = jwt.sign({ username: TEST_USER, isAdmin: false }, SECRET_KEY);
 const badJwt = jwt.sign({ username: TEST_USER, isAdmin: false }, "wrong");
 
 describe("authenticateJWT", () => {
   test("works: via header", () => {
     expect.assertions(2);
     // pass token to header
-    const req = { headers: { authorization: `Bearer ${testJwt}` } };
+    const req = { headers: { authorization: `Bearer ${goodJwt}` } };
     const res = { locals: {} };
 
     const next = function (err) {
@@ -63,7 +63,7 @@ describe("authenticateJWT", () => {
 
 describe("ensureUser", () => {
   test("works", () => {
-    expect.assertions(1);
+    expect.assertions(2);
     const req = { params: { username: TEST_USER } };
     const res = { locals: { user: { username: TEST_USER, is_admin: false } } };
 
@@ -71,6 +71,7 @@ describe("ensureUser", () => {
       expect(err).toBeFalsy();
     }
     ensureUser(req, res, next);
+    expect(res.locals).toEqual({ user: { username: TEST_USER, is_admin: false } });
   });
 
   test("unauth if not user", () => {
@@ -151,7 +152,7 @@ describe("ensureLoggedIn", () => {
     test("works: admin", () => {
       expect.assertions(1);
       const req = { params: { username: TEST_USER } };
-      const res = { locals: { user: { username: "admin", isAdmin: true } } };
+      const res = { locals: { user: { username: TEST_USER, isAdmin: true } } };
 
       const next = function (err) {
         expect(err).toBeFalsy();
