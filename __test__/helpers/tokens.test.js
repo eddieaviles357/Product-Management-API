@@ -31,7 +31,7 @@ describe("token creations", () => {
 
   test("default no admin", async () => {
     let username = "meow"
-    const token = createToken({ username});
+    const token = createToken({ username });
     const payload = jwt.verify(token, SECRET_KEY);
     
     expect(payload).toEqual({
@@ -45,17 +45,5 @@ describe("token creations", () => {
     expect(() => {
       createToken({ isAdmin: true });
     }).toThrow();
-  });
-
-  test("missing isAdmin", async () => {
-    let username = "meow";
-    const token = createToken({ username });
-    const payload = jwt.verify(token, SECRET_KEY);
-    
-    expect(payload).toEqual({
-      iat: expect.any(Number),
-      username,
-      isAdmin: false
-    });
   });
 })
