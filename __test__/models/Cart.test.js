@@ -1,6 +1,7 @@
 "use strict";
 
 const Cart = require('../../models/Cart');
+const {BadRequestError} = require("../../AppError");
 const {
   productIds,
   categoryIds,
@@ -36,5 +37,13 @@ describe("get cart using username", () => {
     const cart = await Cart.get('Janai');
     expect(cart).toBeInstanceOf(Array);
     expect(cart).toHaveLength(0);
-  })
-})
+  });
+
+  test("throws instance BadRequestError for invalid username", async () => {
+    try {
+      const test = await Cart.get(null); // this should throw an error
+    } catch (err) {
+      expect(err).toBeInstanceOf(BadRequestError); 
+    }
+  });  
+});
