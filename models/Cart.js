@@ -69,8 +69,6 @@ class Cart {
                               RETURNING user_id AS "userId", product_id AS "productId", quantity, price`;
       const values = [userId, productId, quantity, price];
       const cartResult = await db.query(queryStatement, values);
-//
-      console.log("CONSLE",cartResult);
       return cartResult.rows[0];
     } catch (err) {
       throw new BadRequestError(err.message);
