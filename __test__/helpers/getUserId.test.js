@@ -1,5 +1,6 @@
 "use strict";
 
+const db = require("../../db");
 const {BadRequestError} = require("../../AppError");
 const getUserId = require("../../helpers/getUserId");
 const {
@@ -32,13 +33,23 @@ describe("helper get user id from db", () => {
     expect(Number.isInteger(userId)).toBe(true);
   });
   
-  // test("should throw", async () => {
-  //   try {
-  //     await getUserId();
-  //     fail();
-  //     } catch (err) {
-  //       expect(err instanceof BadRequestError).toBeTruthy();
-  //     }
-  //   })
+  test("should throw BadRequestError for invalid input", async () => {
+    jest.spyOn(db, "query").mockImplementationOnce(() => {
+      throw new Error("Database error"); // Simulate a database error
+    });
+
+    try {
+      await getUserId("failedquery");
+    } catch (err) {
+      expect(err).toBeInstanceOf(BadRequestError);
+      expect(err.message).toBe("Database error");
+    }
+  });
+
+  test("should handle SQL injection", async () => {
+    const maliciousInput = "'; DROP TABLE users; --";
+    const userId = await getUserId(maliciousInput);
+    expect(userId).toEqual(0);
+  });
 });
 // test("test", () => expect(true).toBe(true) )
