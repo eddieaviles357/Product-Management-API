@@ -66,10 +66,11 @@ class Cart {
       // add product to cart using user id, product id, and price
       const queryStatement = `INSERT INTO cart(user_id, product_id, quantity, price) 
                               VALUES($1, $2, $3, $4) 
-                              RETURNING user_id, product_id, quantity, price`;
+                              RETURNING user_id AS "userId", product_id AS "productId", quantity, price`;
       const values = [userId, productId, quantity, price];
       const cartResult = await db.query(queryStatement, values);
-
+//
+      console.log("CONSLE",cartResult);
       return cartResult.rows[0];
     } catch (err) {
       throw new BadRequestError(err.message);
@@ -101,7 +102,7 @@ class Cart {
                               quantity = $3,
                               price = $4
                               WHERE user_id = $1 AND product_id = $2
-                              RETURNING user_id, product_id, quantity, price`;
+                              RETURNING user_id AS "userId", product_id AS "productId", quantity, price`;
                               
       const values = [userId, productId, qty, price];
       const updatedResult = await db.query(queryStatement, values);
