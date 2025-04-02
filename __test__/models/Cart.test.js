@@ -64,7 +64,12 @@ describe("get cart using username", () => {
       const addedItem = await Cart.addToCart(newItem.username, newItem.product_id, newItem.quantity);
       expect(addedItem).toBeTruthy();
 
-      expect(addedItem).toEqual(expect.objectContaining( {user_id: newItem.user_id, product_id: newItem.product_id, quantity: newItem.quantity}));
+      const objToCheckAgainst = {
+        user_id: newItem.user_id, 
+        product_id: newItem.product_id, 
+        quantity: newItem.quantity
+      };
+      expect(addedItem).toEqual(expect.objectContaining(objToCheckAgainst));
     });
 
     test("throws error for invalid id", async () => {
