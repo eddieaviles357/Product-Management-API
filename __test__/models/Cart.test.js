@@ -98,11 +98,12 @@ describe("remove item from cart", () => {
 
     // Now check if the item is actually removed from the cart
     const updatedCart = await Cart.get(username1);
-    console.log('UPDATED CART ', updatedCart)
     expect(updatedCart.find(item => item.productId === productId)).toBeUndefined();
   });
 
-  // test("returns Nothing to delete when no item exist in db", async () => {
-  //   await expect(Cart.removeCartItem(99999)).rejects.toThrow("Nothing to delete");
-  // });
+  test("returns Nothing to delete when no item exist in db", async () => {
+    const result = await Cart.removeCartItem(username1, 99999999); // non-existent productId
+    // When trying to delete a non-existent item, it should return 'Nothing to delete'
+    expect(result).toEqual("Nothing to delete");
+  });
 });
