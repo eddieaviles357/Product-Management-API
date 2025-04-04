@@ -5,18 +5,34 @@ const {BadRequestError} = require("../AppError");
 const getUserId = require("../helpers/getUserId");
 
 class Cart {
+  /**
+   * Private method to get the price of a product by productId
+   * @param {number} productId 
+   * @returns {number|null} price of the product or null if not found
+   */
   static async _getPrice(productId) {
-    // get product price
-    const result = await db.query(`SELECT price FROM products WHERE product_id = $1`, [productId]);
-    if(result.rows.length === 0) throw new BadRequestError(`Item ${productId} does not exist`);
-    // price from db is returned as a string we have to cast to Int
-    return Number(result.rows[0].price);
+    try {
+      // get product price
+      if(productId === null) throw new BadRequestError(`Invalid productId provided`); // ensure productId is valid
+      const result = await db.query(`SELECT price FROM products WHERE product_id = $1`, [productId]);
+      return (result.rows.length === 0) ? null : Number(result.rows[0].price);
+      // price from db is returned as a string we have to cast to Int
+    } catch (err) {
+      throw new BadRequestError("Unable to get price");
+    }
   }
 
-  // Returns [{ id: Int, userId: Int, productId: Int, quantity: Int, price: String, addedAt: Date, updatedAt: Date}]
-  // or []
+  /**
+   * Get cart items for a given username
+   * @param {string} username
+   * @returns {Array} Array of cart items or empty array if no items found
+   */
   static async get(username) {
+    /** Returns [{ id: Int, userId: Int, productId: Int, quantity: Int, price: String, addedAt: Date, updatedAt: Date}]
+     or [] 
+    */
     try {
+      if(!username) throw new BadRequestError(`Invalid username provided`);
       const userId = await getUserId(username);
 
       if(userId === 0) return [];
@@ -38,9 +54,14 @@ class Cart {
     }
   }
 
-  // Returns Boolean
+  /**
+   * Clear the cart for a given username
+   * @param {string} username
+   * @returns {boolean} true if cart was cleared, false if no items were found to remove
+   */
   static async clear (username) {
     try {
+      if(!username) throw new BadRequestError(`Invalid username provided`);
       const userId = await getUserId(username);
 
       const removedResult = await db.query(`DELETE FROM cart WHERE user_id = $1 RETURNING *`, [userId]);
@@ -51,16 +72,26 @@ class Cart {
     }
   }
 
-  // returns { user_id: Int, product_id: Int, quantity: Int }
+  /**
+   * Add a product to the cart for a given username
+   * @param {string} username 
+   * @param {number} productId 
+   * @param {number} quantity 
+   * @returns {Object} the cart item added or existing one if already present
+   */
   static async addToCart(username, productId, quantity = 1) {
+    // returns { user_id: Int, product_id: Int, quantity: Int }
     try {
+      if(!username) throw new BadRequestError(`Invalid username provided`);
       let price;
       const userId = await getUserId(username);
 
       price = await Cart._getPrice(productId);
 
-      // We are only going to allow one product per cart. We will have to use updateCartItemQty to increase the quantity
-      const cartItemResult = await db.query(`SELECT user_id, product_id, quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
+      if(!price) throw new BadRequestError(`Item ${productId} does not exist`); // ensure the product exists in db
+      price *= quantity; // multiply the price by the quantity to get the total price for the cart item
+
+      const cartItemResult = await db.query(`SELECT user_id AS "userId", product_id AS "productId", quantity, price FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
       if(cartItemResult.rows.length > 0) return cartItemResult.rows[0];
 
       // add product to cart using user id, product id, and price
@@ -69,16 +100,25 @@ class Cart {
                               RETURNING user_id AS "userId", product_id AS "productId", quantity, price`;
       const values = [userId, productId, quantity, price];
       const cartResult = await db.query(queryStatement, values);
+
       return cartResult.rows[0];
     } catch (err) {
       throw new BadRequestError(err.message);
     }
   }
 
-  // if item Qty is 0 then it will be removed from the cart and will return []
-  // returns [ { user_id: Int, product_id: Int, quantity: Int, price: String } ]
+  /**
+   * Update the quantity of a cart item for a given username
+   * @param {string} username 
+   * @param {number} productId 
+   * @param {number} quantity 
+   * @returns {Object} the updated cart item or {} if nothing was updated
+   */
   static async updateCartItemQty(username, productId, quantity = 0) {
+    // if item Qty is 0 then it will be removed from the cart and will return {}
+    // returns { user_id: Int, product_id: Int, quantity: Int, price: String }
     try {
+      if(!username) throw new BadRequestError(`Invalid username provided`);
       let price;
       let qty;
       const userId = await getUserId(username);
@@ -88,6 +128,7 @@ class Cart {
       // get cart item details, if no data exist throw error
       const itemResult = await db.query(`SELECT quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
       if(itemResult.rows.length === 0) throw new BadRequestError(`Nothing to update`);
+
       // Object that contains { quantity, price}
       const { quantity: currentQty } = itemResult.rows[0];
       price = price * ( currentQty + quantity );
@@ -105,14 +146,22 @@ class Cart {
       const values = [userId, productId, qty, price];
       const updatedResult = await db.query(queryStatement, values);
 
-      return updatedResult.rows;
+      return updatedResult.rows[0] || {}; // return empty object if nothing was updated
     } catch (err) {
       throw new BadRequestError(err.message);
     }
   }
-  // return String | { id: Int }
+
+  /**
+   * Remove a cart item for a given username and productId
+   * @param {string} username 
+   * @param {number} productId 
+   * @returns {string|number} the id of the deleted cart item or 'Nothing to delete' if no such item exists
+   */
   static async removeCartItem (username, productId) {
+      // return String | { id: Int }
     try {
+      if(!username) throw new BadRequestError(`Invalid username provided`);
       const userId = await getUserId(username);
 
       const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2 RETURNING id`;
