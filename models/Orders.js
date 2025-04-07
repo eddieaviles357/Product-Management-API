@@ -25,9 +25,10 @@ class Orders {
   };
 
   /**
-   * Create a new order with the provided username and cart details
-   * @param {string} username - the username of the user
-   * @param {object} cart - contains array of products with productId, quantity, and price
+   * Creates a new order in the database
+   * @param {string} username - the username of the user creating the order
+   * @param {object} cart - contains an array of products with productId, quantity, and price
+   * @returns {array} - returns an array of objects containing the inserted order and order_products
    */
   static async create(username, {cart}) {
     try {
@@ -60,16 +61,18 @@ class Orders {
 
       // Insert into order_products table
       // Multiple async queries
-      return Promise.all(
-        products.map( (prodValues) => Orders._insertOrderProducts(orderId, prodValues) )
-      )
-      .then( (val) => val)
+      const orderProductIds = Promise.all( products.map( (prodValues) => Orders._insertOrderProducts(orderId, prodValues) ))
+      .then( (id) => id)
       .catch( (err) => { throw new BadRequestError(err.message) });
 
+      return orderProductIds;
     } catch (err) {
       throw new BadRequestError(err.message);
     }
   }
 };
-
+// SELECT O.id, O.user_id, O.total_amount, OP.id, OP.order_id, OP.product_id, OP.quantity, OP.total_amount 
+// FROM orders O 
+// JOIN order_products OP 
+// ON O.id = OP.order_id;
 module.exports = Orders;
