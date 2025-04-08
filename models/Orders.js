@@ -61,10 +61,14 @@ class Orders {
 
       // Insert into order_products table
       // Multiple async queries
-      const orderProductIds = Promise.all( products.map( (prodValues) => Orders._insertOrderProducts(orderId, prodValues) ))
-      .then( (id) => id)
-      .catch( (err) => { throw new BadRequestError(err.message) });
-
+      const orderProductIds = await Promise.all( 
+        products.map( 
+          (prodValues) => Orders._insertOrderProducts(orderId, prodValues) 
+        )
+      )
+      .then( (id) => id);
+//
+      console.log('orderProductsIds ', typeof orderProductIds);
       return orderProductIds;
     } catch (err) {
       throw new BadRequestError(err.message);
