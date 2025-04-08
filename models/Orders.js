@@ -67,8 +67,7 @@ class Orders {
         )
       )
       .then( (id) => id);
-//
-      console.log('orderProductsIds ', typeof orderProductIds);
+      
       return orderProductIds;
     } catch (err) {
       throw new BadRequestError(err.message);
