@@ -6,6 +6,7 @@ const { BCRYPT_WORK_FACTOR } = require("../../config");
 let productIds = [],
     categoryIds = [],
     userIdUsername = [],
+    orderIds = []
     addressIds = [];
 const username1 = 'west123';
 const username2 = 'north123';
@@ -90,6 +91,21 @@ async function commonBeforeAll() {
     VALUES
     ($1, $2, $3, $4)`
     , [ userIdUsername[0].id, productIds[0], 1, 2.00 ]);
+
+  const orderIdsResult = await db.query(`
+    INSERT INTO orders (user_id, total_amount)
+    VALUES
+    ($1, $2)
+    RETURNING id`
+    , [ userIdUsername[0].id, 100.00 ]);
+  orderIds.splice(0, 0, ...orderIdsResult.rows.map(({id}) => id));
+
+  await db.query(`
+    INSERT INTO order_products (order_id, product_id, quantity, total_amount)
+    VALUES
+    ($1, $2, $3, $4)`
+    , [ orderIds[0], productIds[0], 1, 2.00 ]);
+    
 };
 
 async function commonBeforeEach() {
@@ -112,6 +128,7 @@ module.exports = {
   addressIds,
   username1,
   username2,
+  orderIds,
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
