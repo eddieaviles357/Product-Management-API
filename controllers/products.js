@@ -50,10 +50,11 @@ exports.getProductById = async (req, res, next) => {
 // @desc      Add product to db
 // @route     POST /api/v1/products
 // @access    Private/Admin ?????????
-exports.addProduct = async (req, res, next) => { // Needs json schema validation
+exports.addProduct = async (req, res, next) => {
   try {
 
     const productToAdd = req.body;
+    // product to add { sku, name, description, price, stock, imageURL }
     const product = await Products.addProduct(productToAdd);
     
     return res.status(201).json({ 
@@ -68,7 +69,7 @@ exports.addProduct = async (req, res, next) => { // Needs json schema validation
 // @desc      Update product
 // @route     PUT /api/v1/products/:id
 // @access    Private/Admin ?????????
-exports.updateProduct = async (req, res, next) => { // Needs json schema validation
+exports.updateProduct = async (req, res, next) => {
   try {
     const productId = Number(req.params.id);
     const productBody = req.body;
