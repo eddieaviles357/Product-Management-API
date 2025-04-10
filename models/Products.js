@@ -5,13 +5,12 @@ const { BadRequestError } = require("../AppError");
 const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars.js");
 
 class Products {
-  /*
-    gets all products, along with categories ** LIMIT TO BE SET FOR PAGINATION **
-    returns [
-      {sku, name, description, price, imageURL, createdAt}, 
-      {...}
-      ]
-  */
+  /**
+   * Gets all products from the database.
+   * @param {number} id - the id to use as a cursor
+   * @returns {array} - returns an array of products
+   * @throws {BadRequestError} - if there is a database error
+   */
   static async getProducts(id = 100000000) {
     try {
       const queryStatement = `SELECT 
@@ -41,11 +40,12 @@ class Products {
     }
   }
 
-  /*
-  gets product using an id
-  returns -> { sku, name, description, price, imageURL, createdAt, categories: [] }
-
-  */
+  /**
+   * Finds a product by id.
+   * @param {number} id
+   * @returns {object} - returns the product with id, sku, productName, productDescription, price, imageURL, createdAt, updatedAt
+   * @throws {BadRequestError} - if there is a database error
+   */
   static async findProductById(id) {
     try {
       const queryStatement = `SELECT
@@ -73,13 +73,12 @@ class Products {
     }
   }
 
-  /*
-  adds a new product to db 
-  returns -> {
-    id, sku, productName, productDescription, 
-    price, stock, imageURL, createdAt
-    }
-  */
+  /**
+   * Adds a product to the database.
+   * @param {object} productBody
+   * @returns {object} - returns the added product with id, sku, productName, productDescription, price, stock, imageURL, createdAt
+   * @throws {BadRequestError} - if there is a database error
+   */
   static async addProduct({ sku, name, description, price, stock, imageURL }) {
     try {
       sku = removeNonAlphaNumericChars(sku);
@@ -104,27 +103,27 @@ class Products {
                                     ),
                               inserted AS ( 
                                   INSERT INTO products_categories (product_id, category_id)
-                                  SELECT id, 1 FROM insert_to_prod 
+                                  SELECT id, (SELECT id FROM categories WHERE category = 'none') FROM insert_to_prod 
                                   )
                               SELECT * FROM insert_to_prod`;
+                              // WITH insert_to_prod AS ( INSERT INTO products ( sku, product_name, product_description, price, stock, image_url ) VALUES (1234, 'tester', 'testerdesc', 13.00, 1, 'https://yah.com') RETURNING product_id AS id, sku, product_name AS "productName", product_description AS "productDescription", price, stock, image_url AS "imageURL", created_at AS "createdAt" ), inserted AS ( INSERT INTO products_categories (product_id, category_id) SELECT id, 1 FROM insert_to_prod ) SELECT * FROM insert_to_prod;
       const queryValues = [sku, name, description, price, stock, imageURL]
       const result = await db.query(queryStatement, queryValues);
   
       if(result.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
 
-  /*
-    updates product
-    returns -> {
-      id, sku, productName, productDescription,
-      price, stock, imageURL, createdAt, updatedAt
-    }
-  */
+  /**
+   * Updates a product in the database.
+   * @param {number} id
+   * @param {object} productBody
+   * @returns {object} - returns the updated product with id, sku, productName, productDescription, price, stock, imageURL, createdAt
+   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   */
   static async updateProduct(id, productBody) {
     try {
       const defVal = {
@@ -214,10 +213,13 @@ class Products {
     }
   }
 
-  /*
-    adds a category to a product
-    returns { productId, categoryId }
-  */
+  /**
+   * Adds a category to a product.
+   * @param {number} productId
+   * @param {number} categoryId
+   * @returns {object} - returns the added category with productId and categoryId
+   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   */
   static async addCategoryToProduct(productId, categoryId) {
     try {
       // check if product exist in db
@@ -245,9 +247,13 @@ class Products {
     }
   }
 
-  /*
-    removes a category from a product
-  */
+    /**
+     * Removes a category from a product.
+     * @param {number} productId
+     * @param {number} categoryId
+     * @returns {object} - returns the removed category with productId and categoryId
+     * @throws {BadRequestError} - if the product does not exist or if there is a database error
+     */
     static async removeCategoryFromProduct(productId, categoryId) {
       try {
         let categoryCount;
@@ -285,19 +291,21 @@ class Products {
       }
     }
 
-  /*
-  removes a product from db
-  returns -> { product_name, success }
-  */
+  /**
+   * Removes a product from the database.
+   * @param {number} id
+   * @returns {object} - returns the removed product with productName and success status
+   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   */
   static async removeProduct(id) {
     try {
       const queryStatement = `DELETE FROM products 
                               WHERE product_id = $1
-                              RETURNING product_name`;
+                              RETURNING product_name AS "productName"`;
       const result = await db.query(queryStatement, [id]);
       return (result.rows.length === 0) 
             ? { message : `Product with id ${id} not found`, success: false } 
-            : { message : `Removed product`, success: true };
+            : { message : `Removed product ${result.rows[0].productName}`, success: true };
     } catch (err) {
       console.log(err);
       throw new BadRequestError();
