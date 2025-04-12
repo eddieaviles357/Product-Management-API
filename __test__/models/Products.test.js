@@ -2,6 +2,7 @@
 
 const Products = require('../../models/Products');
 const { BadRequestError, NotFoundError } = require("../../AppError");
+const db = require("../../db");
 const {
   productIds,
   categoryIds,
@@ -48,6 +49,96 @@ describe("Products model tests", () => {
 
       await expect(Products.addProduct(invalidProduct)).rejects.toThrow(BadRequestError);
     });
+    test("successfully retrieves all products", async () => {
+      const products = await Products.getProducts();
+      expect(products).toBeTruthy();
+      expect(products.length).toBeGreaterThan(0);
+    });
+  });
+  
+  describe("removeProduct", () => {
+    test("successfully removes a product", async () => {
+      const productId = productIds[0];
+      const product = await Products.removeProduct(productId);
+      expect(product).toBeTruthy();
+      expect(product).toHaveProperty("message");
+      expect(product).toHaveProperty("success");
+      expect(product.success).toBe(true);
+      expect(product.message).toMatch(/Removed product ([A-z])/);
+    });
     
+    test("successfully responds when no product exist in db to be removed", async () => {
+      const invalidProductId = 99999;
+      const product = await Products.removeProduct(invalidProductId);
+      expect(product).toBeTruthy();
+      expect(product).toHaveProperty("message");
+      expect(product).toHaveProperty("success");
+      expect(product.success).toBe(false);
+      expect(product.message).toMatch(/Product with id (\d+) not found/);
+    });
+
+    test("throws BadRequestError for db error", async () => {
+      jest.spyOn(db, "query").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+
+      await expect(Products.removeProduct(productIds[0])).rejects.toThrow(BadRequestError);
+    });
+  });
+
+  describe("getAllProducts", () => {
+    test("successfully retrieves all products", async () => {
+      const products = await Products.getProducts();
+      expect(products).toBeTruthy();
+      expect(products.length).toBeGreaterThan(0);
+      expect(products).toBeInstanceOf(Array);
+    });
+      
+    test("returns empty array when no products exist", async () => {
+      await Promise.all(productIds.map(id => Products.removeProduct(id)));
+      const products = await Products.getProducts();
+      expect(products).toEqual([]);
+    });
+      
+    test("throws BadRequestError for db error", async () => {
+      jest.spyOn(db, "query").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+        
+        await expect(Products.getProducts()).rejects.toThrow(BadRequestError);
+    });
+  });
+
+  describe("findProductById", () => {
+    test("successfully retrieves a product by ID", async () => {
+      const productId = productIds[0];
+      const product = await Products.findProductById(productId);
+      expect(product).toBeTruthy();
+      expect(product).toHaveProperty("id");
+      expect(product).toHaveProperty("sku");
+      expect(product).toHaveProperty("name");
+      expect(product).toHaveProperty("description");
+      expect(product).toHaveProperty("price");
+      expect(product).toHaveProperty("stock");
+      expect(product).toHaveProperty("image_url");
+      expect(product).toHaveProperty("createdAt");
+      expect(product).toHaveProperty("updatedAt");
+      expect(product).toHaveProperty("categories");
+      expect(product.categories).toBeInstanceOf(Array);
+      expect(product.id).toEqual(productId);
+    });
+
+    test("throws BadRequestError for invalid ID", async () => {
+      const invalidId = "invalid";
+      await expect(Products.findProductById(invalidId)).rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError for db error", async () => {
+      jest.spyOn(db, "query").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+
+      await expect(Products.findProductById(productIds[0])).rejects.toThrow(BadRequestError);
+    });
   });
 });
