@@ -32,10 +32,8 @@ class Products {
                               ORDER BY p.product_id DESC
                               LIMIT 20`;
       const result = await db.query(queryStatement, [id]);
-      
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
@@ -48,6 +46,8 @@ class Products {
    */
   static async findProductById(id) {
     try {
+      if(!id) throw new BadRequestError("Invalid id");
+
       const queryStatement = `SELECT
                                 p.product_id AS id,
                                 p.sku,
@@ -68,7 +68,6 @@ class Products {
       
       return (result.rows.length === 0) ? {} : result.rows[0];
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
@@ -208,7 +207,6 @@ class Products {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
@@ -242,7 +240,6 @@ class Products {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return  result.rows[0];
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
@@ -286,7 +283,6 @@ class Products {
         ? { message : "nothing to remove", success: false } 
         : { message : "removed category", success: true };
       } catch (err) {
-        console.log(err);
         throw new BadRequestError();
       }
     }
@@ -307,7 +303,6 @@ class Products {
             ? { message : `Product with id ${id} not found`, success: false } 
             : { message : `Removed product ${result.rows[0].productName}`, success: true };
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
