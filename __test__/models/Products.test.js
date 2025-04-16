@@ -17,9 +17,9 @@ const {
 // getProducts
 // findProductById
 // updateProduct
-
 // addCategoryToProduct 
 // removeCategoryFromProduct
+
 
 describe("Products model tests", () => {
   beforeAll(commonBeforeAll);
@@ -236,7 +236,45 @@ describe("Products model tests", () => {
       await expect(Products.removeCategoryFromProduct(productIds[0], categoryIds[0])).rejects.toThrow(BadRequestError);
     });
   });
+    
+  describe("addCategoryToProduct", () => {
+    test("successfully adds a category to a product", async () => {
+      const productId = productIds[0];
+      const categoryId = categoryIds[1];
+      const result = await Products.addCategoryToProduct(productId, categoryId);
 
+      expect(result).toBeTruthy();
+      expect(result).toBeInstanceOf(Object);
+      expect(result).toHaveProperty("productId");
+      expect(result).toHaveProperty("categoryId");
+      expect(result).toEqual({
+        productId: productId,
+        categoryId: categoryId
+      });
+    });
 
+    test("throws BadRequestError for non-existent product ID", async () => {
+      const invalidProductId = 99999;
+      const categoryId = categoryIds[0];
+
+      await expect(Products.addCategoryToProduct(invalidProductId, categoryId)).rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError for non-existent category ID", async () => {
+      const productId = productIds[0];
+      const invalidCategoryId = 99999;
+
+      await expect(Products.addCategoryToProduct(productId, invalidCategoryId)).rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError for db error", async () => {
+      jest.spyOn(db, "query").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+
+      await expect(Products.addCategoryToProduct(productIds[0], categoryIds[0])).rejects.toThrow(BadRequestError);
+    });
+
+  });
 });
 
