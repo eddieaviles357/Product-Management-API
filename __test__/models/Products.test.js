@@ -16,8 +16,8 @@ const {
 // removeProduct
 // getProducts
 // findProductById
-
 // updateProduct
+
 // addCategoryToProduct 
 // removeCategoryFromProduct
 
@@ -201,4 +201,20 @@ describe("Products model tests", () => {
     });
   });
 
+  describe("removeCategoryFromProduct", () => {
+    test("successfully removes a category from a product", async () => {
+      const productId = productIds[0];
+      const categoryId = categoryIds[0];
+      
+      const result = await Products.removeCategoryFromProduct(productId, categoryId);
+
+      expect(result).toBeTruthy();
+      expect(result).toHaveProperty("message");
+      expect(result).toHaveProperty("success");
+      expect(result.success).toBe(true);
+      expect(result.message).toMatch("Removed category");
+    });
+  });
+
+     
 });
