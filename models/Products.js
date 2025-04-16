@@ -272,18 +272,19 @@ class Products {
         const queryValues = [productId, categoryId];
         
         const result = await db.query(queryStatement, queryValues);
+        
         // if delete query was successful then we subtract from categoryCount
         if(result.rows.length > 0) --categoryCount;
         // if there are no categories then we add our default category "none"
         if(categoryCount === 0) {
           const insertQueryStatement = `INSERT INTO products_categories (product_id, category_id)
-                                        VALUES ($1, 1)`;
+                                        VALUES ($1, (SELECT id FROM categories WHERE category = 'none'))`;
           await db.query(insertQueryStatement, [productId]);
         }
         
         return (result.rows.length === 0) 
-        ? { message : "nothing to remove", success: false } 
-        : { message : "removed category", success: true };
+        ? { message : "Nothing to remove", success: false } 
+        : { message : "Removed category", success: true };
       } catch (err) {
         throw new BadRequestError();
       }
