@@ -214,7 +214,29 @@ describe("Products model tests", () => {
       expect(result.success).toBe(true);
       expect(result.message).toMatch("Removed category");
     });
+    
+    test("successfully responds with message for non-existent product ID", async () => {
+      const invalidProductId = 99999;
+      const categoryId = categoryIds[0];
+    
+      const result = await Products.removeCategoryFromProduct(invalidProductId, categoryId);
+
+      expect(result).toBeTruthy();
+      expect(result).toHaveProperty("message");
+      expect(result).toHaveProperty("success");
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch("Nothing to remove");
+    });
+
+    test("throws BadRequestError for db error", async () => {
+      jest.spyOn(db, "query").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+
+      await expect(Products.removeCategoryFromProduct(productIds[0], categoryIds[0])).rejects.toThrow(BadRequestError);
+    });
   });
 
-     
+
 });
+
