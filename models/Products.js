@@ -21,6 +21,8 @@ class Products {
    */
   static async getProducts(id = 100000000) {
     try {
+      if(!id) throw new BadRequestError("Invalid id");
+
       const queryStatement = `SELECT 
                                 p.product_id AS id,
                                 p.sku,
@@ -133,6 +135,8 @@ class Products {
    */
   static async updateProduct(id, productBody) {
     try {  
+      if(!id) throw new BadRequestError("Invalid id");
+
       const productExistQueryStatement = `SELECT
                                             product_id AS id,
                                             product_name AS name,
@@ -222,6 +226,7 @@ class Products {
    */
   static async addCategoryToProduct(productId, categoryId) {
     try {
+      if(!productId || !categoryId) throw new BadRequestError("Invalid id");
       // check if product exist in db
       const product = await this.findProductById(productId);
       if(Object.keys(product).length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
