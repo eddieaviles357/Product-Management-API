@@ -255,11 +255,13 @@ class Products {
      */
     static async removeCategoryFromProduct(productId, categoryId) {
       try {
+        if(!productId || !categoryId) throw new BadRequestError("Invalid id");
+
         let categoryCount;
         // check if product exist in db
         const product = await this.findProductById(productId);
 
-        if(Object.keys(product).length === 0) return { message : "nothing to remove", success: false };
+        if(Object.keys(product).length === 0) return { message : "Nothing to remove", success: false };
 
         categoryCount = product.categories.length;
   
@@ -298,6 +300,8 @@ class Products {
    */
   static async removeProduct(id) {
     try {
+      if(!id) throw new BadRequestError("Invalid id");
+
       const queryStatement = `DELETE FROM products 
                               WHERE product_id = $1
                               RETURNING product_name AS "productName"`;
