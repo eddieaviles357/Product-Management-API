@@ -4,6 +4,14 @@ const db = require("../db.js");
 const { BadRequestError } = require("../AppError");
 const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars.js");
 
+// addProduct
+// removeProduct
+// getProducts
+// findProductById
+
+// updateProduct
+// addCategoryToProduct 
+// removeCategoryFromProduct
 class Products {
   /**
    * Gets all products from the database.
@@ -124,39 +132,9 @@ class Products {
    * @throws {BadRequestError} - if the product does not exist or if there is a database error
    */
   static async updateProduct(id, productBody) {
-    try {
-      const defVal = {
-        sku: '', 
-        name: '', 
-        description: '', 
-        price: 0, 
-        stock: 0, 
-        imageURL: ''
-      };
-  
-      // set default values if no values are given
-      let { 
-        sku: sku = removeNonAlphaNumericChars(sku), 
-        name, 
-        description, 
-        price, 
-        stock, 
-        imageURL 
-        } = Object.assign( {}, defVal, productBody );
-  
-      // if values are empty then return an empty object {}
-      if(  
-        sku.length === 0 & 
-        name.length === 0 & 
-        description.length === 0 & 
-        price === 0 & 
-        stock === 0 &
-        imageURL.length === 0
-        ) return {};
-  
+    try {  
       const productExistQueryStatement = `SELECT
                                             product_id AS id,
-                                            sku,
                                             product_name AS name,
                                             product_description AS description,
                                             price,
@@ -168,13 +146,38 @@ class Products {
       const existingProductQueryResults = await db.query(productExistQueryStatement, [id]);
   
       if(existingProductQueryResults.rows.length === 0) throw new BadRequestError("No products to update");
+      
+      const defVal = {
+        name: '', 
+        description: '', 
+        price: 0, 
+        stock: 0, 
+        imageURL: ''
+      };
   
+      // set default values if no values are given
+      let { 
+        name, 
+        description, 
+        price, 
+        stock, 
+        imageURL 
+        } = Object.assign( {}, defVal, productBody );
+        
+      // if values are empty then return an empty object {}
+      if(  
+        name.length === 0 & 
+        description.length === 0 & 
+        price === 0 & 
+        stock === 0 &
+        imageURL.length === 0
+        ) return {};
+
       const existingProduct = JSON.stringify(existingProductQueryResults.rows[0]);
       const parsedProduct = JSON.parse(existingProduct);
-  
+
       // must assign values different names to avoid collisions issues
       const {
-        sku: sk, 
         name: nm, 
         description: desc, 
         price: prc,
@@ -183,14 +186,13 @@ class Products {
       } = parsedProduct;
       
       const queryStatement = `UPDATE products SET
-                                sku =                 COALESCE( NULLIF($1, ''), $7 ),
-                                product_name =        COALESCE( NULLIF($2, ''), $8 ),
-                                product_description = COALESCE( NULLIF($3, ''), $9 ),
-                                price =               COALESCE( NULLIF($4, 0.00), $10 ),
-                                stock =               $5::integer + $11,
-                                image_url =           COALESCE( NULLIF($6, ''), $12 ),
+                                product_name =        COALESCE( NULLIF($1, ''), $6 ),
+                                product_description = COALESCE( NULLIF($2, ''), $7 ),
+                                price =               COALESCE( NULLIF($3, 0.00), $8 ),
+                                stock =               $4::integer + $9,
+                                image_url =           COALESCE( NULLIF($5, ''), $10 ),
                                 updated_at = NOW()
-                              WHERE product_id = $13
+                              WHERE product_id = $11
                               RETURNING 
                                 product_id AS id,
                                 sku, 
@@ -201,7 +203,7 @@ class Products {
                                 image_url AS "imageURL",
                                 created_at AS "createdAt",
                                 updated_at AS "updatedAt"`;
-      const queryValues = [sku, name, description, price, stock, imageURL, sk, nm, desc, prc, stck, imgURL, id];
+      const queryValues = [name, description, price, stock, imageURL, nm, desc, prc, stck, imgURL, id];
       const result = await db.query(queryStatement, queryValues);
   
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
