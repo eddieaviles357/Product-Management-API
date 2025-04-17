@@ -3,7 +3,6 @@
 const Orders = require('../../models/Orders');
 const { BadRequestError } = require("../../AppError");
 const {
-  userIdUsername,
   username1,
   productIds,
   orderIds,
