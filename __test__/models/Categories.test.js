@@ -30,12 +30,24 @@ describe("Categories model tests", () => {
     test("works: adds a new category", async () => {
       const category = "Electronics";
       const newCategory = await Categories.addCategory(category);
-      console.log(newCategory);
       expect(newCategory).toBeDefined();
       expect(newCategory).toEqual(expect.objectContaining({
         id: expect.any(Number),
         category: `${category.charAt(0).toLowerCase()}${category.slice(1)}`
       }));
+    });
+    test("throws BadRequestError for invalid category", async () => {
+      await expect(Categories.addCategory(null)).rejects.toThrow(BadRequestError);
+      await expect(Categories.addCategory("")).rejects.toThrow(BadRequestError);
+      await expect(Categories.addCategory("A very long category name")).rejects.toThrow(BadRequestError);
+    });
+    
+    test("throws BadRequestError for invalid category type", async () => {
+      await expect(Categories.addCategory(123)).rejects.toThrow(BadRequestError);
+    });
+    
+    test("throws BadRequestError for empty category", async () => {
+      await expect(Categories.addCategory("")).rejects.toThrow(BadRequestError);
     });
   });
 });
