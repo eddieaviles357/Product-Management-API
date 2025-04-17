@@ -28,15 +28,18 @@ class Categories {
     }
   }
 
-
-  /*
-  gets a category,
-  returns [
-    {id: 1, category: 'category'}, {...}
-  ]
+ /**
+  * Retrieves a category by its search term.
+  * @param {string} searchTerm - The search term to filter categories
+  * @returns {array} Array of categories matching the search term or empty array if no categories found
+  * @throws {BadRequestError} If searchTerm is not a string or is empty
+  * @throws {BadRequestError} If searchTerm exceeds 20 characters
+  * @throws {BadRequestError} If an error occurs while querying the database
   */
   static async searchCategory(searchTerm) {
     try {
+      if(typeof searchTerm !== 'string' || searchTerm.length === 0) throw new BadRequestError('Please check inputs');
+      if(searchTerm.length > 20) throw new BadRequestError('Search term must be less than 20 characters');
       const term = removeNonAlphabeticChars(searchTerm);
       const queryStatement = `SELECT id, category FROM categories WHERE category ILIKE $1`;
       const result = await db.query(queryStatement, [`%${term}%`]);
