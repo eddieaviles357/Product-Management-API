@@ -23,7 +23,6 @@ class Categories {
       const result = await db.query(queryStatement, [id]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
@@ -46,7 +45,6 @@ class Categories {
       const result = await db.query(queryStatement, [`%${term}%`]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
@@ -73,15 +71,10 @@ class Categories {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
 
-  /*
-    updates a category
-    returns {id, category}
-  */
   /**
   * @param {number} catId - The id of the category to be updated
   * @param {string} updatedCategory - The new category name
@@ -120,33 +113,16 @@ class Categories {
   
       return result.rows[0];
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
-  /* returns an array [
-    {
-      "id": 22,
-      "sku": "NNOOPPQQ",
-      "productName": "Pants",
-      "productDescription": "Blue athletic cotton large",
-      "price": "20.99",
-      "stock": 7,
-      "imageURL": "https://image.product-management.com/1283808",
-      "createdAt": "2025-01-31T05:58:50.407Z",
-      "updatedAt": "2025-01-31T05:58:50.407Z",
-      "categories": [
-          "none"
-      ]
-    },
-  ]
-  */
+  
   /**
   * Retrieves all products in a category by its id.
   * @param {number} catId - The id of the category
   * @returns {array} Array of products in the category or empty array if no products found
   * @throws {BadRequestError} If catId is not a number
-  * @throws {BadRequestError} If catId is has falsy value
+  * @throws {BadRequestError} If catId has falsy value
   * @throws {BadRequestError} If an error occurs while querying the database
   */
   static async getAllCategoryProducts(catId) {
@@ -179,13 +155,22 @@ class Categories {
       const result = await db.query(queryStatement, [catId]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
-  // returns { category: String}
+  
+  /**
+  * Deletes a category by its id.
+  * @param {number} catId - The id of the category to be deleted
+  * @returns {object} The deleted category and success status
+  * @throws {BadRequestError} If catId is not a number
+  * @throws {BadRequestError} If catId has falsy value
+  * @throws {BadRequestError} If an error occurs while querying the database
+  */
   static async removeCategory(catId) {
     try {
+      if(!catId) throw new BadRequestError("catId must be a number");
+
       const queryStatement = `DELETE FROM categories WHERE id = $1
                               RETURNING category`;
       const result = await db.query(queryStatement, [catId]);
@@ -194,7 +179,6 @@ class Categories {
               ? { category: `Category with id ${catId} not found`, success: false } 
               : { category: result.rows[0], success: true };
     } catch (err) {
-      console.log(err);
       throw new BadRequestError();
     }
   }
