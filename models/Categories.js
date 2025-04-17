@@ -5,7 +5,7 @@ const removeNonAlphabeticChars = require("../helpers/removeNonAlphabeticChars.js
 const { BadRequestError } = require("../AppError");
 
 class Categories {
- /**
+  /**
   * 
   * Retrieves all categories from the database with pagination.
   * @param {number} id 
@@ -28,7 +28,7 @@ class Categories {
     }
   }
 
- /**
+  /**
   * Retrieves a category by its search term.
   * @param {string} searchTerm - The search term to filter categories
   * @returns {array} Array of categories matching the search term or empty array if no categories found
@@ -40,6 +40,7 @@ class Categories {
     try {
       if(typeof searchTerm !== 'string' || searchTerm.length === 0) throw new BadRequestError('Please check inputs');
       if(searchTerm.length > 20) throw new BadRequestError('Search term must be less than 20 characters');
+      
       const term = removeNonAlphabeticChars(searchTerm);
       const queryStatement = `SELECT id, category FROM categories WHERE category ILIKE $1`;
       const result = await db.query(queryStatement, [`%${term}%`]);
@@ -54,8 +55,19 @@ class Categories {
     add a category
     returns {id, category}
   */
+
+  /** 
+  * @param {string} newCategory - The category to be added
+  * @returns {object} The newly added category with id and category
+  * @throws {BadRequestError} If newCategory is not a string or is empty
+  * @throws {BadRequestError} If newCategory exceeds 20 characters
+  * @throws {BadRequestError} If an error occurs while querying the database
+  */
   static async addCategory(newCategory) {
     try {
+      if(typeof newCategory !== 'string' || newCategory.length === 0) throw new BadRequestError('Please check inputs');
+      if(newCategory.length > 20) throw new BadRequestError('Category must be less than 20 characters');
+
       newCategory = removeNonAlphabeticChars(newCategory);
   
       const queryStatement = `INSERT INTO categories (category)
