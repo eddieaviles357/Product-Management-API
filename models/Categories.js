@@ -5,16 +5,16 @@ const removeNonAlphabeticChars = require("../helpers/removeNonAlphabeticChars.js
 const { BadRequestError } = require("../AppError");
 
 class Categories {
-
-    /*
-    gets all categories, ** LIMIT TO BE SET FOR PAGINATION **
-    returns [
-      {id: 1, category: 'category'},
-      {...}
-      ]
+ /**
+  * 
+  * Retrieves all categories from the database with pagination.
+  * @param {number} id 
+  * @returns {array} Array of categories or empty array if no categories found
+  * @throws {BadRequestError} If an error occurs while querying the database
   */
   static async getAllCategories(id = 100000000) {
     try {
+      if(!id) throw new BadRequestError("id must be a number");
       const queryStatement = `SELECT id, category 
                             FROM categories 
                             WHERE id < $1
