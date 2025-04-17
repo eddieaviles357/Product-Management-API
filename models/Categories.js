@@ -40,7 +40,7 @@ class Categories {
     try {
       if(typeof searchTerm !== 'string' || searchTerm.length === 0) throw new BadRequestError('Please check inputs');
       if(searchTerm.length > 20) throw new BadRequestError('Search term must be less than 20 characters');
-      
+
       const term = removeNonAlphabeticChars(searchTerm);
       const queryStatement = `SELECT id, category FROM categories WHERE category ILIKE $1`;
       const result = await db.query(queryStatement, [`%${term}%`]);
@@ -50,11 +50,6 @@ class Categories {
       throw new BadRequestError();
     }
   }
-  
-  /*
-    add a category
-    returns {id, category}
-  */
 
   /** 
   * @param {string} newCategory - The category to be added
@@ -87,12 +82,22 @@ class Categories {
     updates a category
     returns {id, category}
   */
+  /**
+  * @param {number} catId - The id of the category to be updated
+  * @param {string} updatedCategory - The new category name
+  * @returns {object} The updated category with id and category
+  * @throws {BadRequestError} If updatedCategory is not a string or is empty
+  * @throws {BadRequestError} If updatedCategory exceeds 20 characters
+  * @throws {BadRequestError} If updatedCategory doesn't exist in the database
+  * @throws {BadRequestError} If updatedCategory already exists in the database
+  * @throws {BadRequestError} If an error occurs while querying the database
+  */
   static async updateCategory(catId, updatedCategory) {
     try {
       // something aint right lets just return an error ❌
-      if(  typeof updatedCategory !== 'string' || updatedCategory.length === 0) {
-          throw new BadRequestError('Please check inputs');
-        }
+      if(typeof updatedCategory !== 'string' || updatedCategory.length === 0) throw new BadRequestError('Please check inputs');
+      if(updatedCategory.length > 20) throw new BadRequestError('Category must be less than 20 characters');
+
       updatedCategory = removeNonAlphabeticChars(updatedCategory);
   
       // does category exist in db 🤔
