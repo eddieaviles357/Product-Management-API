@@ -141,8 +141,18 @@ class Categories {
     },
   ]
   */
+  /**
+  * Retrieves all products in a category by its id.
+  * @param {number} catId - The id of the category
+  * @returns {array} Array of products in the category or empty array if no products found
+  * @throws {BadRequestError} If catId is not a number
+  * @throws {BadRequestError} If catId is has falsy value
+  * @throws {BadRequestError} If an error occurs while querying the database
+  */
   static async getAllCategoryProducts(catId) {
     try {
+      if(!catId) throw new BadRequestError("catId must be a number");
+
       const queryStatement = `WITH all_product_id AS 
                                 ( SELECT p.product_id 
                                   FROM products p 
