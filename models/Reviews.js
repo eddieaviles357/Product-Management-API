@@ -5,9 +5,19 @@ const { BadRequestError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
 
 class Reviews {
-  // GETS SINGLE REVIEW
+  /**
+   * @param {number} productId
+   * @param {string} username
+   * @returns {Promise<Object>} review object
+   * @throws {BadRequestError} if productId or username is missing
+   * @throws {BadRequestError} if no review found
+   * @throws {BadRequestError} if there is an error in the database query
+   */
   static async getSingleReview(productId, username) {
     try{
+      if(!productId || !username) throw new BadRequestError("Missing data");
+      
+
       const userId = await getUserId(username);
 
       const queryStatement = `SELECT 
@@ -21,7 +31,6 @@ class Reviews {
                               WHERE product_id = $1 AND user_id = $2`;
       const queryValues = [productId, userId];
       const result = await db.query(queryStatement, queryValues);
-      
       return (result.rows.length === 0) ? {} : result.rows[0];
     } catch(err) {
       throw new BadRequestError(err.message);
@@ -29,6 +38,12 @@ class Reviews {
   };
 
   // GETS REVIEWS FOR A PRODUCT
+  /**
+   * @param {number} prodId
+   * @returns {Array} array of review objects
+   * @throws {BadRequestError} if prodId is missing
+   * @throws {BadRequestError} if there is an error in the database query
+   */
   static async getReviewsForOneProduct(prodId) { 
     try {
       const queryStatement = `SELECT 
@@ -70,6 +85,7 @@ class Reviews {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
+      if(err.code = '23505') throw new BadRequestError("Review for this product already exists");
       throw new BadRequestError(err.message);
     }
   };
