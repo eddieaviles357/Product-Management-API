@@ -30,6 +30,7 @@ class Users {
       return user;
       
     } catch (err) {
+      if(err.code = '23505') throw new BadRequestError("User already exists");
       throw new BadRequestError(err.message);
     }
   }
@@ -53,8 +54,9 @@ class Users {
                            WHERE username = $1 
                            RETURNING last_login_at AS "lastLoginAt"`;
       const userResult = await db.query(userQuery, [username]);
+      if(userResult.rows.length === 0) throw new UnauthorizedError("Please register");
+      // update last login time
       const lastUpdate = await db.query(updateQuery, [username]);
-      
       const user = userResult.rows[0];
       user.lastLoginAt = lastUpdate.rows[0].lastLoginAt;
   
