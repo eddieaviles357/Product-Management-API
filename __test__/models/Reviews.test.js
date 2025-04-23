@@ -59,5 +59,35 @@ describe("Reviews Model", function () {
     });
   });
 
+  describe("getReviewsForOneProduct", function () {
+    test("works", async function () {
+      const reviews = await Reviews.getReviewsForOneProduct(productIds[0]);
+      expect(reviews).toBeInstanceOf(Array);
+      expect(reviews.length).toEqual(2);
+      expect(reviews).toEqual([
+        {
+          productId: productIds[0],
+          userId: userIdUsername[0].id,
+          firstName: "west",
+          review: "nice item",
+          rating: 1,
+          createdAt: expect.any(Date),
+          updatedAt: expect.any(Date)
+        },
+        {
+          productId: productIds[0],
+          userId: userIdUsername[1].id,
+          firstName: "north",
+          review: "horrible",
+          rating: 5,
+          createdAt: expect.any(Date),
+          updatedAt: expect.any(Date)
+        }
+      ]);
+    });
 
+    test("throws BadRequestError if prodId is missing", async function () {
+      await expect(Reviews.getReviewsForOneProduct()).rejects.toThrow(BadRequestError);
+    });
+  });
 });
