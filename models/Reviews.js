@@ -10,7 +10,6 @@ class Reviews {
    * @param {string} username
    * @returns {Object} review object
    * @throws {BadRequestError} if productId or username is missing
-   * @throws {BadRequestError} if no review found
    * @throws {BadRequestError} if there is an error in the database query
    */
   static async getSingleReview(productId, username) {
@@ -66,9 +65,19 @@ class Reviews {
     }
   };
 
-  // ADDS REVIEW
+  /**
+   * @param {number} prodId
+   * @param {string} username
+   * @param {string} review
+   * @param {number} rating
+   * @returns {Object} review object
+   * @throws {BadRequestError} if prodId, username, review or rating is missing
+   * @throws {BadRequestError} if there is an error in the database query
+   * @throws {BadRequestError} if review already exists for product
+   */
   static async addReview(prodId, username, review, rating) { 
     try {
+      if(!prodId || !username || !review || !rating) throw new BadRequestError("Missing data");
       const userId = await getUserId(username);
 
       const queryStatement = `INSERT INTO reviews (product_id, user_id, review, rating)
