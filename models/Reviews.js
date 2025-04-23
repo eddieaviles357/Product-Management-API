@@ -8,7 +8,7 @@ class Reviews {
   /**
    * @param {number} productId
    * @param {string} username
-   * @returns {Promise<Object>} review object
+   * @returns {Object} review object
    * @throws {BadRequestError} if productId or username is missing
    * @throws {BadRequestError} if no review found
    * @throws {BadRequestError} if there is an error in the database query
@@ -46,6 +46,7 @@ class Reviews {
    */
   static async getReviewsForOneProduct(prodId) { 
     try {
+      if(!prodId) throw new BadRequestError("Missing data");
       const queryStatement = `SELECT 
                                 r.product_id AS "productId",
                                 r.user_id AS "userId",
