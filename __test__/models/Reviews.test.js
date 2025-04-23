@@ -19,8 +19,8 @@ const {
 
 // getSingleReview
 // getReviewsForOneProduct
-
 // addReview
+
 // updateReview
 // deleteReview
 
@@ -95,6 +95,55 @@ describe("Reviews Model", function () {
     test("throws BadRequestError if prodId is missing", async function () {
       await expect(Reviews.getReviewsForOneProduct()).rejects.toThrow(BadRequestError);
     });
+  });
 
+  describe("addReview", function () {
+    test("works", async function () {
+      const newReview = await Reviews.addReview(productIds[2], username1, "awesome item", 5);
+      expect(newReview).toBeInstanceOf(Object);
+      expect(newReview).toHaveProperty("productId");
+      expect(newReview).toHaveProperty("userId");
+      expect(newReview).toHaveProperty("review");
+      expect(newReview).toHaveProperty("rating");
+      expect(newReview).toHaveProperty("createdAt");
+      expect(newReview).toHaveProperty("updatedAt");
+      expect(newReview).toEqual({
+        productId: productIds[2],
+        userId: userIdUsername[0].id,
+        review: "awesome item",
+        rating: 5,
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date)
+      });
+    });
+
+    test("throws BadRequestError if productId or username is missing", async function () {
+      await expect(Reviews.addReview()).rejects.toThrow(BadRequestError);
+      await expect(Reviews.addReview(productIds[0])).rejects.toThrow(BadRequestError);
+      await expect(Reviews.addReview(null, username1)).rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError if review or rating is missing", async function () {
+      await expect(Reviews.addReview(productIds[0], username1)).rejects.toThrow(BadRequestError);
+      await expect(Reviews.addReview(productIds[0], username1, null)).rejects.toThrow(BadRequestError);
+      await expect(Reviews.addReview(productIds[0], username1, "awesome item")).rejects.toThrow(BadRequestError);
+    });
+    test("throws BadRequestError if rating is not a number", async function () {
+      await expect(Reviews.addReview(productIds[0], username1, "awesome item", "five")).rejects.toThrow(BadRequestError);
+    });
+    test("throws BadRequestError if rating is not between 1 and 5", async function () {
+      await expect(Reviews.addReview(productIds[0], username1, "awesome item", 6)).rejects.toThrow(BadRequestError);
+      await expect(Reviews.addReview(productIds[0], username1, "awesome item", 0)).rejects.toThrow(BadRequestError);
+    });
+    test("throws BadRequestError if review is not a string", async function () {
+      await expect(Reviews.addReview(productIds[0], username1, 5)).rejects.toThrow(BadRequestError);
+    });
+    test("throws BadRequestError if review is not between 1 and 500 characters", async function () {
+      await expect(Reviews.addReview(productIds[0], username1, "a".repeat(501))).rejects.toThrow(BadRequestError);
+      await expect(Reviews.addReview(productIds[0], username1, "a".repeat(0))).rejects.toThrow(BadRequestError);
+    });
+    test("throws BadRequestError if review already exists for product and user", async function () {
+      await expect(Reviews.addReview(productIds[0], username1, "awesome item", 5)).rejects.toThrow(BadRequestError);
+    });
   });
 });
