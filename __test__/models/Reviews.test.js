@@ -86,8 +86,15 @@ describe("Reviews Model", function () {
       ]);
     });
 
+    test("not found if no reviews exist for product", async function () {
+      const noReviewsResult = await Reviews.getReviewsForOneProduct(productIds[2]);
+      expect(noReviewsResult).toEqual([]);
+      expect(noReviewsResult).toBeInstanceOf(Array);
+    });
+    
     test("throws BadRequestError if prodId is missing", async function () {
       await expect(Reviews.getReviewsForOneProduct()).rejects.toThrow(BadRequestError);
     });
+
   });
 });
