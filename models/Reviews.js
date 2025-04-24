@@ -100,10 +100,21 @@ class Reviews {
     }
   };
 
-  // UPDATES AN EXISTIN REVIEW
+  
+  /**
+   * @param {number} prodId
+   * @param {string} username
+   * @param {string} review
+   * @param {number} rating
+   * @returns {Object} review object
+   * @throws {BadRequestError} if prodId, username, review or rating is missing
+   * @throws {BadRequestError} if there is an error in the database query
+   * @throws {BadRequestError} if review does not exist for product
+   */
   static async updateReview(prodId, username, review, rating) { 
     try {
-      if(review.length === 0 & rating === 0) throw new BadRequestError("No Data");
+      if(!prodId || !username) throw new BadRequestError("Missing data");
+      if(!review && !rating) throw new BadRequestError("Missing data");
 
       const userId = await getUserId(username);
 
@@ -112,20 +123,20 @@ class Reviews {
       ************************************/
       
       // check if there is already a review in the database to update
-      const existingReviewStatment = `SELECT 
+      const doesReviewExistStatement = `SELECT 
                                         review,
                                         rating
                                       FROM reviews
                                       WHERE product_id = $1 AND user_id = $2`;
-      const existingReviewValues = [prodId, userId];
+      const doesReviewExistValues = [prodId, userId];
 
-      const reviewInDbResult = await db.query(existingReviewStatment, existingReviewValues);
-      if(reviewInDbResult.rows.length === 0) throw new BadRequestError("No review to update");
+      const reviewExist = await db.query(doesReviewExistStatement, doesReviewExistValues);
+      if(reviewExist.rows.length === 0) throw new BadRequestError("No review to update");
 
       // Review does exists
 
       // Connvert data to json format then parse
-      const existingReview = JSON.stringify(reviewInDbResult.rows[0]);
+      const existingReview = JSON.stringify(reviewExist.rows[0]);
       const parsedReview = JSON.parse(existingReview);
 
       // must assign values different names to avoid collisions issues
@@ -135,8 +146,8 @@ class Reviews {
        ********** UPDATE REVIEW ***********
       ************************************/
 
-          // pg statment for updating review
-      const updateStatement = `UPDATE reviews SET
+      // pg statment for updating review
+      const updateReviewStatement = `UPDATE reviews SET
                                 review = COALESCE( NULLIF($3, ''), $5 ),
                                 rating = $4,
                                 updated_at = NOW()
@@ -148,21 +159,41 @@ class Reviews {
                                 rating,
                                 created_at AS "createdAt",
                                 updated_at AS "updatedAt"`;
-      const updatingValues = [prodId, userId, review, rating, rev];
-      const result = await db.query(updateStatement, updatingValues);
+      const updatingReviewValues = [prodId, userId, review, rating, rev];
+      const updatedReview = await db.query(updateReviewStatement, updatingReviewValues);
 
-      if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
-      return result.rows[0];
+      if(updatedReview.rows.length === 0) throw new BadRequestError("Something went wrong");
+      return updatedReview.rows[0];
     } catch (err) {
       throw new BadRequestError(err.message);
     }
   };
 
-  // DELETES A REVIEW
+
+  /**
+   * @param {number} prodId
+   * @param {string} username
+   * @returns {Object} review object
+   * @throws {BadRequestError} if prodId or username is missing
+   * @throws {BadRequestError} if there is an error in the database query
+   * @throws {BadRequestError} if review does not exist for product
+   */
   static async deleteReview(prodId, username) {
     try {
+      if(!prodId || !username) throw new BadRequestError("Missing data");
       const userId = await getUserId(username);
 
+      // check if there is already a review in the database to delete
+      const doesReviewExistStatement = `SELECT 
+                                        review,
+                                        rating
+                                      FROM reviews
+                                      WHERE product_id = $1 AND user_id = $2`;
+      const doesReviewExistValues = [prodId, userId];
+      const reviewExist = await db.query(doesReviewExistStatement, doesReviewExistValues);
+      if(reviewExist.rows.length === 0) throw new BadRequestError("No review to delete");
+
+      // Review does exists
       const queryStatement = `DELETE FROM reviews 
                               WHERE product_id = $1 AND user_id = $2 
                               RETURNING 
@@ -172,10 +203,9 @@ class Reviews {
       const values = [prodId, userId]
   
       const result = await db.query(queryStatement, values);
-  
       return (result.rows.length === 0) 
-            ? { review: `Review with product id ${prodId} user id ${userId} not found`, success: false}
-            : { review: result.rows[0], success: true};
+              ? { review: `Review with product id ${prodId} user id ${userId} not found`, success: false} 
+              : { review: result.rows[0], success: true};
     } catch (err) {
       throw new BadRequestError(err.message);
     }
