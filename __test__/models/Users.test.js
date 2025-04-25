@@ -76,7 +76,6 @@ describe("Users Model", function () {
 
     test("throws BadRequestError if missing required fields", async function() {
       user.firstName = "firstNameTester"
-      console.log(user)
       delete user.lastName;
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
