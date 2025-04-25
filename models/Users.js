@@ -9,9 +9,22 @@ const {
 } = require("../AppError.js");
 
 class Users {
-
+  /** register user
+   * 
+   * @param {object} user 
+   * @param {string} user.firstName 
+   * @param {string} user.lastName 
+   * @param {string} user.username 
+   * @param {string} user.password 
+   * @param {string} user.email 
+   * @param {boolean} user.isAdmin
+   * @returns {object} user
+   */
   static async register({firstName, lastName, username, password, email, isAdmin=false}) {
     try {
+      if(!firstName || !lastName || !username || !password || !email) {
+        throw new BadRequestError("Missing required fields");
+      }
       // create salt and hash password, we will store this in db
       const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR);
 
@@ -35,9 +48,17 @@ class Users {
     }
   }
 
-  static async authenticate(username, password) { // need to update last login row ***********
+  /** authenticate user
+   * @param {string} username 
+   * @param {string} password 
+   * @returns {object} user
+   * @throws {UnauthorizedError} if user is not found or password is incorrect
+   * @throws {BadRequestError} if there is a problem with the database query
+   */
+  static async authenticate(username, password) {
     try {
-      const userQuery = `SELECT
+      if(!username || !password) throw new BadRequestError("Missing required fields");
+      const getUserQuery = `SELECT
                           id, 
                           first_name AS "firstName", 
                           last_name AS "lastName", 
@@ -49,14 +70,16 @@ class Users {
                          FROM users
                          WHERE username = $1`;
 
-      const updateQuery = `UPDATE users 
+      const updateUserLoginDateQuery = `UPDATE users 
                            SET last_login_at = NOW() 
                            WHERE username = $1 
                            RETURNING last_login_at AS "lastLoginAt"`;
-      const userResult = await db.query(userQuery, [username]);
+
+      const userResult = await db.query(getUserQuery, [username]);
       if(userResult.rows.length === 0) throw new UnauthorizedError("Please register");
+
       // update last login time
-      const lastUpdate = await db.query(updateQuery, [username]);
+      const lastUpdate = await db.query(updateUserLoginDateQuery, [username]);
       const user = userResult.rows[0];
       user.lastLoginAt = lastUpdate.rows[0].lastLoginAt;
   
