@@ -20,7 +20,7 @@ describe("Users Model", function () {
   afterEach(commonAfterEach);
   afterAll(commonAfterAll);
 
-  describe("getUserId", function () {
+  describe("register user", function () {
     const user = {
       firstName: "firstNameTester", 
       lastName: "lastNameTester", 
@@ -79,5 +79,33 @@ describe("Users Model", function () {
       delete user.lastName;
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
+  });
+
+  describe("authenticate", function () {
+    const user = {
+      firstName: "firstNameTester", 
+      lastName: "lastNameTester", 
+      username: "usernameTester",
+      password: "passwordTester", 
+      email: "tester@tester.com",
+      isAdmin: false
+    }
+    beforeEach(async function() {
+      await Users.register(user);
+    });
+
+    test("works", async function() {
+      const authenticatedUser = await Users.authenticate(user.username, user.password);
+      expect(authenticatedUser).toEqual({
+        id: expect.any(Number),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        joinAt: expect.any(Date),
+        lastLoginAt: expect.any(Date)
+      });
+    })
   });
 });
