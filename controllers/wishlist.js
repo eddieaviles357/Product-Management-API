@@ -4,6 +4,20 @@ const Wishlist = require("../models/Wishlist");
 const { BadRequestError } = require("../AppError");
 
 
+// @desc      Get all products in wishlist
+// @route     GET /api/v1/wishlist/:username
+// @access    Private/Admin ?????????
+exports.getWishlist = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const wishlist = await Wishlist.getWishlist(username);
+
+    return res.status(200).json({success: true, wishlist});
+  } catch (err) {
+    return next(err);
+  }
+};
+
 // @desc      Add product to wishlist
 // @route     POST /api/v1/wishlist/:username/:productId
 // @access    Private/Admin ?????????
