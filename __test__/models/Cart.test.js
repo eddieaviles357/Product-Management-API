@@ -29,11 +29,8 @@ describe("get cart using username", () => {
     expect(userId).toEqual(userIdUsername[0].id);
   });
 
-  test("no user exist should be empty array []", async () => {
-    expect.assertions(2)
-    const cart = await Cart.get('Janai');
-    expect(cart).toBeInstanceOf(Array);
-    expect(cart).toHaveLength(0);
+  test("throws instance BadRequestError for non existing user", async () => {
+    await expect(Cart.get('Janai')).rejects.toThrow(BadRequestError);
   });
 
   test("throws instance BadRequestError for invalid username", async () => {
