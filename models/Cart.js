@@ -34,9 +34,8 @@ class Cart {
     try {
       if(!username) throw new BadRequestError(`Invalid username provided`);
       const userId = await getUserId(username);
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
-      if(userId === 0) return [];
-      
       const queryStatement = `SELECT 
                                 id, 
                                 user_id AS "userId", 
@@ -63,6 +62,7 @@ class Cart {
     try {
       if(!username) throw new BadRequestError(`Invalid username provided`);
       const userId = await getUserId(username);
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
       const removedResult = await db.query(`DELETE FROM cart WHERE user_id = $1 RETURNING *`, [userId]);
       
@@ -85,6 +85,7 @@ class Cart {
       if(!username) throw new BadRequestError(`Invalid username provided`);
       let price;
       const userId = await getUserId(username);
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
       price = await Cart._getPrice(productId);
 
@@ -122,6 +123,7 @@ class Cart {
       let price;
       let qty;
       const userId = await getUserId(username);
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
       price = await Cart._getPrice(productId);
 
@@ -163,6 +165,7 @@ class Cart {
     try {
       if(!username) throw new BadRequestError(`Invalid username provided`);
       const userId = await getUserId(username);
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
       const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2 RETURNING id`;
       const values = [userId, productId];

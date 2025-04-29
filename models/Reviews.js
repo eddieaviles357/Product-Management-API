@@ -18,7 +18,8 @@ class Reviews {
       
 
       const userId = await getUserId(username);
-
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      
       const queryStatement = `SELECT 
                                 product_id AS "productId",
                                 user_id AS "userId",
@@ -79,7 +80,8 @@ class Reviews {
     try {
       if(!prodId || !username || !review || !rating) throw new BadRequestError("Missing data");
       const userId = await getUserId(username);
-
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      
       const queryStatement = `INSERT INTO reviews (product_id, user_id, review, rating)
                               VALUES ($1, $2, $3, $4)
                               RETURNING 
@@ -117,7 +119,8 @@ class Reviews {
       if(!review && !rating) throw new BadRequestError("Missing data");
 
       const userId = await getUserId(username);
-
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      
       /************************************
        ****** CHECK IF REVIEW EXIST *******
       ************************************/
@@ -182,7 +185,8 @@ class Reviews {
     try {
       if(!prodId || !username) throw new BadRequestError("Missing data");
       const userId = await getUserId(username);
-
+      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      
       // check if there is already a review in the database to delete
       const doesReviewExistStatement = `SELECT 
                                         review,
