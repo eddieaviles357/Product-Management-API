@@ -4,6 +4,7 @@ const request = require("supertest");
 const app = require("../../app");
 const { createToken } = require("../../helpers/tokens");
 const { BadRequestError } = require("../../AppError");
+const validateSchema = require("../../middleware/validation/validateSchema");
 const {
   productIds,
   categoryIds,
@@ -37,33 +38,34 @@ describe("Auth Middleware", () => {
           token: expect.any(String),
         });
       });
-      // test("invalid credentials", async () => {
-      //   const response = await request(app)
-      //     .post("/auth/login")
-      //     .send({ username: "testuser", password: "wrongpassword" });
 
-      //   expect(response.statusCode).toBe(401);
-      //   expect(response.body).toEqual({
-      //     error: {
-      //       message: "Invalid username/password",
-      //       status: 401,
-      //     },
-      //   });
-      // });
+      test("invalid credentials", async () => {
+        const response = await request(app)
+          .post("/api/v1/auth/authenticate")
+          .send({ username: "testuser", password: "wrongpassword" });
 
-      // test("missing fields", async () => {
-      //   const response = await request(app)
-      //     .post("/auth/login")
-      //     .send({ username: "testuser" });
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toEqual({
+          error: {
+            message: "Please register",
+            status: 401,
+          },
+        });
+      });
 
-      //   expect(response.statusCode).toBe(400);
-      //   expect(response.body).toEqual({
-      //     error: {
-      //       message: "Missing required fields",
-      //       status: 400,
-      //     },
-      //   });
-      // });
+      test("missing fields", async () => {
+        const response = await request(app)
+          .post("/api/v1/auth/authenticate")
+          .send({ username: "testuser" });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({
+          error: {
+            message: "Missing required fields",
+            status: 400,
+          },
+        });
+      });
     // });
 
     // describe("POST /auth/register", () => {
