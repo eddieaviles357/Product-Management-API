@@ -97,6 +97,7 @@ class Users {
       throw new UnauthorizedError("Invalid User");
       
     } catch (err) {
+      if(err instanceof UnauthorizedError) throw new UnauthorizedError(err.message);
       throw new BadRequestError(err.message);
     }
 
