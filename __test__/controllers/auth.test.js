@@ -4,7 +4,7 @@ const request = require("supertest");
 const app = require("../../app");
 const { createToken } = require("../../helpers/tokens");
 const { BadRequestError } = require("../../AppError");
-const validateSchema = require("../../middleware/validation/validateSchema");
+
 const {
   productIds,
   categoryIds,
@@ -56,17 +56,17 @@ describe("Auth Middleware", () => {
       test("missing fields", async () => {
         const response = await request(app)
           .post("/api/v1/auth/authenticate")
-          .send({ username: "testuser" });
+          .send({ username: "testFail" });
 
         expect(response.statusCode).toBe(400);
         expect(response.body).toEqual({
-          error: {
-            message: "Missing required fields",
-            status: 400,
-          },
+          errors: [{
+            message: "requires property \"password\"",
+            property: "password",
+          }]
         });
       });
-    // });
+    });
 
     // describe("POST /auth/register", () => {
     //   test("successful registration", async () => {
@@ -119,7 +119,7 @@ describe("Auth Middleware", () => {
       //     },
       //   });
       // });
-    });
+      // });
   });
 
 });
