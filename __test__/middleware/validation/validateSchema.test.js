@@ -29,7 +29,7 @@ describe("validateSchema Middleware", () => {
   test("should return 400 if schema is invalid", () => {
     req.body = { username: "testuser" }; // Missing password field
 
-        validateSchema(userAuthSchema)(req, res, next);
+    validateSchema(userAuthSchema)(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
