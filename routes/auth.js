@@ -10,7 +10,7 @@ const userAuthSchema = require("../schemas/userAuthSchema.json");
 const newUserSchema = require("../schemas/newUserSchema.json");
 
 router
-  .route("/")
+  .route("/register")
   .post(validateSchema(newUserSchema),registerUser)
 
 router
