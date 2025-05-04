@@ -1,7 +1,7 @@
 'use strict';
 
 const db = require("../db.js");
-const { BadRequestError } = require("../AppError");
+const { BadRequestError, ConflictError } = require("../AppError");
 const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars.js");
 
 // addProduct
@@ -122,7 +122,8 @@ class Products {
       if(result.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      throw new BadRequestError();
+      if(err.code === '23505') throw new ConflictError("Review for this product already exists");
+      throw new BadRequestError("Something went wrong");
     }
   }
 

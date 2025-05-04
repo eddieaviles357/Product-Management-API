@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db.js");
-const { BadRequestError } = require("../AppError");
+const { BadRequestError, ConflictError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
 
 class Reviews {
@@ -97,7 +97,7 @@ class Reviews {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      if(err.code = '23505') throw new BadRequestError("Review for this product already exists");
+      if(err.code === '23505') throw new ConflictError("Review for this product already exists");
       throw new BadRequestError(err.message);
     }
   };
