@@ -6,6 +6,7 @@ const { BCRYPT_WORK_FACTOR } = require("../config");
 const {
   BadRequestError,
   UnauthorizedError,
+  ConflictError
 } = require("../AppError.js");
 
 class Users {
@@ -39,11 +40,10 @@ class Users {
       const result = await db.query(queryStatement, queryValues);
       if(result.rows.length === 0) throw new BadRequestError('Invalid, something went wrong');
       
-      const user = result.rows[0];
-      return user;
+      return result.rows[0];
       
     } catch (err) {
-      if(err.code = '23505') throw new BadRequestError("User already exists");
+      if(err.code === '23505') throw new ConflictError("User already exists");
       throw new BadRequestError(err.message);
     }
   }
@@ -59,16 +59,16 @@ class Users {
     try {
       if(!username || !password) throw new BadRequestError("Missing required fields");
       const getUserQuery = `SELECT
-                          id, 
-                          first_name AS "firstName", 
-                          last_name AS "lastName", 
-                          username, 
-                          password,
-                          email,
-                          is_admin as "isAdmin",
-                          join_at AS "joinAt"
-                         FROM users
-                         WHERE username = $1`;
+                              id, 
+                              first_name AS "firstName", 
+                              last_name AS "lastName", 
+                              username, 
+                              password,
+                              email,
+                              is_admin as "isAdmin",
+                              join_at AS "joinAt"
+                            FROM users
+                            WHERE username = $1`;
 
       const updateUserLoginDateQuery = `UPDATE users 
                            SET last_login_at = NOW() 
@@ -77,18 +77,19 @@ class Users {
 
       const userResult = await db.query(getUserQuery, [username]);
       if(userResult.rows.length === 0) throw new UnauthorizedError("Please register");
-
-      // update last login time
-      const lastUpdate = await db.query(updateUserLoginDateQuery, [username]);
-      const user = userResult.rows[0];
-      user.lastLoginAt = lastUpdate.rows[0].lastLoginAt;
   
+      const user = userResult.rows[0];
+
       // is there a user in db
       if(user) {
         // is user input password the correct password against hashed password
-        const isValid = bcrypt.compare(password, user.password);
+        const isValid = await bcrypt.compare(password, user.password);
         // its the correct user now lets delete password we don't need it anymore
         if(!!isValid) {
+          // update last login time
+          const lastUpdate = await db.query(updateUserLoginDateQuery, [username]);
+          user.lastLoginAt = lastUpdate.rows[0].lastLoginAt;
+
           delete user.password;
           return user;
         }
