@@ -1,7 +1,7 @@
 "use strict";
 
 const Users = require("../../models/Users");
-const { BadRequestError } = require("../../AppError");
+const { BadRequestError, UnauthorizedError, ConflictError } = require("../../AppError");
 const {
   userIdUsername,
   addressIds,
@@ -44,11 +44,10 @@ describe("Users Model", function () {
     });
     
     
-    test("throws BadRequestError if user already exists", async function() {
+    test("throws ConflictError if user already exists", async function() {
 
       const registeredUser = await Users.register(user);
-      await expect(Users.register(user)).rejects.toThrow(BadRequestError);
-      await expect(Users.register(user)).rejects.toThrow("User already exists");
+      await expect(Users.register(user)).rejects.toThrow(ConflictError);
     });
 
     test("throws BadRequestError if missing required fields", async function() {
@@ -87,15 +86,15 @@ describe("Users Model", function () {
       lastName: "lastNameTester", 
       username: "usernameTester",
       password: "passwordTester", 
-      email: "tester@tester.com",
+      email: "tester@tester.com", 
       isAdmin: false
     }
-    beforeEach(async function() {
-      await Users.register(user);
-    });
 
     test("works", async function() {
+
+      const registeredUser = await Users.register(user);
       const authenticatedUser = await Users.authenticate(user.username, user.password);
+
       expect(authenticatedUser).toEqual({
         id: expect.any(Number),
         firstName: user.firstName,
@@ -106,6 +105,27 @@ describe("Users Model", function () {
         joinAt: expect.any(Date),
         lastLoginAt: expect.any(Date)
       });
+
+      expect(authenticatedUser.id).toEqual(registeredUser.id);
+      expect(authenticatedUser.password).toBeUndefined();
+      expect(authenticatedUser.isAdmin).toBeFalsy();
+      expect(authenticatedUser.isAdmin).toBeFalsy();
+    })
+
+    test("throws UnauthorizedError if user not found", async function() {
+      await expect(Users.authenticate(user.username, user.password)).rejects.toThrow("Please register");
+    });
+
+    test("throws UnauthorizedError if password is incorrect", async function() {
+      const registeredUser = await Users.register(user);
+      await expect(Users.authenticate(registeredUser.username, "wrongPassword")).rejects.toThrow(UnauthorizedError);
+    });
+
+    test("throws BadRequestError if missing required fields", async function() {
+
+      const registeredUser = await Users.register(user);
+      await expect(Users.authenticate(user.username)).rejects.toThrow(BadRequestError);
+      await expect(Users.authenticate()).rejects.toThrow(BadRequestError);
     })
   });
 });
