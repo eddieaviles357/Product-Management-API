@@ -2,7 +2,7 @@
 
 // const db = require("../../db.js");
 const Reviews = require("../../models/Reviews");
-const { BadRequestError } = require("../../AppError");
+const { BadRequestError, ConflictError } = require("../../AppError");
 const {
   productIds,
   categoryIds,
@@ -143,7 +143,7 @@ describe("Reviews Model", function () {
       await expect(Reviews.addReview(productIds[0], username1, "a".repeat(0))).rejects.toThrow(BadRequestError);
     });
     test("throws BadRequestError if review already exists for product and user", async function () {
-      await expect(Reviews.addReview(productIds[0], username1, "awesome item", 5)).rejects.toThrow(BadRequestError);
+      await expect(Reviews.addReview(productIds[0], username1, "awesome item", 5)).rejects.toThrow(ConflictError);
     });
   });
 
