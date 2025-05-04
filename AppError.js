@@ -52,11 +52,18 @@ class UnprocessableEntityError extends AppError {
   }
 }
 
+class ConflictError extends AppError {
+  constructor(message = "Conflict") {
+    super(message, 409);
+  }
+}
+
 module.exports = {
   AppError,
   NotFoundError,
   UnauthorizedError,
   BadRequestError,
   ForbiddenError,
-  UnprocessableEntityError
+  UnprocessableEntityError,
+  ConflictError
 };
