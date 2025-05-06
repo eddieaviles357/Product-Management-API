@@ -67,38 +67,93 @@ describe("Auth Middleware", () => {
         });
       });
     });
+//
+    describe("POST /auth/register", () => {
+      test("successful registration", async () => {
+        const response = await request(app)
+          .post("/api/v1/auth/register")
+          .send({
+            username: "newuser",
+            password: "password123",
+            firstName: "New",
+            lastName: "User",
+            email: "newuser@example.com",
+          });
+          
+        expect(response.statusCode).toBe(201);
+        expect(response.body).toEqual({
+          token: expect.any(String),
+        });
+      });
 
-    // describe("POST /auth/register", () => {
-    //   test("successful registration", async () => {
-    //     const response = await request(app)
-    //       .post("/auth/register")
-    //       .send({
-    //         username: "newuser",
-    //         password: "password123",
-    //         firstName: "New",
-    //         lastName: "User",
-    //         email: "newuser@example.com",
-    //       });
+      test("missing fields", async () => {
+        const str = "requires property"
+        const pWord = "\"password\"";
 
-    //     expect(response.statusCode).toBe(201);
-    //     expect(response.body).toEqual({
-    //       token: expect.any(String),
-    //     });
-    //   });
+        const response = await request(app)
+          .post("/api/v1/auth/register")
+          .send({ username: "newuser", firstName: "first", lastName: "last" });
 
-      // test("missing fields", async () => {
-      //   const response = await request(app)
-      //     .post("/auth/register")
-      //     .send({ username: "newuser" });
+        expect(response.statusCode).toBe(400);
+        expect(response.body.errors).toBeInstanceOf(Array);
+        expect(response.body.errors.length).toEqual(1);
+        expect(response.body).toEqual({
+          errors: [{
+            message: `${str} ${pWord}`,
+            property: pWord.slice(1, this.length).slice(this.length - 2, -1),
+          }],
+        });
+      });
 
-      //   expect(response.statusCode).toBe(400);
-      //   expect(response.body).toEqual({
-      //     error: {
-      //       message: "Missing required fields",
-      //       status: 400,
-      //     },
-      //   });
-      // });
+      test("missing fields", async () => {
+        const str = "requires property"
+        const lName = "\"lastName\"";
+        const pWord = "\"password\"";
+
+        const response = await request(app)
+          .post("/api/v1/auth/register")
+          .send({ username: "newuser", firstName: "first" });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body.errors).toBeInstanceOf(Array);
+        expect(response.body.errors.length).toEqual(2);
+        expect(response.body).toEqual({
+          errors: [{
+            message: `${str} ${lName}`,
+            property: lName.slice(1, this.length).slice(this.length - 2, -1),
+          },{
+            message: `${str} ${pWord}`,
+            property: pWord.slice(1, this.length).slice(this.length - 2, -1),
+          }],
+        });
+      });
+
+      test("missing fields", async () => {
+        const str = "requires property"
+        const fName = "\"firstName\"";
+        const lName = "\"lastName\"";
+        const pWord = "\"password\"";
+
+        const response = await request(app)
+          .post("/api/v1/auth/register")
+          .send({ username: "newuser" });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body.errors).toBeInstanceOf(Array);
+        expect(response.body.errors.length).toEqual(3);
+        expect(response.body).toEqual({
+          errors: [{
+            message: `${str} ${fName}`,
+            property: fName.slice(1, this.length).slice(this.length - 2, -1),
+          }, {
+            message: `${str} ${lName}`,
+            property: lName.slice(1, this.length).slice(this.length - 2, -1),
+          },{
+            message: `${str} ${pWord}`,
+            property: pWord.slice(1, this.length).slice(this.length - 2, -1),
+          }],
+        });
+      });
 
       // test("duplicate username", async () => {
       //   const response = await request(app)
@@ -119,7 +174,7 @@ describe("Auth Middleware", () => {
       //     },
       //   });
       // });
-      // });
+    });
   });
 
 });
