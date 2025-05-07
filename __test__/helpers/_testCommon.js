@@ -25,16 +25,18 @@ async function commonBeforeAll() {
   await db.query("DELETE FROM order_products");
   await db.query("DELETE FROM payment_details");
 
-  const productDataSeed = ['shirt', 'white short', '10.99', '3', 'https://image.product-management.com/1283859']
+  const p1 = {sku: 'MC10SSMM', item: 'shirt', description: 'white short', price: '10.99', qty: '3', imgURL: 'https://image.product-management.com/1283859'};
+  const p2 = {sku: 'MC10LSLL', item: 'pants', description: 'black pants', price: '19.99', qty: '5', imgURL: 'https://image.product-management.com/1283859'};
+  const p3 = {sku: 'XKDFQKEL', item: 'hat', description: 'sports cap', price: '5.99', qty: '2', imgURL: 'https://image.product-management.com/1283859'};
   // seeds
   const productsResult = await db.query(`
     INSERT INTO products (sku, product_name, product_description, price, stock, image_url)
     VALUES 
-    ($1, $4, $5, $6, $7, $8),
-    ($2, $4, $5, $6, $7, $8),
-    ($3, $4, $5, $6, $7, $8)
+    ($1, $2, $3, $4, $5, $6),
+    ($7, $8, $9, $10, $11, $12),
+    ($13, $14, $15, $16, $17, $18)
     RETURNING product_id`
-    , ['MC10SSMM', 'MC10LSLL', 'XKDFQKEL', productDataSeed[0], productDataSeed[1], productDataSeed[2], productDataSeed[3], productDataSeed[4]]);
+    , [p1.sku, p1.item, p1.description, p1.price, p1.qty, p1.imgURL, p2.sku, p2.item, p2.description, p2.price, p2.qty, p2.imgURL, p3.sku, p3.item, p3.description, p3.price, p3.qty, p3.imgURL,]);
   // contains product id
   productIds.splice(0, 0, ...productsResult.rows.map(({product_id}) => product_id));
 
