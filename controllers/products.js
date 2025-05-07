@@ -8,12 +8,10 @@ const { BadRequestError } = require("../AppError");
 // @access    Private/Admin ?????????
 exports.getProducts = async (req, res, next) => {
   try {
+    let cursor = undefined;
     // we will use cursor query to retrieve more products from db
-    const { cursor } = req.query;
-
-    if( !(cursor === undefined && Object.keys(req.query).length === 0) ) {
-      if( isNaN(cursor) ) throw new BadRequestError("cursor must be a number");
-    };
+    cursor = req.query.cursor;
+    if(isNaN(cursor) || cursor === undefined || Object.keys(req.query).length === 0) cursor = undefined;
 
     const productsList = await Products.getProducts(cursor);
 

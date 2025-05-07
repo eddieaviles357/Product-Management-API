@@ -5,13 +5,10 @@ const { BadRequestError } = require("../AppError");
 
 exports.getCategories = async (req, res, next) => {
   try {
+    let cursor = undefined;
     // we will use cursor query to retrieve more categories from db
-    const { cursor } = req.query;
-
-    if( !(cursor === undefined && Object.keys(req.query).length === 0) ) {
-      if(isNaN(cursor)) throw new BadRequestError("cursor must be a number");
-    };
-    
+    cursor = req.query.cursor;
+    if(isNaN(cursor) || cursor === undefined || Object.keys(req.query).length === 0) cursor = undefined;
     const categories = await Categories.getAllCategories(cursor);
 
     return res.status(200).json({ 
@@ -21,6 +18,7 @@ exports.getCategories = async (req, res, next) => {
 
 
   } catch (err) {
+    console.log("err", err);
     return next(err);
   }
 }
