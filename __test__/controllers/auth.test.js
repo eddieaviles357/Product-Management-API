@@ -23,7 +23,7 @@ const db = require("../../db.js");
 
 describe("Auth Middleware", () => {
   beforeAll(commonBeforeAll);
-  beforeEach(commonBeforeEach);
+  beforeEach(() => jest.resetAllMocks(), commonBeforeEach);
   afterEach(commonAfterEach);
   afterAll(commonAfterAll);
   // ✅
