@@ -40,8 +40,8 @@ describe("Wishlist Model", function () {
         },
         {
           productId: productIds[1],
-          productName: "shirt",
-          productPrice: "10.99",
+          productName: "pants",
+          productPrice: "19.99",
           productImageUrl: "https://image.product-management.com/1283859"
         }
       ]);
