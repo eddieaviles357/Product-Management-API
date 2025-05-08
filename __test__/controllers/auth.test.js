@@ -3,7 +3,8 @@
 const request = require("supertest");
 const app = require("../../app");
 const { createToken } = require("../../helpers/tokens");
-const { BadRequestError } = require("../../AppError");
+const { BadRequestError, ConflictError } = require("../../AppError");
+const Users = require("../../models/Users");
 
 const {
   productIds,
@@ -25,7 +26,7 @@ describe("Auth Middleware", () => {
   beforeEach(commonBeforeEach);
   afterEach(commonAfterEach);
   afterAll(commonAfterAll);
-
+  // ✅
   describe("Auth Routes", () => {
     describe("POST /auth/authenticate", () => {
       test("successful login", async () => {
@@ -38,7 +39,7 @@ describe("Auth Middleware", () => {
           token: expect.any(String),
         });
       });
-
+      // ✅
       test("invalid credentials", async () => {
         const response = await request(app)
           .post("/api/v1/auth/authenticate")
@@ -52,7 +53,7 @@ describe("Auth Middleware", () => {
           },
         });
       });
-
+      // ✅
       test("missing fields", async () => {
         const response = await request(app)
           .post("/api/v1/auth/authenticate")
@@ -66,8 +67,26 @@ describe("Auth Middleware", () => {
           }]
         });
       });
+      // ✅
+      test("throw error", async () => {//   // this is a test to see if the error is thrown
+        jest.spyOn(Users, "authenticate").mockImplementation(() => {
+          throw new BadRequestError();
+        });
+
+        const response = await request(app)
+          .post("/api/v1/auth/authenticate")
+          .send({ username: "testuser", password: "wrongpassword" });
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({
+          error: {
+            message: "Bad Request",
+            status: 400,
+          },
+        });
+      });
     });
-//
+    // ✅
     describe("POST /auth/register", () => {
       test("successful registration", async () => {
         const response = await request(app)
@@ -85,7 +104,7 @@ describe("Auth Middleware", () => {
           token: expect.any(String),
         });
       });
-
+      // ✅
       test("missing fields", async () => {
         const str = "requires property"
         const pWord = "\"password\"";
@@ -104,7 +123,7 @@ describe("Auth Middleware", () => {
           }],
         });
       });
-
+      // ✅ 
       test("missing fields", async () => {
         const str = "requires property"
         const lName = "\"lastName\"";
@@ -127,7 +146,7 @@ describe("Auth Middleware", () => {
           }],
         });
       });
-
+      // ✅
       test("missing fields", async () => {
         const str = "requires property"
         const fName = "\"firstName\"";
@@ -154,27 +173,49 @@ describe("Auth Middleware", () => {
           }],
         });
       });
+      // ✅
+      test("duplicate username", async () => {
+        const response = await request(app)
+          .post("/api/v1/auth/register")
+          .send({
+            firstName: "west",
+            lastName: "wes",
+            username: "west123",
+            password: "password123",
+            email: "testuser@example.com",
+          });
 
-      // test("duplicate username", async () => {
-      //   const response = await request(app)
-      //     .post("/auth/register")
-      //     .send({
-      //       username: "testuser",
-      //       password: "password123",
-      //       firstName: "Test",
-      //       lastName: "User",
-      //       email: "testuser@example.com",
-      //     });
+        expect(response.statusCode).toBe(409);
+        expect(response.body).toEqual({
+          error: {
+            message: "User already exists",
+            status: 409,
+          },
+        });
+      });
+      // ✅
+      test("throws Error", async () => {
+        jest.spyOn(Users, "register").mockImplementation(() => {
+          throw new BadRequestError();
+        });
 
-      //   expect(response.statusCode).toBe(409);
-      //   expect(response.body).toEqual({
-      //     error: {
-      //       message: "Username already exists",
-      //       status: 409,
-      //     },
-      //   });
-      // });
+        const response = await request(app)
+          .post("/api/v1/auth/register")
+          .send({
+            firstName: "west",
+            lastName: "wes",
+            username: "west123",
+            password: "password123",
+            email: "test@test.com",
+          });
+        expect(response.statusCode).toBe(400);
+        expect(response.body).toEqual({
+          error: {
+            message: "Bad Request",
+            status: 400,
+          },
+        });
+      });
     });
   });
-
 });
