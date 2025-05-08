@@ -4,6 +4,7 @@ const request = require("supertest");
 const app = require("../../app");
 const createToken = require("../../helpers/tokens");
 const { BadRequestError } = require("../../AppError");
+const Categories = require("../../models/Categories");
 const {
   productIds,
   categoryIds,
@@ -21,36 +22,69 @@ const db = require("../../db.js");
 
 describe("Categories Routes", () => {
   beforeAll(commonBeforeAll);
-  beforeEach(commonBeforeEach);
+  beforeEach(() => jest.resetAllMocks(), commonBeforeEach);
   afterEach(commonAfterEach);
   afterAll(commonAfterAll);
 
   describe("GET /categories", () => {
+    // ✅
     test("returns all categories", async () => {
-      const response = await request(app)
-        .get("/api/v1/categories")
-        .set("Authorization", `Bearer ${createToken({ username: "west123" })}`);
+      const response = await request(app).get("/api/v1/categories")
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
-        categories: [
-          { id: categoryIds[0], name: "Electronics" },
-          { id: categoryIds[1], name: "Books" },
-          { id: categoryIds[2], name: "Clothing" },
+        success: true,
+        categories: [ // db is set to return items in descending order
+          { id: categoryIds[2], category: "savy" },
+          { id: categoryIds[1], category: "expensive" },
+          { id: categoryIds[0], category: "none" },
         ],
       });
     });
 
-    // test("unauthenticated user", async () => {
-    //   const response = await request(app).get("/api/v1/categories");
+    // ✅
+    test("returns empty array when no categories found", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories")
+        .query({ cursor: 0 });
+        
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        categories: [],
+      });
+    });
 
-    //   expect(response.statusCode).toBe(401);
-    //   expect(response.body).toEqual({
-    //     error: {
-    //       message: "Unauthorized",
-    //       status: 401,
-    //     },
-    //   });
-    // });
+    test("returns categories (id) with cursor", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories")
+        .query({ cursor: categoryIds[1] });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        categories: [
+          { id: categoryIds[0], category: "none" },
+        ],
+      });
+    });
+
+    test("throws BadRequestError", async () => {
+      jest.spyOn(Categories, "getAllCategories").mockImplementation(() => {
+        throw new BadRequestError("something went wrong");
+      });
+
+      const response = await request(app)
+        .get("/api/v1/categories")
+        .query({ cursor: "invalid" });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'something went wrong', 
+          status: 400
+        }
+      });
+    });
   });
 });
