@@ -56,11 +56,13 @@ class Categories {
   * @throws {BadRequestError} If newCategory is not a string or is empty
   * @throws {BadRequestError} If newCategory exceeds 20 characters
   * @throws {BadRequestError} If an error occurs while querying the database
+  * @throws {ConflictError} If newCategory already exists in the database
   */
   static async addCategory(newCategory) {
     try {
       if(typeof newCategory !== 'string' || newCategory.length === 0) throw new BadRequestError('Please check inputs');
       if(newCategory.length > 20) throw new BadRequestError('Category must be less than 20 characters');
+      if(!newCategory && newCategory.length === 0) throw new BadRequestError('Please check inputs');
 
       newCategory = removeNonAlphabeticChars(newCategory);
   
