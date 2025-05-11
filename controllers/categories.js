@@ -3,6 +3,9 @@
 const Categories = require("../models/Categories");
 const { BadRequestError } = require("../AppError");
 
+// @desc      Get all categories
+// @route     GET /api/v1/categories
+// @access    Public
 exports.getCategories = async (req, res, next) => {
   try {
     let cursor = undefined;
@@ -24,6 +27,9 @@ exports.getCategories = async (req, res, next) => {
   }
 }
 
+// @desc      Get searched category
+// @route     GET /api/v1/categories/search/:searchTerm
+// @access    Public
 exports.getSearchedCategory = async (req, res, next) => {
   try {
     const { searchTerm } = req.params;
@@ -38,6 +44,10 @@ exports.getSearchedCategory = async (req, res, next) => {
   }
 }
 
+// @desc      Add new category
+// @route     POST /api/v1/categories
+// @access    Private
+// @access    Admin
 exports.addNewCategory = async (req, res, next) => {
   try {
     const { category } = req.body;
@@ -53,11 +63,15 @@ exports.addNewCategory = async (req, res, next) => {
   }
 }
 
+// @desc      Update category
+// @route     PUT /api/v1/categories/:categoryId
+// @access    Private
+// @access    Admin
 exports.updateCategory = async (req, res, next) => {
   try {
     const catId = Number(req.params.categoryId);
     const updatedCategory = req.body.category;
-
+    
     if(isNaN(catId)) throw new BadRequestError("category id must be a number");
 
     const category = await Categories.updateCategory(catId, updatedCategory);
@@ -71,6 +85,9 @@ exports.updateCategory = async (req, res, next) => {
   }
 }
 
+// @desc      Get all products in a category
+// @route     GET /api/v1/categories/:categoryId/products
+// @access    Public
 exports.getCategoryProducts = async (req, res, next) => {
   try {
     const catId = Number(req.params.categoryId);
@@ -88,6 +105,10 @@ exports.getCategoryProducts = async (req, res, next) => {
   }
 }
 
+// @desc      Delete category
+// @route     DELETE /api/v1/categories/:categoryId
+// @access    Private
+// @access    Admin
 exports.deleteCategory = async (req, res, next) => {
   try {
     const catId = Number(req.params.categoryId);
