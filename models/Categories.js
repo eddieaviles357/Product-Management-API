@@ -2,7 +2,7 @@
 
 const db = require("../db.js");
 const removeNonAlphabeticChars = require("../helpers/removeNonAlphabeticChars.js");
-const { BadRequestError, ConflictError } = require("../AppError");
+const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
 
 class Categories {
 
@@ -24,7 +24,7 @@ class Categories {
       const result = await db.query(queryStatement, [id]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
-      throw new BadRequestError();
+      throw new BadRequestError('Something went wrong');
     }
   }
 
@@ -46,6 +46,7 @@ class Categories {
       const result = await db.query(queryStatement, [`%${term}%`]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
+      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError();
     }
   }
@@ -74,7 +75,8 @@ class Categories {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      if(err.code === '23505') throw new ConflictError("Review for this product already exists");
+      if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Review for this product already exists");
+      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
   }
@@ -102,14 +104,14 @@ class Categories {
                                           FROM categories 
                                           WHERE id = $1`
       const categoryExistQuery = await db.query(doesCategoryExistStatement, [catId]);
-  
+
       // doesn't exist in db lets return error ❌
-      if(categoryExistQuery.rows.length === 0) throw new BadRequestError(`${updatedCategory} does not exist`);
+      if(categoryExistQuery.rows.length === 0) throw new NotFoundError(`${updatedCategory} does not exist`);
       const { category } = categoryExistQuery.rows[0];
   
-      if(category === updatedCategory) throw new BadRequestError(`${updatedCategory} already exists`);
+      if(category === updatedCategory) throw new ConflictError(`${updatedCategory} already exists`);
       const updateQueryStatement = `UPDATE categories 
-                                    SET category = COALESCE(NULLIF($1, ''), $2)
+                                    SET category = ( COALESCE(NULLIF(LOWER($1), ''), LOWER($2) ) )
                                     WHERE id = $3
                                     RETURNING id, category`;
       const updateQueryValues = [updatedCategory, category, catId];
@@ -117,7 +119,10 @@ class Categories {
   
       return result.rows[0];
     } catch (err) {
-      throw new BadRequestError();
+      if(err.code === '23505') throw new ConflictError("Category already exists");
+      if(err instanceof NotFoundError) throw err;
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError('Something went wrong');
     }
   }
   
@@ -159,6 +164,7 @@ class Categories {
       const result = await db.query(queryStatement, [catId]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
+      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError();
     }
   }
@@ -170,10 +176,16 @@ class Categories {
   * @throws {BadRequestError} If catId is not a number
   * @throws {BadRequestError} If catId has falsy value
   * @throws {BadRequestError} If an error occurs while querying the database
+  * @throws {NotFoundError} If the category with catId does not exist
+  * @throws {BadRequestError} If the category with catId is 'none'
   */
   static async removeCategory(catId) {
     try {
       if(!catId) throw new BadRequestError("catId must be a number");
+      const isCategoryNone = `SELECT id, category FROM categories WHERE id = $1`;
+      const categoryQuery = await db.query(isCategoryNone, [catId]);
+      if(categoryQuery.rows.length === 0) throw new NotFoundError(`Category with id ${catId} not found`);
+      if(categoryQuery.rows[0].category === 'none') throw new BadRequestError(`Category with id ${catId} cannot be deleted`);
 
       const queryStatement = `DELETE FROM categories WHERE id = $1
                               RETURNING category`;
@@ -183,6 +195,8 @@ class Categories {
               ? { category: `Category with id ${catId} not found`, success: false } 
               : { category: result.rows[0], success: true };
     } catch (err) {
+      if(err instanceof BadRequestError) throw err;
+      if(err instanceof NotFoundError) throw err;
       throw new BadRequestError();
     }
   }
