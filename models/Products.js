@@ -44,7 +44,8 @@ class Products {
       const result = await db.query(queryStatement, [id]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
-      throw new BadRequestError();
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -78,7 +79,8 @@ class Products {
       
       return (result.rows.length === 0) ? {} : result.rows[0];
     } catch (err) {
-      throw new BadRequestError();
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -122,7 +124,8 @@ class Products {
       if(result.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      if(err.code === '23505') throw new ConflictError("Review for this product already exists");
+      if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Review for this product already exists");
+      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
   }
@@ -214,7 +217,8 @@ class Products {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
     } catch (err) {
-      throw new BadRequestError();
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -248,7 +252,8 @@ class Products {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return  result.rows[0];
     } catch (err) {
-      throw new BadRequestError();
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -294,7 +299,8 @@ class Products {
         ? { message : "Nothing to remove", success: false } 
         : { message : "Removed category", success: true };
       } catch (err) {
-        throw new BadRequestError();
+        if(err instanceof BadRequestError) throw err;
+        throw new BadRequestError("Something went wrong");
       }
     }
 
@@ -316,7 +322,8 @@ class Products {
             ? { message : `Product with id ${id} not found`, success: false } 
             : { message : `Removed product ${result.rows[0].productName}`, success: true };
     } catch (err) {
-      throw new BadRequestError();
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 }

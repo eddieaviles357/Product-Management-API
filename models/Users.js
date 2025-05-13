@@ -43,8 +43,9 @@ class Users {
       return result.rows[0];
       
     } catch (err) {
-      if(err.code === '23505') throw new ConflictError("User already exists");
-      throw new BadRequestError(err.message);
+      if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("User already exists");
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -98,8 +99,9 @@ class Users {
       throw new UnauthorizedError("Invalid User");
       
     } catch (err) {
-      if(err instanceof UnauthorizedError) throw new UnauthorizedError(err.message);
-      throw new BadRequestError(err.message);
+      if(err instanceof UnauthorizedError) throw err;
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
 
   }

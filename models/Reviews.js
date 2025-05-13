@@ -98,7 +98,8 @@ class Reviews {
       return result.rows[0];
     } catch (err) {
       if(err.code === '23505') throw new ConflictError("Review for this product already exists");
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   };
 
@@ -168,7 +169,8 @@ class Reviews {
       if(updatedReview.rows.length === 0) throw new BadRequestError("Something went wrong");
       return updatedReview.rows[0];
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   };
 
@@ -211,7 +213,8 @@ class Reviews {
               ? { review: `Review with product id ${prodId} user id ${userId} not found`, success: false} 
               : { review: result.rows[0], success: true};
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 };

@@ -20,7 +20,8 @@ class Orders {
       const result = await db.query(orderProductsStatement, [orderId, productId, quantity, price]);
       return result.rows[0];
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   };
 
@@ -71,7 +72,8 @@ class Orders {
       
       return orderProductIds;
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 };

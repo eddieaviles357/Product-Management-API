@@ -37,7 +37,8 @@ class Wishlist {
       
       return wishlistValues.rows;
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
   // static async getWishlistCount(username) {
@@ -78,7 +79,8 @@ class Wishlist {
 
       return wishlistValues.rows[0];
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -111,7 +113,8 @@ class Wishlist {
       // if no rows were removed then we will return false
       return (rowsRemoved !== 0) ? true : false;
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -136,7 +139,8 @@ class Wishlist {
       return (rowsRemoved !== 0) ? true : false;
 
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 };

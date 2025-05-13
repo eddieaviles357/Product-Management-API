@@ -18,7 +18,8 @@ class Cart {
       return (result.rows.length === 0) ? null : Number(result.rows[0].price);
       // price from db is returned as a string we have to cast to Int
     } catch (err) {
-      throw new BadRequestError("Unable to get price");
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -49,7 +50,8 @@ class Cart {
       const cartResult = await db.query(queryStatement, [userId]);
       return (cartResult.rows.length === 0) ? [] : cartResult.rows;
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -68,7 +70,8 @@ class Cart {
       
       return (removedResult.rows.length > 0) ? true : false; 
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -104,7 +107,8 @@ class Cart {
 
       return cartResult.rows[0];
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -150,7 +154,8 @@ class Cart {
 
       return updatedResult.rows[0] || {}; // return empty object if nothing was updated
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 
@@ -174,7 +179,8 @@ class Cart {
       return (deleteResult.rows.length === 0) ? 'Nothing to delete' : deleteResult.rows[0].id;
 
     } catch (err) {
-      throw new BadRequestError(err.message);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
     }
   }
 }
