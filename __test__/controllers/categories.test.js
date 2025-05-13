@@ -132,7 +132,7 @@ describe("Categories Routes", () => {
         errors: [{
           message: "requires property \"category\"",
           property: "category",
-      }],
+        }],
       });
     });
     // ✅
@@ -198,14 +198,12 @@ describe("Categories Routes", () => {
   describe("PUT /categories/:categoryId", () => {
     // ✅
     test("updates a category, works with admin privilage", async () => {
-      console.log("ID", categoryIds[0]);
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
         .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "updatedCategory" });
 
       expect(response.statusCode).toBe(200);
-      console.log("RESPONSE", response.body);
       expect(response.body).toEqual({
         success: true,
         category: {
@@ -215,6 +213,128 @@ describe("Categories Routes", () => {
       });
     });
 
+    // ✅
+    test("throws NotFoundError when category does not exist", async () => {
+      const response = await request(app)
+        .put("/api/v1/categories/99999")
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .send({ category: "updatedCat" });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'updatedCat does not exist', 
+          status: 404
+        }
+      });
+    });
+    // ✅
+    test("throws BadRequestError when categoryId is not a number", async () => {
+      const response = await request(app)
+        .put("/api/v1/categories/invalid")
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .send({ category: "updatedCat" });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'category id must be a number', 
+          status: 400
+        }
+      });
+    });
+    // ✅
+    test("throws BadRequestError when no category is provided", async () => {
+      const response = await request(app)
+        .put(`/api/v1/categories/${categoryIds[0]}`)
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .send({});
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        errors: [{
+          message: "requires property \"category\"",
+          property: "category",
+        }],
+      });
+    });
+    // ✅
+    test("throws BadRequestError when invalid data type is provided", async () => {
+      const response = await request(app)
+        .put(`/api/v1/categories/${categoryIds[0]}`)
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .send({ category: 12345 });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        errors: [{ 
+          message: "category is not of a type(s) string", 
+          property: "category"
+        }]
+      });
+    });
+    // ✅
+    test("throws BadRequestError when category is too long", async () => {
+      const response = await request(app)
+        .put(`/api/v1/categories/${categoryIds[0]}`)
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .send({ category: "a".repeat(21) });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        errors: [{ 
+          message: "category does not meet maximum length of 20", 
+          property: "category"
+        }]
+      });
+    });
+    // ✅
+    test("throws BadRequestError when user is not an admin", async () => {
+      const response = await request(app)
+        .put(`/api/v1/categories/${categoryIds[0]}`)
+        .set("Authorization", `Bearer ${createToken({ username: username2 })}`)
+        .send({ category: "updatedCategory" });
+
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'Unauthorized', 
+          status: 401
+        }
+      });
+    });
+  });
+
+  describe("DELETE /categories/:categoryId", () => {
+    // ✅
+    test("deletes a category, works with admin privilage", async () => {
+      const response = await request(app)
+        .delete(`/api/v1/categories/${categoryIds[2]}`)
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        result: {
+          category: "savy",
+        }
+      });
+    });
+
+    // ✅
+    test("throws NotFoundError when category does not exist", async () => {
+      const response = await request(app)
+        .delete("/api/v1/categories/99999")
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`);
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'Category with id 99999 not found', 
+          status: 404
+        }
+      });
+    });
   });
   
 });
