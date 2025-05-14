@@ -90,6 +90,7 @@ class Categories {
   * @throws {BadRequestError} If updatedCategory doesn't exist in the database
   * @throws {BadRequestError} If updatedCategory already exists in the database
   * @throws {BadRequestError} If an error occurs while querying the database
+  * @throws {BadRequestError} If category with catId is 'none'
   */
   static async updateCategory(catId, updatedCategory) {
     try {
@@ -104,9 +105,10 @@ class Categories {
                                           FROM categories 
                                           WHERE id = $1`
       const categoryExistQuery = await db.query(doesCategoryExistStatement, [catId]);
-
       // doesn't exist in db lets return error ❌
       if(categoryExistQuery.rows.length === 0) throw new NotFoundError(`${updatedCategory} does not exist`);
+      
+      if(categoryExistQuery.rows[0].category === 'none') throw new BadRequestError(`Category with id ${catId} cannot be updated`);
       const { category } = categoryExistQuery.rows[0];
   
       if(category === updatedCategory) throw new ConflictError(`${updatedCategory} already exists`);
@@ -133,11 +135,16 @@ class Categories {
   * @throws {BadRequestError} If catId is not a number
   * @throws {BadRequestError} If catId has falsy value
   * @throws {BadRequestError} If an error occurs while querying the database
+  * @throws {NotFoundError} If the category with catId does not exist
   */
   static async getAllCategoryProducts(catId) {
     try {
       if(!catId) throw new BadRequestError("catId must be a number");
+      if(typeof catId !== 'number') throw new BadRequestError("catId must be a number");
 
+      const categoryExist = await db.query(`SELECT category FROM categories WHERE id = $1`, [catId]);
+      if(categoryExist.rows.length === 0) throw new NotFoundError(`Category with id ${catId} not found`);
+      
       const queryStatement = `WITH all_product_id AS 
                                 ( SELECT p.product_id 
                                   FROM products p 
@@ -165,6 +172,7 @@ class Categories {
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
+      if(err instanceof NotFoundError) throw err;
       throw new BadRequestError();
     }
   }
