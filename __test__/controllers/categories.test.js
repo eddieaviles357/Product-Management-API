@@ -19,6 +19,13 @@ const {
   commonAfterAll
 } = require("../helpers/_testCommon");
 const db = require("../../db.js");
+// getAllCategories
+// addCategory
+// updateCategory
+// removeCategory
+
+// searchCategory
+// getAllCategories
 
 describe("Categories Routes", () => {
   beforeAll(commonBeforeAll);
@@ -195,11 +202,12 @@ describe("Categories Routes", () => {
       });
     });
   });
+
   describe("PUT /categories/:categoryId", () => {
     // ✅
     test("updates a category, works with admin privilage", async () => {
       const response = await request(app)
-        .put(`/api/v1/categories/${categoryIds[0]}`)
+        .put(`/api/v1/categories/${categoryIds[2]}`)
         .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "updatedCategory" });
 
@@ -207,7 +215,7 @@ describe("Categories Routes", () => {
       expect(response.body).toEqual({
         success: true,
         category: {
-          id: categoryIds[0],
+          id: categoryIds[2],
           category: "updatedcategory",
         }
       });
@@ -316,12 +324,12 @@ describe("Categories Routes", () => {
       expect(response.body).toEqual({
         success: true,
         result: {
-          category: "savy",
+          category: "updatedcategory",
         }
       });
     });
 
-    // ✅
+    // // ✅
     test("throws NotFoundError when category does not exist", async () => {
       const response = await request(app)
         .delete("/api/v1/categories/99999")
@@ -331,6 +339,133 @@ describe("Categories Routes", () => {
       expect(response.body).toEqual({
         error: { 
           message: 'Category with id 99999 not found', 
+          status: 404
+        }
+      });
+    });
+
+    // // ✅
+    test("throws BadRequestError when categoryId is not a number", async () => {
+      const response = await request(app)
+        .delete("/api/v1/categories/invalid")
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'category id must be a number', 
+          status: 400
+        }
+      });
+    });
+
+    // ✅
+    test("throws BadRequestError when category is 'none'", async () => {
+      const response = await request(app)
+        .delete(`/api/v1/categories/${categoryIds[0]}`)
+        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: { 
+          message: `Category with id ${categoryIds[0]} cannot be deleted`, 
+          status: 400
+        }
+      });
+    });
+
+    // ✅
+    test("throws BadRequestError when user is not an admin", async () => {
+      const response = await request(app)
+        .delete(`/api/v1/categories/${categoryIds[0]}`)
+        .set("Authorization", `Bearer ${createToken({ username: username2 })}`);
+
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'Unauthorized', 
+          status: 401
+        }
+      });
+    });
+
+    // ✅
+    test("throws BadRequestError when no token is provided", async () => {
+      const response = await request(app)
+        .delete(`/api/v1/categories/${categoryIds[0]}`);
+
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'Unauthorized', 
+          status: 401
+        }
+      });
+    });
+  });
+
+  describe("GET /categories/:categoryId/products", () => {
+    // ✅
+    test("returns all products in a category", async () => {
+      const response = await request(app)
+        .get(`/api/v1/categories/${categoryIds[0]}/products`);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        categoryProducts: [
+          { id: productIds[0],
+            sku: "MC10SSMM",
+            productName: 'shirt',
+            productDescription: 'white short',
+            price: '10.99',
+            stock: 3,
+            imageURL: 'https://image.product-management.com/1283859',
+            createdAt: expect.any(String), // date is returned as strings dates
+            updatedAt: expect.any(String),
+            categories: ["none"],
+          }
+        ],
+      });
+    });
+
+    // // ✅
+    test("throws NotFoundError when category does not exist", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories/99999/products");
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'Category with id 99999 not found', 
+          status: 404
+        }
+      });
+    });
+    
+    // ✅
+    test("throws BadRequestError when categoryId is not a number", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories/invalid/products");
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'category id must be a number', 
+          status: 400
+        }
+      });
+    });
+
+    // ✅
+    test("throws BadRequestError when no products are found in category", async () => {
+      const response = await request(app)
+        .get(`/api/v1/categories/${categoryIds[2]}/products`);
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: {
+          message: `Category with id ${categoryIds[2]} not found`, 
           status: 404
         }
       });
