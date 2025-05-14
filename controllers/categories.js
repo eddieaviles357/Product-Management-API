@@ -71,7 +71,7 @@ exports.updateCategory = async (req, res, next) => {
   try {
     const catId = Number(req.params.categoryId);
     const updatedCategory = req.body.category;
-    
+
     if(isNaN(catId)) throw new BadRequestError("category id must be a number");
 
     const category = await Categories.updateCategory(catId, updatedCategory);
@@ -113,7 +113,7 @@ exports.deleteCategory = async (req, res, next) => {
   try {
     const catId = Number(req.params.categoryId);
 
-    if(isNaN(catId)) throw new BadRequest("category id must be a number");
+    if(isNaN(catId)) throw new BadRequestError("category id must be a number");
     
     const {success, category} = await Categories.removeCategory(catId);
     
