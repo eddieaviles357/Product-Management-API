@@ -38,7 +38,9 @@ class Categories {
   */
   static async searchCategory(searchTerm) {
     try {
-      if(typeof searchTerm !== 'string' || searchTerm.length === 0) throw new BadRequestError('Please check inputs');
+      const isNumber = /^\d+$/.test(searchTerm);
+      if(isNumber || typeof searchTerm !== 'string') throw new BadRequestError("search term must be a string");
+      if(searchTerm.length === 0) throw new BadRequestError('Please check inputs');
       if(searchTerm.length > 20) throw new BadRequestError('Search term must be less than 20 characters');
 
       const term = removeNonAlphabeticChars(searchTerm);
@@ -61,7 +63,9 @@ class Categories {
   */
   static async addCategory(newCategory) {
     try {
-      if(typeof newCategory !== 'string' || newCategory.length === 0) throw new BadRequestError('Please check inputs');
+      const isNumber = /^\d+$/.test(newCategory);
+      if(isNumber || typeof newCategory !== 'string') throw new BadRequestError("search term must be a string");
+      if(newCategory.length === 0) throw new BadRequestError('Please check inputs');
       if(newCategory.length > 20) throw new BadRequestError('Category must be less than 20 characters');
       if(!newCategory && newCategory.length === 0) throw new BadRequestError('Please check inputs');
 
@@ -94,8 +98,9 @@ class Categories {
   */
   static async updateCategory(catId, updatedCategory) {
     try {
-      // something aint right lets just return an error ❌
-      if(typeof updatedCategory !== 'string' || updatedCategory.length === 0) throw new BadRequestError('Please check inputs');
+      const isNumber = /^\d+$/.test(updatedCategory);
+      if(isNumber || typeof updatedCategory !== 'string') throw new BadRequestError("search term must be a string");
+      if(updatedCategory.length === 0) throw new BadRequestError('Please check inputs');
       if(updatedCategory.length > 20) throw new BadRequestError('Category must be less than 20 characters');
 
       updatedCategory = removeNonAlphabeticChars(updatedCategory);
@@ -139,8 +144,8 @@ class Categories {
   */
   static async getAllCategoryProducts(catId) {
     try {
-      if(!catId) throw new BadRequestError("catId must be a number");
-      if(typeof catId !== 'number') throw new BadRequestError("catId must be a number");
+      const isNumber = /^\d+$/.test(catId);
+      if(!isNumber) throw new BadRequestError("catId must be a number");
 
       const categoryExist = await db.query(`SELECT category FROM categories WHERE id = $1`, [catId]);
       if(categoryExist.rows.length === 0) throw new NotFoundError(`Category with id ${catId} not found`);
@@ -189,7 +194,8 @@ class Categories {
   */
   static async removeCategory(catId) {
     try {
-      if(!catId) throw new BadRequestError("catId must be a number");
+      const isNumber = /^\d+$/.test(catId);
+      if(!isNumber) throw new BadRequestError("catId must be a number");
       const isCategoryNone = `SELECT id, category FROM categories WHERE id = $1`;
       const categoryQuery = await db.query(isCategoryNone, [catId]);
       if(categoryQuery.rows.length === 0) throw new NotFoundError(`Category with id ${catId} not found`);
