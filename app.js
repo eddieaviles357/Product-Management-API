@@ -27,23 +27,23 @@ app.use("/api/v1/checkout", orderRoutes);
 
 
 /** Handle 404 errors -- this matches everything */
-app.use(function (req, res, next) {
+app.use(function (req, res, next) {//
     return next(new NotFoundError());
 });
 
 /** Generic error handler. Anything unhandled goes here. */
 app.use(function (err, req, res, next) {
-    switch (err.code) {
-        case '23505': 
-            err.message = 'already exist';
-            break;
-        case '22001': 
-            err.message = 'Value too long';
-            break;
-        case '22003': 
-            err.message = 'Price needs to be a Number no greater than 5 digits';
-            break;
-    }
+    // switch (err.code) {
+    //     case '23505': 
+    //         err.message = 'already exist';
+    //         break;
+    //     case '22001': 
+    //         err.message = 'Value too long';
+    //         break;
+    //     case '22003': 
+    //         err.message = 'Price needs to be a Number no greater than 5 digits';
+    //         break;
+    // }
     // if (process.env.NODE_ENV !== "test") console.error(err.stack);
     const status = err.status || 500;
     const message = err.message;
