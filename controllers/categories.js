@@ -33,11 +33,11 @@ exports.getCategories = async (req, res, next) => {
 exports.getSearchedCategory = async (req, res, next) => {
   try {
     const { searchTerm } = req.params;
-    const category = await Categories.searchCategory(searchTerm);
+    const categories = await Categories.searchCategory(searchTerm);
 
     return res.status(200).json({
       success: true,
-      category
+      categories
     })
   } catch (err) {
     return next(err);
