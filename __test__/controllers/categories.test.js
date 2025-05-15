@@ -23,9 +23,9 @@ const db = require("../../db.js");
 // addCategory
 // updateCategory
 // removeCategory
+// getAllCategoryProducts
 
 // searchCategory
-// getAllCategories
 
 describe("Categories Routes", () => {
   beforeAll(commonBeforeAll);
@@ -429,7 +429,7 @@ describe("Categories Routes", () => {
       });
     });
 
-    // // ✅
+    // ✅
     test("throws NotFoundError when category does not exist", async () => {
       const response = await request(app)
         .get("/api/v1/categories/99999/products");
@@ -467,6 +467,90 @@ describe("Categories Routes", () => {
         error: {
           message: `Category with id ${categoryIds[2]} not found`, 
           status: 404
+        }
+      });
+    });
+
+    // ✅
+    test("throws BadRequestError when no categoryId is provided", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories/invalid/products");
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'category id must be a number', 
+          status: 400
+        }
+      });
+    });
+  });
+
+  describe("GET /categories/search", () => {
+    // ✅
+    test("returns all categories that match search term", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories/search/none")
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        categories: [
+          { id: categoryIds[0], category: "none" },
+        ],
+      });
+    });
+
+    // ✅
+    test("returns empty array when no categories match search term", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories/search/invalid")
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        categories: [],
+      });
+    });
+
+    // ✅
+    test("throws BadRequestError when no search term is provided", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories/search");
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({ // will use fallback error handler
+        error: { 
+          message: 'Not Found', 
+          status: 404
+        }
+      });
+    });
+
+    // ✅
+    test("throws BadRequestError when search term is not a string", async () => {
+      const response = await request(app)
+        .get("/api/v1/categories/search/12345");
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'search term must be a string', 
+          status: 400
+        }
+      });
+    });
+
+    // ✅
+    test("throws BadRequestError when search term is too long", async () => {
+      const response = await request(app)
+        .get(`/api/v1/categories/search/${'a'.repeat(21)}`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: { 
+          message: 'Search term must be less than 20 characters', 
+          status: 400
         }
       });
     });
