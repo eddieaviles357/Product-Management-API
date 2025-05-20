@@ -6,11 +6,11 @@ const { BadRequestError } = require("../AppError");
 
 // return signed JWT token from user data
 const createToken = (user) => {
-  console.assert(user.isAdmin !== undefined, "create token passed without isAdmin property");
+  console.assert(user?.isAdmin !== undefined, "create token passed without isAdmin property");
   
   const payload = {
-    username: user.username,
-    isAdmin: user.isAdmin || false
+    username: user?.username,
+    isAdmin: user?.isAdmin || false
   };
 
   if(!user.username) throw new BadRequestError('No username');
