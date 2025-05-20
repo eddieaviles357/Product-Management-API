@@ -83,7 +83,6 @@ class Cart {
    * @returns {Object} the cart item added or existing one if already present
    */
   static async addToCart(username, productId, quantity = 1) {
-    // returns { user_id: Int, product_id: Int, quantity: Int }
     try {
       if(!username) throw new BadRequestError(`Invalid username provided`);
       let price;
