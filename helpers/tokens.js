@@ -13,7 +13,7 @@ const createToken = (user) => {
     isAdmin: user?.isAdmin || false
   };
 
-  if(!user.username) throw new BadRequestError('No username');
+  if(!user?.username) throw new BadRequestError('No username');
   return jwt.sign(payload, SECRET_KEY);
 }
 
