@@ -21,6 +21,13 @@ const {
 } = require("../helpers/_testCommon");
 const db = require("../../db.js");
 
+// _getPrice *private method
+// get
+
+// clear
+// addToCart
+// updateCartItemQty
+// removeCartItem
 describe("Cart Routes", () => {
   beforeAll(commonBeforeAll);
   beforeEach(() => jest.resetAllMocks(), commonBeforeEach);
@@ -28,6 +35,7 @@ describe("Cart Routes", () => {
   afterAll(commonAfterAll);
 
   describe("POST /cart", () => {
+    // ✅
     test("works for logged in user", async () => {
       const currentUser = await User.authenticate(username1, "password");
       const token = createToken(currentUser);
@@ -38,7 +46,6 @@ describe("Cart Routes", () => {
           quantity: 2
         });
       expect(response.statusCode).toBe(201);
-      console.log(response.body);
       expect(response.body).toEqual({
         success: true,
         result: {
@@ -47,6 +54,42 @@ describe("Cart Routes", () => {
           quantity: 1, // we have limited stock to be 1 when posting a product in order to update the quantity we need to use PUT
           price: expect.any(String),
         },
+      });
+    });
+    // ✅
+    test("works for logged in user with no quantity", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .post(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(201);
+      expect(response.body).toEqual({
+        success: true,
+        result: {
+          userId: expect.any(Number),
+          productId: productIds[0],
+          quantity: 1, // we have limited stock to be 1 when posting a product in order to update the quantity we need to use PUT
+          price: expect.any(String),
+        },
+      });
+    });
+
+    // ✅
+    test("throws errro if no product id is given", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .post(`/api/v1/cart/${currentUser.username}/`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: {
+          message: "Not Found",
+          status: 404
+        }
       });
     });
   })
