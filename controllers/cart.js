@@ -2,6 +2,12 @@
 
 const Cart = require("../models/Cart");
 
+  /**
+  * Retrieves cart items.
+  * @param {string} username - username of the user
+  * @returns {object} - JSON object with success status and cart items array
+  * @throws {Error} - Throws an error if the cart retrieval fails
+  */
 exports.getCart = async (req, res, next) => {
   try {
     const {username} = req.params;
@@ -13,6 +19,12 @@ exports.getCart = async (req, res, next) => {
   }
 }
 
+/**
+ * Clears the cart for a given username.
+ * @param {string} username - username of the user
+ * @returns {object} - JSON object with success status and message
+ * @throws {Error} - Throws an error if the cart clearing fails
+ */
 exports.clearCart = async (req, res, next) => {
   try {
     const {username} = req.params;
@@ -26,6 +38,14 @@ exports.clearCart = async (req, res, next) => {
   }
 }
 
+/**
+ * Adds a product to the cart for a given user.
+ * @param {string} username - username of the user
+ * @param {number} productId - ID of the product to add
+ * @param {number} quantity - quantity of the product to add
+ * @returns {object} - JSON object with success status and result
+ * @throws {Error} - Throws an error if the addition fails
+ */
 exports.addToCart = async (req, res, next) => {
   try {
     const {username, productId} = req.params;
@@ -38,6 +58,14 @@ exports.addToCart = async (req, res, next) => {
   }
 }
 
+/**
+ * Updates the quantity of a product in the cart for a given user.
+ * @param {string} username - username of the user
+ * @param {number} productId - ID of the product to update
+ * @param {number} quantity - new quantity of the product
+ * @returns {object} - JSON object with success status and result
+ * @throws {Error} - Throws an error if the update fails
+ */
 exports.updateCartItemQty = async (req, res, next) => {
   try {
     const {username, productId} = req.params;
@@ -51,6 +79,13 @@ exports.updateCartItemQty = async (req, res, next) => {
   }
 }
 
+/**
+ * Deletes a product from the cart for a given user.
+ * @param {string} username - username of the user
+ * @param {number} productId - ID of the product to delete
+ * @returns {object} - JSON object with success status and result
+ * @throws {Error} - Throws an error if the deletion fails
+ */
 exports.deleteCartItem = async (req, res, next) => {
   try {
     const {username, productId} = req.params;
