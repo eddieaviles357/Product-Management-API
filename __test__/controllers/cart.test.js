@@ -92,5 +92,70 @@ describe("Cart Routes", () => {
         }
       });
     });
+
+    // ✅
+    test("throws error if no username is given", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .post(`/api/v1/cart//${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: {
+          message: "Not Found",
+          status: 404
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if no token is given", async () => {
+      const response = await request(app)
+        .post(`/api/v1/cart/${username1}/${productIds[0]}`)
+        .send();
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toEqual({
+        error: {
+          message: "Unauthorized",
+          status: 401
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if user does not exist", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .post(`/api/v1/cart/${'doesnexist'}/${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: {
+          message: "User does not exist",
+          status: 400
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if product does not exist", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .post(`/api/v1/cart/${currentUser.username}/${99999}`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: {
+          message: "Product does not exist",
+          status: 400
+        }
+      });
+    });
   })
 }); 
