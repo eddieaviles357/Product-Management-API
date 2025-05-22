@@ -8,18 +8,18 @@ const {
   clearCart
 } = require("../controllers/cart");
 const router = require("express").Router();
-const {ensureLoggedIn, ensureUser} = require("../middleware/auth/auth");
+const {ensureLoggedIn, ensureAdmin, ensureUser} = require("../middleware/auth/auth");
 
 router
   .route("/:username")
   .get(getCart)
-  .delete(clearCart)
+  .delete(ensureLoggedIn, ensureAdmin, clearCart)
   
 router
   .route("/:username/:productId")
-  .post(addToCart)
-  .put(updateCartItemQty)
-  .delete(deleteCartItem)
+  .post(ensureLoggedIn, ensureAdmin, addToCart)
+  .put(ensureLoggedIn, ensureAdmin, updateCartItemQty)
+  .delete(ensureLoggedIn, ensureAdmin, deleteCartItem)
 
 
 module.exports = router;
