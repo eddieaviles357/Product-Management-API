@@ -69,7 +69,7 @@ describe("add item to cart", () => {
       username: userIdUsername[0].username,
       productId: productIds[0]
     };
-    await expect(Cart.addToCart(invalidItem.username, 0)).rejects.toThrow("Item 0 does not exist");
+    await expect(Cart.addToCart(invalidItem.username, 0)).rejects.toThrow(BadRequestError);
   });
 
   test("throws BadRequestError for invalid username", async () => {

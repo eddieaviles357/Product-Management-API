@@ -22,10 +22,10 @@ const {
 const db = require("../../db.js");
 
 // _getPrice *private method
+// addToCart
 // get
 
 // clear
-// addToCart
 // updateCartItemQty
 // removeCartItem
 describe("Cart Routes", () => {
@@ -34,7 +34,7 @@ describe("Cart Routes", () => {
   afterEach(commonAfterEach);
   afterAll(commonAfterAll);
 
-  describe("POST /cart", () => {
+  describe("POST /cart adds to cart", () => {
     // ✅
     test("works for logged in user", async () => {
       const currentUser = await User.authenticate(username1, "password");
@@ -56,6 +56,7 @@ describe("Cart Routes", () => {
         },
       });
     });
+    
     // ✅
     test("works for logged in user with no quantity", async () => {
       const currentUser = await User.authenticate(username1, "password");
@@ -145,6 +146,7 @@ describe("Cart Routes", () => {
     test("throws error if product does not exist", async () => {
       const currentUser = await User.authenticate(username1, "password");
       const token = createToken(currentUser);
+      const fakeProduct = 99999
       const response = await request(app)
         .post(`/api/v1/cart/${currentUser.username}/${99999}`)
         .set("authorization", `Bearer ${token}`)
@@ -152,9 +154,33 @@ describe("Cart Routes", () => {
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
         error: {
-          message: "Product does not exist",
+          message: `Product ${fakeProduct} does not exist`,
           status: 400
         }
+      });
+    });
+  });
+
+  describe("PUT /cart updates cart item", () => {
+    // ✅
+    test("works for logged in user", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .put(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send({
+          quantity: 2
+        });
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        result: {
+          userId: expect.any(Number),
+          productId: productIds[0],
+          quantity: 3, // there is already 1 in the cart so we add 2 more
+          price: expect.any(String),
+        },
       });
     });
   })
