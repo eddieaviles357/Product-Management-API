@@ -3,6 +3,7 @@
 const db = require("../db");
 const {BadRequestError} = require("../AppError");
 const getUserId = require("../helpers/getUserId");
+// const Product = require("./Products");
 
 class Cart {
   /**
@@ -84,6 +85,9 @@ class Cart {
    */
   static async addToCart(username, productId, quantity = 1) {
     try {
+      // const productStock = await Product.updateProductStock(productId, -quantity); // update the product stock {id, stock}
+      // if(Object.keys(productStock).length === 0) throw new BadRequestError(`Product ${productId} is out of stock`);
+      // if(productStock.stock < 0) throw new BadRequestError(`Product ${productId} is out of stock`);
       if(!username) throw new BadRequestError(`Invalid username provided`);
       let price;
       const userId = await getUserId(username);
@@ -91,7 +95,7 @@ class Cart {
 
       price = await Cart._getPrice(productId);
 
-      if(!price) throw new BadRequestError(`Item ${productId} does not exist`); // ensure the product exists in db
+      if(!price) throw new BadRequestError(`Product ${productId} does not exist`); // ensure the product exists in db
       price *= quantity; // multiply the price by the quantity to get the total price for the cart item
 
       const cartItemResult = await db.query(`SELECT user_id AS "userId", product_id AS "productId", quantity, price FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
@@ -103,7 +107,6 @@ class Cart {
                               RETURNING user_id AS "userId", product_id AS "productId", quantity, price`;
       const values = [userId, productId, quantity, price];
       const cartResult = await db.query(queryStatement, values);
-
       return cartResult.rows[0];
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
