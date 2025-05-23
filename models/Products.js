@@ -13,6 +13,14 @@ const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChar
 // addCategoryToProduct 
 // removeCategoryFromProduct
 class Products {
+  // static async _doesProductExist(id) {
+  //   try {
+  //     const result = await db.query(`SELECT product_id FROM products WHERE product_id = $1`, [id]);
+  //     return (result.rows.length === 0) ? false : true;
+  //   } catch (error) {
+  //     throw new BadRequestError("Something went wrong retrieving product");
+  //   }
+  // }
   /**
    * Gets all products from the database.
    * @param {number} id - the id to use as a cursor
@@ -127,6 +135,36 @@ class Products {
       if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Review for this product already exists");
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
+    }
+  }
+
+  /**
+   * Updates stock to a product in the database.
+   * @param {number} id
+   * @param {number} stock
+   * @returns {object} - returns the updated product with id, sku, productName, productDescription, price, stock, imageURL, createdAt
+   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   */
+  static async updateProductStock(id, stock) {
+    try {
+      if((id === 0 && !id) || !stock) throw new BadRequestError("Invalid id or stock");
+      // const isProductExisting = await this._doesProductExist(id);
+      // if(!isProductExisting) throw new BadRequestError(`Product ${id} does not exist`);
+
+      const queryStatement = `UPDATE products 
+                              SET stock = stock + $1 
+                              WHERE product_id = $2 
+                              RETURNING product_id AS id, stock`;
+      const queryValues = [stock, id];
+      const result = await db.query(queryStatement, queryValues);
+  
+      if(result.rows.length === 0) throw new BadRequestError("Something went wrongfff");
+      return result.rows[0];
+    } catch (err) {
+      console.log("err", err.code);
+      if(err.code === '23514') throw new BadRequestError(`Product ${id} is out of stock`);
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrongggg");
     }
   }
 
