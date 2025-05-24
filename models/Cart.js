@@ -120,10 +120,9 @@ class Cart {
    * @param {number} productId 
    * @param {number} quantity 
    * @returns {Object} the updated cart item or {} if nothing was updated
+   * @throws {BadRequestError} if the username is invalid or the product does not exist
    */
   static async updateCartItemQty(username, productId, quantity = 0) {
-    // if item Qty is 0 then it will be removed from the cart and will return {}
-    // returns { user_id: Int, product_id: Int, quantity: Int, price: String }
     try {
       if(!username) throw new BadRequestError(`Invalid username provided`);
       let price;
@@ -132,6 +131,7 @@ class Cart {
       if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
       price = await Cart._getPrice(productId);
+      if(!price) throw new BadRequestError(`Product ${productId} does not exist`); // ensure the product exists in db
 
       // get cart item details, if no data exist throw error
       const itemResult = await db.query(`SELECT quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
