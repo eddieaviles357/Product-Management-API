@@ -24,10 +24,10 @@ const db = require("../../db.js");
 // _getPrice *private method
 // addToCart
 // get
-
-// clear
 // updateCartItemQty
 // removeCartItem
+
+// clear
 describe("Cart Routes", () => {
   beforeAll(commonBeforeAll);
   beforeEach(() => jest.resetAllMocks(), commonBeforeEach);
@@ -183,5 +183,144 @@ describe("Cart Routes", () => {
         },
       });
     });
-  })
+
+    // ✅
+    test("works for logged in user with no quantity", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .put(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        result: {
+          userId: expect.any(Number),
+          productId: productIds[0],
+          quantity: 3, // there are no changes in cart quantity ( qty = 3 since our previous test added 2 more)
+          price: expect.any(String),
+        },
+      });
+    });
+
+    // ✅
+    test("throws error if no product id is given", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .put(`/api/v1/cart/${currentUser.username}/`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: {
+          message: "Not Found",
+          status: 404
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if no username is given", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .put(`/api/v1/cart//${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: {
+          message: "Not Found",
+          status: 404
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if no token is given", async () => {
+      const response = await request(app)
+        .put(`/api/v1/cart/${username1}/${productIds[0]}`)
+        .send();
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toEqual({
+        error: {
+          message: "Unauthorized",
+          status: 401
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if user does not exist", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .put(`/api/v1/cart/${'doesnexist'}/${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: {
+          message: "User does not exist",
+          status: 400
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if product does not exist", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const fakeProduct = 99999
+      const response = await request(app)
+        .put(`/api/v1/cart/${currentUser.username}/${99999}`)
+        .set("authorization", `Bearer ${token}`)
+        .send();
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: {
+          message: `Product ${fakeProduct} does not exist`,
+          status: 400
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if nothing to update", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .put(`/api/v1/cart/${currentUser.username}/${productIds[1]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send({
+          quantity: 2
+        });
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: {
+          message: `Nothing to update`,
+          status: 400
+        }
+      });
+    });
+  });
+
+  describe("DELETE /cart removes cart item", () => {
+    // ✅
+    test("works for logged in user", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .delete(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        result: 7008
+      });
+    });
+
+  });
 }); 
