@@ -26,6 +26,7 @@ const db = require("../../db.js");
 // get
 // updateCartItemQty
 // removeCartItem
+// get
 
 // clear
 describe("Cart Routes", () => {
@@ -318,9 +319,166 @@ describe("Cart Routes", () => {
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
         success: true,
-        result: 7008
+        result: productIds[0]
       });
     });
 
+    // ✅
+    test("throws error if no username is given", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .delete(`/api/v1/cart//${productIds[0]}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: {
+          message: "User does not exist",
+          status: 400
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if no token is given", async () => {
+      const response = await request(app)
+        .delete(`/api/v1/cart/${username1}/${productIds[0]}`);
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toEqual({
+        error: {
+          message: "Unauthorized",
+          status: 401
+        }
+      });
+    });
+  });
+
+  describe("GET /cart gets cart items", () => {
+    // ✅
+    test("works for logged in user", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .get(`/api/v1/cart/${currentUser.username}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        result: expect.any(Array)
+      });
+    });
+
+    // ✅
+    test("throws error if no username is given", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .get(`/api/v1/cart//`)
+        .set("authorization", `Bearer ${token}`);
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: {
+          message: "Not Found",
+          status: 404
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if no token is given", async () => {
+      const response = await request(app)
+        .get(`/api/v1/cart/${username1}`);
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toEqual({
+        error: {
+          message: "Unauthorized",
+          status: 401
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if user does not exist", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .get(`/api/v1/cart/${'doesnexist'}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: {
+          message: "User does not exist",
+          status: 400
+        }
+      });
+    });
+  });
+
+  describe("DELETE /cart clears cart", () => {
+    // ✅
+    test("works for logged in user", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const addProductToCartResponse = await request(app)
+        .post(`/api/v1/cart/${currentUser.username}/${productIds[1]}`)
+        .set("authorization", `Bearer ${token}`)
+        .send({
+          quantity: 2
+        });
+      expect(addProductToCartResponse.statusCode).toBe(201);
+      const response = await request(app)
+        .delete(`/api/v1/cart/${currentUser.username}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        message: "Cart cleared"
+      });
+    });
+
+    // ✅
+    test("throws error if no username is given", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .delete(`/api/v1/cart//`)
+        .set("authorization", `Bearer ${token}`);
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toEqual({
+        error: {
+          message: "Not Found",
+          status: 404
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if no token is given", async () => {
+      const response = await request(app)
+        .delete(`/api/v1/cart/${username1}`);
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toEqual({
+        error: {
+          message: "Unauthorized",
+          status: 401
+        }
+      });
+    });
+
+    // ✅
+    test("throws error if user does not exist", async () => {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+      const response = await request(app)
+        .delete(`/api/v1/cart/${'doesnexist'}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(response.statusCode).toBe(400);
+      expect(response.body).toEqual({
+        error: {
+          message: "User does not exist",
+          status: 400
+        }
+      });
+    });
   });
 }); 
