@@ -104,13 +104,10 @@ describe("add item to cart", () => {
 
 describe("remove item from cart", () => {
   test("successfully removes item", async () => {
-    const cart = await Cart.get(username1);
-    const productId = cart[0].productId;
-    const itemId = cart[0].id; // this is the id of the cart item to be deleted
-    expect(cart).toBeTruthy();
-
-    const result = await Cart.removeCartItem(username1, productId);
-    expect(result).toEqual(itemId); // should return the id of the deleted item
+    console.log("productIds", productIds);
+    const result = await Cart.removeCartItem(username1, productIds[0]); // use the first productId in the list
+    expect(result).toBeTruthy(); // should return the id of the deleted item
+    expect(result).toEqual(productIds[0]); // should return the id of the deleted item
 
     const item = await Cart.get(username1);
     expect(item).toBeTruthy();
@@ -160,7 +157,8 @@ describe("remove item from cart", () => {
     });
 
     test("throws BadRequestError when trying to update a non-existent productId", async () => {
-      await expect(Cart.updateCartItemQty(username1, 99999999, 1)).rejects.toThrow("Nothing to update");
+      const invalidProductId = 99999999;
+      await expect(Cart.updateCartItemQty(username1, invalidProductId, 1)).rejects.toThrow(`Product ${invalidProductId} does not exist`);
     });
   });
 
