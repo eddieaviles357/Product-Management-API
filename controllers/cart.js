@@ -79,13 +79,7 @@ exports.updateCartItemQty = async (req, res, next) => {
   }
 }
 
-/**
- * Deletes a product from the cart for a given user.
- * @param {string} username - username of the user
- * @param {number} productId - ID of the product to delete
- * @returns {object} - JSON object with success status and result
- * @throws {Error} - Throws an error if the deletion fails
- */
+
 exports.deleteCartItem = async (req, res, next) => {
   try {
     const {username, productId} = req.params;
