@@ -168,17 +168,16 @@ class Cart {
    * @returns {string|number} the id of the deleted cart item or 'Nothing to delete' if no such item exists
    */
   static async removeCartItem (username, productId) {
-      // return String | { id: Int }
     try {
       if(!username) throw new BadRequestError(`Invalid username provided`);
       const userId = await getUserId(username);
       if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
-      const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2 RETURNING id`;
+      const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2 RETURNING product_id AS "productId"`;
       const values = [userId, productId];
       const deleteResult = await db.query(queryStatement, values);
 
-      return (deleteResult.rows.length === 0) ? 'Nothing to delete' : deleteResult.rows[0].id;
+      return (deleteResult.rows.length === 0) ? 'Nothing to delete' : deleteResult.rows[0].productId;
 
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
