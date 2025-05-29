@@ -84,9 +84,10 @@ async function commonBeforeAll() {
   await db.query(`
     INSERT INTO products_categories (product_id, category_id)
     VALUES
-    ($1, $3),
-    ($2, $4)`
-    , [ productIds[0], productIds[1], categoryIds[0], categoryIds[1] ]);
+    ($1, $4),
+    ($2, $5),
+    ($3, $5)`
+    , [ productIds[0], productIds[1], productIds[2], categoryIds[0], categoryIds[1] ]);
 
   await db.query(`
     INSERT INTO cart (user_id, product_id, quantity, price)
