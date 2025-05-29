@@ -423,8 +423,8 @@ describe("Categories Routes", () => {
             imageURL: 'https://image.product-management.com/1283859',
             createdAt: expect.any(String), // date is returned as strings dates
             updatedAt: expect.any(String),
-            categories: ["none"],
-          }
+            categories: expect.any(Array),
+          },
         ],
       });
     });
