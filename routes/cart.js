@@ -12,7 +12,7 @@ const {ensureLoggedIn, ensureAdmin, ensureUser} = require("../middleware/auth/au
 
 router
   .route("/:username")
-  .get(getCart)
+  .get(ensureLoggedIn, ensureAdmin, getCart)
   .delete(ensureLoggedIn, ensureAdmin, clearCart)
   
 router
