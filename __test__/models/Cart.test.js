@@ -104,7 +104,6 @@ describe("add item to cart", () => {
 
 describe("remove item from cart", () => {
   test("successfully removes item", async () => {
-    console.log("productIds", productIds);
     const result = await Cart.removeCartItem(username1, productIds[0]); // use the first productId in the list
     expect(result).toBeTruthy(); // should return the id of the deleted item
     expect(result).toEqual(productIds[0]); // should return the id of the deleted item
