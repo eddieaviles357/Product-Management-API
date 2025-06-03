@@ -161,7 +161,6 @@ class Products {
       if(result.rows.length === 0) throw new BadRequestError("Something went wrongfff");
       return result.rows[0];
     } catch (err) {
-      console.log("err", err.code);
       if(err.code === '23514') throw new BadRequestError(`Product ${id} is out of stock`);
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrongggg");
@@ -171,7 +170,7 @@ class Products {
   /**
    * Updates a product in the database.
    * @param {number} id
-   * @param {object} productBody
+   * @param {object} productBody (name, description, price, imageURL)
    * @returns {object} - returns the updated product with id, sku, productName, productDescription, price, stock, imageURL, createdAt
    * @throws {BadRequestError} - if the product does not exist or if there is a database error
    */
@@ -184,7 +183,6 @@ class Products {
                                             product_name AS name,
                                             product_description AS description,
                                             price,
-                                            stock,
                                             image_url,
                                             created_at AS "createdAt",
                                             updated_at AS "updatedAt"
@@ -196,8 +194,7 @@ class Products {
       const defVal = {
         name: '', 
         description: '', 
-        price: 0, 
-        stock: 0, 
+        price: 0,
         imageURL: ''
       };
   
@@ -206,7 +203,6 @@ class Products {
         name, 
         description, 
         price, 
-        stock, 
         imageURL 
         } = Object.assign( {}, defVal, productBody );
         
@@ -215,7 +211,6 @@ class Products {
         name.length === 0 & 
         description.length === 0 & 
         price === 0 & 
-        stock === 0 &
         imageURL.length === 0
         ) return {};
 
@@ -227,29 +222,26 @@ class Products {
         name: nm, 
         description: desc, 
         price: prc,
-        stock: stck,
         image_url: imgURL
       } = parsedProduct;
       
       const queryStatement = `UPDATE products SET
-                                product_name =        COALESCE( NULLIF($1, ''), $6 ),
-                                product_description = COALESCE( NULLIF($2, ''), $7 ),
-                                price =               COALESCE( NULLIF($3, 0.00), $8 ),
-                                stock =               $4::integer + $9,
-                                image_url =           COALESCE( NULLIF($5, ''), $10 ),
+                                product_name =        COALESCE( NULLIF($1, ''), $5 ),
+                                product_description = COALESCE( NULLIF($2, ''), $6 ),
+                                price =               COALESCE( NULLIF($3, 0.00), $7 ),
+                                image_url =           COALESCE( NULLIF($4, ''), $8 ),
                                 updated_at = NOW()
-                              WHERE product_id = $11
+                              WHERE product_id = $9
                               RETURNING 
                                 product_id AS id,
                                 sku, 
                                 product_name AS "productName",
                                 product_description AS "productDescription",
                                 price,
-                                stock,
                                 image_url AS "imageURL",
                                 created_at AS "createdAt",
                                 updated_at AS "updatedAt"`;
-      const queryValues = [name, description, price, stock, imageURL, nm, desc, prc, stck, imgURL, id];
+      const queryValues = [name, description, price, imageURL, nm, desc, prc, imgURL, id];
       const result = await db.query(queryStatement, queryValues);
   
       if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
@@ -352,6 +344,9 @@ class Products {
     try {
       if(!id) throw new BadRequestError("Invalid id");
 
+      const product = await db.query(`SELECT product_id FROM products WHERE product_id = $1`, [id]);
+      if(product.rows.length === 0) throw new BadRequestError(`Product with id ${id} does not exist`);
+
       const queryStatement = `DELETE FROM products 
                               WHERE product_id = $1
                               RETURNING product_name AS "productName"`;
@@ -360,6 +355,7 @@ class Products {
             ? { message : `Product with id ${id} not found`, success: false } 
             : { message : `Removed product ${result.rows[0].productName}`, success: true };
     } catch (err) {
+      console.error(err.message);
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
