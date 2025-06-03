@@ -17,6 +17,7 @@ const {
 // getProducts
 // findProductById
 // updateProduct
+// updateProductStock
 // addCategoryToProduct 
 // removeCategoryFromProduct
 
@@ -75,15 +76,9 @@ describe("Products model tests", () => {
       expect(product.success).toBe(true);
       expect(product.message).toMatch(/Removed product ([A-z])/);
     });
-    
-    test("successfully responds when no product exist in db to be removed", async () => {
-      const invalidProductId = 99999;
-      const product = await Products.removeProduct(invalidProductId);
-      expect(product).toBeTruthy();
-      expect(product).toHaveProperty("message");
-      expect(product).toHaveProperty("success");
-      expect(product.success).toBe(false);
-      expect(product.message).toMatch(/Product with id (\d+) not found/);
+
+    test("successfully responds with message for non-existent product ID", async () => {
+      await expect(Products.removeProduct(999999)).rejects.toThrow("Product with id 999999 does not exist");
     });
 
     test("throws BadRequestError for db error", async () => {
@@ -163,7 +158,6 @@ describe("Products model tests", () => {
       const updatedProduct = {
         name: "Updated Product",
         description: "This is an updated product",
-        stock: 2,
         imageURL: "http://example.com/updated-product.jpg",
         price: '39.99',
       };
@@ -174,7 +168,6 @@ describe("Products model tests", () => {
       expect(product).toHaveProperty("id");
       expect(product.productName).toEqual(updatedProduct.name);
       expect(product.productDescription).toEqual(updatedProduct.description);
-      expect(product.stock).toEqual(updatedProduct.stock + (product.stock - updatedProduct.stock));
       expect(product.imageURL).toEqual(updatedProduct.imageURL);
       expect(product.price).toEqual(updatedProduct.price);
     });
@@ -275,6 +268,35 @@ describe("Products model tests", () => {
       await expect(Products.addCategoryToProduct(productIds[0], categoryIds[0])).rejects.toThrow(BadRequestError);
     });
 
+  });
+
+  describe("updateProductStock", () => {
+
+    test("successfully updates product stock", async () => {
+      const productId = productIds[0];
+      const newStock = 10;
+
+      const updatedProduct = await Products.updateProductStock(productId, newStock);
+
+      expect(updatedProduct).toBeTruthy();
+      expect(updatedProduct).toHaveProperty("id");
+      expect(updatedProduct.stock).toEqual(newStock + 3); // +3 because of the initial stock in commonBeforeAll
+    });
+
+    test("throws BadRequestError for non-existent product ID", async () => {
+      const invalidProductId = 99999;
+      const newStock = 5;
+
+      await expect(Products.updateProductStock(invalidProductId, newStock)).rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError for db error", async () => {
+      jest.spyOn(db, "query").mockImplementationOnce(() => {
+        throw new Error("Database error");
+      });
+
+      await expect(Products.updateProductStock(productIds[0], 5)).rejects.toThrow(BadRequestError);
+    });
   });
 });
 
