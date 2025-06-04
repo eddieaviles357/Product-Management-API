@@ -355,7 +355,6 @@ class Products {
             ? { message : `Product with id ${id} not found`, success: false } 
             : { message : `Removed product ${result.rows[0].productName}`, success: true };
     } catch (err) {
-      console.error(err.message);
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
