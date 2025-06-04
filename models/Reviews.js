@@ -33,6 +33,7 @@ class Reviews {
       const result = await db.query(queryStatement, queryValues);
       return (result.rows.length === 0) ? {} : result.rows[0];
     } catch(err) {
+      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   };
@@ -47,6 +48,10 @@ class Reviews {
   static async getReviewsForOneProduct(prodId) { 
     try {
       if(!prodId) throw new BadRequestError("Missing data");
+
+      const product = await db.query(`SELECT product_id FROM products WHERE product_id = $1`, [prodId]);
+      if(product.rows.length === 0) throw new BadRequestError("Product does not exist");
+
       const queryStatement = `SELECT 
                                 r.product_id AS "productId",
                                 r.user_id AS "userId",
@@ -62,6 +67,7 @@ class Reviews {
       const result = await db.query(queryStatement, [prodId]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
+      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   };
