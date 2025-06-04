@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db.js");
-const { BadRequestError, ConflictError } = require("../AppError");
+const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
 
 class Reviews {
@@ -18,7 +18,7 @@ class Reviews {
       
 
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      if(userId === 0 || !userId) throw new NotFoundError("User does not exist");
       
       const queryStatement = `SELECT 
                                 product_id AS "productId",
@@ -34,6 +34,7 @@ class Reviews {
       return (result.rows.length === 0) ? {} : result.rows[0];
     } catch(err) {
       if(err instanceof BadRequestError) throw err;
+      if(err instanceof NotFoundError) throw err;
       throw new BadRequestError(err.message);
     }
   };
