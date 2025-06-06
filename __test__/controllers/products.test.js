@@ -312,7 +312,7 @@ describe("Products Controller", () => {
       });
     });
 
-    test("should return 404 for non-existing product", async () => {
+    test("should return 400 for non-existing product", async () => {
       const currentUser = await User.authenticate(username1, "password");
       const token = createToken(currentUser);
 
