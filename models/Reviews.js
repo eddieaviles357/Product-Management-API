@@ -89,7 +89,7 @@ class Reviews {
       const userId = await getUserId(username);
       if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
       
-      const queryStatement = `INSERT INTO reviews (product_id, user_id, review, rating)
+      const queryStatement =  `INSERT INTO reviews (product_id, user_id, review, rating)
                               VALUES ($1, $2, $3, $4)
                               RETURNING 
                                 product_id AS "productId", 
@@ -212,7 +212,8 @@ class Reviews {
                               RETURNING 
                                 user_id AS "userId",
                                 product_id AS "productId",
-                                review`;
+                                review,
+                                rating`;
       const values = [prodId, userId]
   
       const result = await db.query(queryStatement, values);
