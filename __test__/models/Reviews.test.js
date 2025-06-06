@@ -213,7 +213,8 @@ describe("Reviews Model", function () {
       expect(deletedReview.review).toEqual({ 
         userId: userIdUsername[0].id, 
         productId: productIds[0], 
-        review: 'nice item' 
+        review: 'nice item',
+        rating: expect.any(Number), // rating should be a number
       });
     });
 
