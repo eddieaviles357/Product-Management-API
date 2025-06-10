@@ -13,7 +13,7 @@ const validateSchema = require("../middleware/validation/validateSchema");
 const newReviewSchema = require("../schemas/newReviewSchema.json");
 const updateReviewSchema = require("../schemas/updateReviewSchema.json");
 
-const {ensureLoggedIn, ensureUser, ensureUserOrAdmin, ensureAdmin} = require("../middleware/auth/auth");
+const {ensureLoggedIn, ensureUser, ensureUserOrAdmin} = require("../middleware/auth/auth");
 
 router
   .route("/product/:id")
