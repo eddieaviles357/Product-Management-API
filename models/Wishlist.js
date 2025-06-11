@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError } = require("../AppError");
+const { BadRequestError, ConflictError } = require("../AppError");
 
 const getUserId = require("../helpers/getUserId");
 
@@ -63,7 +63,7 @@ class Wishlist {
    * @returns {object} wishlist item
    * @throws {BadRequestError} if username or productId is not provided
    * @throws {BadRequestError} if user does not exist or if there is an error in the query
-   * @throws {BadRequestError} if product already exists in wishlist
+   * @throws {ConflictError} if product already exists in wishlist
    */
   static async addProduct(username, productId) {
     try {
@@ -79,6 +79,7 @@ class Wishlist {
 
       return wishlistValues.rows[0];
     } catch (err) {
+      if(err.code === '23505') throw new ConflictError("Product already exists in wishlist");
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
