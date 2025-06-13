@@ -215,13 +215,180 @@ describe("Wishlist Model", function () {
         .post(`/api/v1/wishlist/${username1}/${productIds[0]}`)
         .set("Authorization", `Bearer ${token}`);
 
-      expect(result.statusCode).toBe(400);
-      console.log(result.body);
+      expect(result.statusCode).toBe(409);
       expect(result.body).toEqual({
         error: { 
           message: "Product already exists in wishlist", 
-          status: 400 
+          status: 409
         }
+      });
+    });
+  });
+
+  describe("deleteToWishlist", function () {
+    test("works", async function () {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/${username1}/${productIds[0]}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(200);
+      expect(result.body).toEqual({
+        success: true,
+        message: `Product id ${productIds[0]} removed from wishlist`
+      });
+    });
+
+    test("unauthorized", async function () {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/nonexistentuser/${productIds[0]}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(401);
+      expect(result.body).toEqual({
+        error: { 
+          message: "Unauthorized", 
+          status: 401 
+        }
+      });
+    });
+
+    test("invalid username", async function () {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/invalidusername/${productIds[0]}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(401);
+      expect(result.body).toEqual({
+        error: { 
+          message: "Unauthorized", 
+          status: 401 
+        }
+      });
+    });
+
+    test("missing username", async function () {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/${productIds[0]}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(401);
+      expect(result.body).toEqual({
+        error: { 
+          message: "Unauthorized", 
+          status: 401
+        }
+      });
+    });
+
+    test("product not found in wishlist", async function () {
+      addTestUser();
+      const currentUser = await User.authenticate(testuser, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/${testuser}/${productIds[2]}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(404);
+      expect(result.body).toEqual({
+        success: false,
+        message: `Product id ${productIds[2]} not found in wishlist`
+      });
+    });
+  });
+
+  describe("clearWishlist", function () {
+    test("works", async function () {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/${username1}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(200);
+      expect(result.body).toEqual({
+        success: true,
+        message: "Removed"
+      });
+    });
+
+    test("unauthorized", async function () {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/nonexistentuser`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(401);
+      expect(result.body).toEqual({
+        error: { 
+          message: "Unauthorized", 
+          status: 401 
+        }
+      });
+    });
+
+    test("invalid username", async function () {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/invalidusername`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(401);
+      expect(result.body).toEqual({
+        error: { 
+          message: "Unauthorized", 
+          status: 401 
+        }
+      });
+    });
+
+    test("missing username", async function () {
+      const currentUser = await User.authenticate(username1, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(result.statusCode).toBe(404);
+      expect(result.body).toEqual({
+        error: { 
+          message: "Not Found", 
+          status: 404 
+        }
+      });
+    });
+
+    test("nothing to remove", async function () {
+      addTestUser();
+      const currentUser = await User.authenticate(testuser, "password");
+      const token = createToken(currentUser);
+
+      const result = await request(app)
+        .delete(`/api/v1/wishlist/${testuser}`)
+        .set("Authorization", `Bearer ${token
+        }`);
+      expect(result.statusCode).toBe(200);
+      expect(result.body).toEqual({
+        success: false,
+        message: "Nothing to remove"
       });
     });
   });
