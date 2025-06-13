@@ -88,7 +88,7 @@ class Wishlist {
   /**
    * @param {string} username
    * @param {number} productId
-   * @returns {boolean} true if product was removed from wishlist, false otherwise
+   * @returns {object} removed product object or message
    * @throws {BadRequestError} if username or productId is not provided
    * @throws {BadRequestError} if user does not exist or if there is an error in the query
    * 
@@ -109,10 +109,11 @@ class Wishlist {
                                 product_id AS "productId"`;
       const values = [userId, productId];
       const removedResult = await db.query(queryStatement, values);
-      const rowsRemoved = removedResult.rowCount;
 
       // if no rows were removed then we will return false
-      return (rowsRemoved !== 0) ? true : false;
+      return (removedResult.rowCount !== 0)
+              ? { product: removedResult.rows[0].productId, success: true}
+              : { product: productId, success: false};
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
