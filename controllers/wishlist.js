@@ -38,10 +38,12 @@ exports.addToWishlist = async (req, res, next) => {
 exports.deleteToWishlist = async (req, res, next) => {
   try {
     const { username, productId } = req.params;
-    const success = await Wishlist.removeProduct(username, productId);
-    const message = success ? "Removed" : "Nothing to remove";
+    const { product, success } = await Wishlist.removeProduct(username, productId);
+    const message = success 
+                      ? `Product id ${product} removed from wishlist` 
+                      : `Product id ${product} not found in wishlist`;
     
-    return res.status(200).json({ success, message });
+    return res.status(success ? 200 : 404 ).json({ success, message });
   } catch (err) {
     return next(err);
   }
