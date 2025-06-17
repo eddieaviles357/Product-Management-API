@@ -25,10 +25,50 @@ class Orders {
     }
   };
 
+  static async _getOrderTotalAmount(orderId) {
+    try {
+      const orderTotalStatement = `SELECT total_amount AS "totalAmount" FROM orders WHERE id = $1`;
+      const result = await db.query(orderTotalStatement, [orderId]);
+      if (result.rows.length === 0) {
+        throw new BadRequestError("Order not found");
+      }
+      return result.rows[0].totalAmount;
+    } catch (err) {
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
+    }
+  }
+
+  /**
+   * Retrieves an order by its ID, including the total amount and order items
+   * @param {number} orderId - the ID of the order to retrieve
+   * @returns {object} - returns an object containing the total amount and an array of order items
+   * @throws {BadRequestError} - if the order is not found or if there is an error in the query
+   */
+  static async getOrderById(orderId) {
+    try {
+      const totalAmount = await this._getOrderTotalAmount(orderId);
+      
+      const orderStatement = `SELECT O.id AS "orderId",  
+                                     OP.product_id, 
+                                     OP.quantity, OP.total_amount AS "productTotalAmount" 
+                               FROM orders O 
+                               JOIN order_products OP ON O.id = OP.order_id
+                               WHERE O.id = $1`;
+
+      const result = await db.query(orderStatement, [orderId]);
+      if (result.rows.length === 0) throw new BadRequestError("Order not found");
+      return {totalAmount, orderItems: result.rows };
+    } catch (err) {
+      if(err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Something went wrong");
+    }
+  }
+
   /**
    * Creates a new order in the database
    * @param {string} username - the username of the user creating the order
-   * @param {object} cart - contains an array of products with productId, quantity, and price
+   * @param {array} cart - contains an array of products with productId, quantity, and price
    * @returns {array} - returns an array of objects containing the inserted order and order_products
    */
   static async create(username, {cart}) {
@@ -38,6 +78,12 @@ class Orders {
 
       // returns an array of objects containing productId, quantity, and price
       // the first value of the array will always be the price ( total amount int )
+      /* eg. [ 
+              10.99, 
+              { productId: 1, quantity: 2, price: 10.00 }, 
+              { productId: 2, quantity: 1, price: 20.00} 
+               ]
+      */
       let products = cart.reduce( (accum, next) => {
         // extract important values from cart
         const { productId, quantity, price } = next;
@@ -51,7 +97,7 @@ class Orders {
       }, [0.00]);
       
       // remove first value from products which is the price and store in variable
-      let totalPrice = products.shift();
+      let totalPrice = products.shift(); // price total
       
       const createOrderStatement = `INSERT INTO orders(user_id, total_amount) 
                                     VALUES($1, $2) 
