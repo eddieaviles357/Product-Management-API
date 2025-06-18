@@ -25,6 +25,12 @@ class Orders {
     }
   };
 
+  /**
+   * Retrieves an order by its ID
+   * @param {number} orderId - the ID of the order to retrieve
+   * @returns {number} - returns the total amount of the order
+   * @throws {BadRequestError} - if the order is not found or if there is an error in the query
+   */
   static async _getOrderTotalAmount(orderId) {
     try {
       const orderTotalStatement = `SELECT total_amount AS "totalAmount" FROM orders WHERE id = $1`;
@@ -123,8 +129,5 @@ class Orders {
     }
   }
 };
-// SELECT O.id, O.user_id, O.total_amount, OP.id, OP.order_id, OP.product_id, OP.quantity, OP.total_amount 
-// FROM orders O 
-// JOIN order_products OP 
-// ON O.id = OP.order_id;
+
 module.exports = Orders;
