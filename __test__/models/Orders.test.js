@@ -43,6 +43,46 @@ describe("Orders model tests", () => {
         .rejects.toThrow(BadRequestError);
     });
   });
+
+  describe("getOrderById", () => {
+    test("works: retrieves order by id successfully", async () => {
+      const orderId = orderIds[0]; // assuming this is a valid order id
+      
+      const order = await Orders.getOrderById(orderId);
+      expect(order).toBeInstanceOf(Object);
+      expect(order.orderItems).toBeInstanceOf(Array);
+      expect(order).toBeDefined();
+      expect(order.orderItems.length).toBeGreaterThan(0);
+      expect(order.orderItems[0].orderId).toBe(orderId); // check if the returned order id matches
+    });
+    
+    test("fails: with invalid order id", async () => {
+      const orderId = 99999; // non-existing order id
+      
+      await expect(Orders.getOrderById(orderId))
+        .rejects.toThrow(BadRequestError);
+    });
+  });
+
+  describe("_getOrderTotalAmount", () => {
+    test("works: retrieves total amount successfully", async () => {
+      const orderId = orderIds[0]; // assuming this is a valid order id
+      
+      const totalAmount = await Orders._getOrderTotalAmount(orderId);
+      console.log("Total Amount:", typeof totalAmount);
+      expect(totalAmount).toBeDefined();
+      expect(typeof totalAmount).toBe("string");
+      expect(Number(totalAmount)).toBeGreaterThan(0); // cast to number
+    });
+    
+    test("fails: with invalid order id", async () => {
+      const orderId = 99999; // non-exi)sting order id
+      
+      await expect(Orders._getOrderTotalAmount(orderId))
+        .rejects.toThrow(BadRequestError);
+    });
+  });
+
   describe("_insertOrderProducts", () => {
 
     test("works: inserts order products successfully", async () => {
