@@ -9,7 +9,8 @@ class Orders {
    * Inserts a product into the order_products table
    * @param {number} orderId
    * @param {object} queryValues - contains productId, quantity, and price
-   * @returns {object} - returns the inserted row's id
+   * @return {number} - returns the id of the inserted order_product
+   * @throws {BadRequestError} - if there is an error in the query
    */
   static async _insertOrderProducts(orderId, queryValues) {
     try {
@@ -18,7 +19,7 @@ class Orders {
                                       VALUES($1, $2, $3, $4)
                                       RETURNING id`;
       const result = await db.query(orderProductsStatement, [orderId, productId, quantity, price]);
-      return result.rows[0];
+      return result.rows[0].id;
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
@@ -35,9 +36,8 @@ class Orders {
     try {
       const orderTotalStatement = `SELECT total_amount AS "totalAmount" FROM orders WHERE id = $1`;
       const result = await db.query(orderTotalStatement, [orderId]);
-      if (result.rows.length === 0) {
-        throw new BadRequestError("Order not found");
-      }
+
+      if (result.rows.length === 0) throw new BadRequestError("Order not found");
       return result.rows[0].totalAmount;
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
