@@ -32,7 +32,6 @@ describe("Orders model tests", () => {
       ];
       
       const order = await Orders.create(username, { cart });
-      console.log(order);
       expect(order).toBeInstanceOf(Array);
       expect(order).toBeDefined();
       expect(order).toHaveLength(2);
