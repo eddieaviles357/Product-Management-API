@@ -12,11 +12,12 @@ const wishlistRoutes = require("./routes/wishlist");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/checkout");
 const { NotFoundError } = require("./AppError");
+const {globalLimiter} = require("./middleware/limiter");
 
 app.use(cors())
 app.use(express.json());
 app.use(authenticateJWT);
-
+app.use(globalLimiter); // Apply rate limiting globally
 app.use("/api/v1/products", productsRoutes);
 app.use("/api/v1/categories", categoriesRoutes);
 app.use("/api/v1/reviews", reviewsRoutes);
