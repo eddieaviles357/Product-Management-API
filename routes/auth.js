@@ -8,13 +8,14 @@ const router = require("express").Router();
 const validateSchema = require("../middleware/validation/validateSchema");
 const userAuthSchema = require("../schemas/userAuthSchema.json");
 const newUserSchema = require("../schemas/newUserSchema.json");
+const { authLimiter } = require("../middleware/limiter");
 
 router
   .route("/register")
-  .post(validateSchema(newUserSchema),registerUser)
+  .post(authLimiter, validateSchema(newUserSchema),registerUser)
 
 router
   .route("/authenticate")
-  .post(validateSchema(userAuthSchema), authenticateUser)
+  .post(authLimiter, validateSchema(userAuthSchema), authenticateUser)
 
 module.exports = router;
