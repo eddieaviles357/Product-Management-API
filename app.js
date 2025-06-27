@@ -13,22 +13,27 @@ const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/checkout");
 const { NotFoundError } = require("./AppError");
 const {globalLimiter} = require("./middleware/limiter");
+const helmet = require('helmet');
 
-app.use(cors())
-app.use(express.json());
-app.use(authenticateJWT);
+// Middleware
+app.use(helmet()); // Adds security headers
+app.use(cors()); // Enable CORS for all routes
+app.use(express.json()); // Parse JSON bodies
+app.use(authenticateJWT); // Authenticate JWT for protected routes
 app.use(globalLimiter); // Apply rate limiting globally
-app.use("/api/v1/products", productsRoutes);
-app.use("/api/v1/categories", categoriesRoutes);
-app.use("/api/v1/reviews", reviewsRoutes);
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/wishlist", wishlistRoutes);
-app.use("/api/v1/cart", cartRoutes);
-app.use("/api/v1/checkout", orderRoutes);
+
+// Routes
+app.use("/api/v1/products", productsRoutes); // Products routes
+app.use("/api/v1/categories", categoriesRoutes); // Categories routes
+app.use("/api/v1/reviews", reviewsRoutes); // Reviews routes
+app.use("/api/v1/auth", authRoutes); // Authentication routes
+app.use("/api/v1/wishlist", wishlistRoutes); // Wishlist routes
+app.use("/api/v1/cart", cartRoutes); // Cart routes
+app.use("/api/v1/checkout", orderRoutes); // Checkout routes
 
 
 /** Handle 404 errors -- this matches everything */
-app.use(function (req, res, next) {//
+app.use(function (req, res, next) {
     return next(new NotFoundError());
 });
 
