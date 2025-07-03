@@ -65,16 +65,6 @@ The Product Management API is a comprehensive backend solution for e-commerce an
 - **Consistent Error Responses**:  
   Errors are returned in a consistent JSON format, including an error message and HTTP status code.
 
-### Example Endpoints
-
-- `POST /api/v1/auth/register` — Register a new user
-- `POST /api/v1/auth/authenticate` — Authenticate and receive a JWT
-- `GET /api/v1/products` — List all products
-- `POST /api/v1/products` — Create a new product (admin only)
-- `GET /api/v1/categories` — List all categories
-- `POST /api/v1/cart` — Add an item to the user's cart
-- `POST /api/v1/checkout` — Checkout and create an order
-
 ### Endpoints Description
 
 Below is a detailed list of the main API endpoints, grouped by resource:
