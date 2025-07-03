@@ -75,7 +75,123 @@ The Product Management API is a comprehensive backend solution for e-commerce an
 - `POST /api/v1/cart` — Add an item to the user's cart
 - `POST /api/v1/checkout` — Checkout and create an order
 
-### Technologies Used
+### Endpoints Description
+
+Below is a detailed list of the main API endpoints, grouped by resource:
+
+#### Auth
+
+- `POST /api/v1/auth/register`  
+  Register a new user.  
+  **Body:** `{ username, password, firstName, lastName, email }`  
+  **Returns:** `{ token }`
+
+- `POST /api/v1/auth/authenticate`  
+  Authenticate a user and receive a JWT.  
+  **Body:** `{ username, password }`  
+  **Returns:** `{ token }`
+
+#### Products
+
+- `GET /api/v1/products`  
+  List all products.  
+  **Query params:** Optional filters (e.g., category, minPrice, maxPrice)
+
+- `GET /api/v1/products/:id`  
+  Get details for a single product by ID.
+
+- `POST /api/v1/products`  
+  Create a new product (admin only).  
+  **Body:** `{ name, description, price, categoryId, inventory, imageUrl }`
+
+- `PATCH /api/v1/products/:id`  
+  Update an existing product (admin only).  
+  **Body:** Any updatable product fields.
+
+- `DELETE /api/v1/products/:id`  
+  Delete a product (admin only).
+
+#### Categories
+
+- `GET /api/v1/categories`  
+  List all categories.
+
+- `GET /api/v1/categories/:id`  
+  Get details for a single category.
+
+- `POST /api/v1/categories`  
+  Create a new category (admin only).  
+  **Body:** `{ name, description }`
+
+- `PATCH /api/v1/categories/:id`  
+  Update a category (admin only).  
+  **Body:** Any updatable category fields.
+
+- `DELETE /api/v1/categories/:id`  
+  Delete a category (admin only).
+
+#### Users
+
+- `GET /api/v1/users`  
+  List all users (admin only).
+
+- `GET /api/v1/users/:username`  
+  Get a user's profile (self or admin).
+
+- `PATCH /api/v1/users/:username`  
+  Update user profile (self or admin).  
+  **Body:** Any updatable user fields.
+
+- `DELETE /api/v1/users/:username`  
+  Delete a user (self or admin).
+
+#### Reviews
+
+- `GET /api/v1/products/:productId/reviews`  
+  List all reviews for a product.
+
+- `POST /api/v1/products/:productId/reviews`  
+  Add a review to a product (authenticated user).  
+  **Body:** `{ rating, comment }`
+
+- `PATCH /api/v1/reviews/:reviewId`  
+  Update a review (author or admin).  
+  **Body:** `{ rating, comment }`
+
+- `DELETE /api/v1/reviews/:reviewId`  
+  Delete a review (author or admin).
+
+#### Cart
+
+- `GET /api/v1/cart`  
+  Get the current user's cart.
+
+- `POST /api/v1/cart`  
+  Add an item to the cart.  
+  **Body:** `{ productId, quantity }`
+
+- `PATCH /api/v1/cart/:itemId`  
+  Update quantity of a cart item.  
+  **Body:** `{ quantity }`
+
+- `DELETE /api/v1/cart/:itemId`  
+  Remove an item from the cart.
+
+#### Checkout & Orders
+
+- `POST /api/v1/checkout`  
+  Checkout the current cart and create an order.  
+  **Body:** `{ addressId, paymentInfo }`
+
+- `GET /api/v1/orders`  
+  List all orders for the current user.
+
+- `GET /api/v1/orders/:orderId`  
+  Get details for a specific order.
+
+---
+
+## 🛠 Technologies Used
 
 - **Node.js** & **Express** for the server and routing
 - **PostgreSQL** for persistent data storage
