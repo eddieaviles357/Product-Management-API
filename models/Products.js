@@ -49,6 +49,7 @@ class Products {
                               GROUP BY p.product_id
                               ORDER BY p.product_id DESC
                               LIMIT 20`;
+                              //LIMIT $2 OFFSET $3           -- Pagination
       const result = await db.query(queryStatement, [id]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
