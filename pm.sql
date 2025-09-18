@@ -15,4 +15,3 @@ DROP DATABASE IF EXISTS product_management_test;
 CREATE DATABASE product_management_test;
 \connect product_management_test
 \i pm-schema.sql
-
