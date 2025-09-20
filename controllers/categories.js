@@ -104,6 +104,27 @@ exports.getCategoryProducts = async (req, res, next) => {
     return next(err);
   }
 }
+// @desc      Get all products in a category using multiple category ids
+// @route     GET /api/v1/categories/products/filter
+// @access    Public
+exports.getMultipleCategoryProducts = async (req, res, next) => {
+  try {
+    if(Object.keys(req.query).length === 0) {
+      throw new BadRequestError("at least one category id is required");
+    }
+    // extract all category ids from query params
+    // e.g. /api/v1/categories/products/filter?cat1=1&cat2=2&cat3=3
+    const categoryIds = [...Object.values(req.query)];
+    const categoryProducts = await Categories.getMultipleCategoryProducts(categoryIds);
+    
+    return res.status(200).json({
+      success: true,
+      categoryProducts
+    })
+  } catch (err) {
+    return next(err);
+  }
+}
 
 // @desc      Delete category
 // @route     DELETE /api/v1/categories/:categoryId

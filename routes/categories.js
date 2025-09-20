@@ -7,6 +7,7 @@ const {
   updateCategory,
   deleteCategory,
   getCategoryProducts,
+  getMultipleCategoryProducts
 } = require("../controllers/categories");
 const router = require("express").Router();
 
@@ -36,4 +37,8 @@ router
 router
   .route('/search/:searchTerm')
   .get(getSearchedCategory)
+
+router
+  .route('/products/filter')
+  .get(getMultipleCategoryProducts)
 module.exports = router;
