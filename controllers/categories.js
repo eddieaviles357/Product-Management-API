@@ -114,8 +114,10 @@ exports.getMultipleCategoryProducts = async (req, res, next) => {
     }
     // extract all category ids from query params
     // e.g. /api/v1/categories/products/filter?cat1=1&cat2=2&cat3=3
-    const categoryIds = [...Object.values(req.query)];
-    const categoryProducts = await Categories.getMultipleCategoryProducts(categoryIds);
+    const categoryIds = Object.values(req.query);
+    // convert all category ids to numbers
+    const idArray = categoryIds.map(id => +id);
+    const categoryProducts = await Categories.getMultipleCategoryProducts(idArray);
     
     return res.status(200).json({
       success: true,
