@@ -85,7 +85,8 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 
 - `GET /api/v1/products`  
   List all products.  
-  **Query params:** Optional filters (e.g., category, minPrice, maxPrice)
+  `GET /api/v1/products?cursor={int}
+  **Query params:** Optional filters (cursor {int})
 
 - `GET /api/v1/products/:id`  
   Get details for a single product by ID.

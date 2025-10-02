@@ -20,7 +20,7 @@ exports.registerUser = async (req, res, next) => {
   };
 
 // @desc      Creates a token when user is authorized
-// @route     POST /api/v1/auth/token
+// @route     POST /api/v1/auth/authenticate
 // @access    Private/Admin ?????????
 exports.authenticateUser = async (req, res, next) => {
   try {
