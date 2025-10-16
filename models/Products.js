@@ -30,29 +30,37 @@ class Products {
   static async getProducts(id = 100000000) {
     try {
       if(!id) throw new BadRequestError("Invalid id");
-
-      const queryStatement = `SELECT 
-                                p.product_id AS id,
-                                p.sku,
-                                p.product_name AS "productName",
-                                p.product_description AS "productDescription",
-                                p.price,
-                                p.stock,
-                                p.image_url AS "imageURL",
-                                p.created_at AS "createdAt",
-                                p.updated_at AS "updatedAt",
-                                ARRAY_AGG(c.category) AS categories
-                              FROM products AS p
-                              JOIN products_categories AS p_c ON p.product_id = p_c.product_id
-                              JOIN categories AS c ON p_c.category_id = c.id
-                              WHERE p.product_id < $1
-                              GROUP BY p.product_id
-                              ORDER BY p.product_id DESC
-                              LIMIT 20`;
+      const queryStatement = `SELECT *
+                              FROM mv_product_list
+                              WHERE id < $1`;
+      // const queryStatement = `SELECT * FROM mv_product_list
+      //                         WHERE id < $1
+      //                         ORDER BY id DESC
+      //                         LIMIT 20`;
+                              //LIMIT $2 OFFSET $3           -- Pagination
+      // const queryStatement = `SELECT 
+      //                           p.product_id AS id,
+      //                           p.sku,
+      //                           p.product_name AS "productName",
+      //                           p.product_description AS "productDescription",
+      //                           p.price,
+      //                           p.stock,
+      //                           p.image_url AS "imageURL",
+      //                           p.created_at AS "createdAt",
+      //                           p.updated_at AS "updatedAt",
+      //                           ARRAY_AGG(c.category) AS categories
+      //                         FROM products AS p
+      //                         JOIN products_categories AS p_c ON p.product_id = p_c.product_id
+      //                         JOIN categories AS c ON p_c.category_id = c.id
+      //                         WHERE p.product_id < $1
+      //                         GROUP BY p.product_id
+      //                         ORDER BY p.product_id DESC
+      //                         LIMIT 20`;
                               //LIMIT $2 OFFSET $3           -- Pagination
       const result = await db.query(queryStatement, [id]);
       return (result.rows.length === 0) ? [] : result.rows;
     } catch (err) {
+      console.log(err);
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
@@ -78,12 +86,13 @@ class Products {
                                 p.image_url,
                                 p.created_at AS "createdAt",
                                 p.updated_at AS "updatedAt",
-                                ARRAY_AGG(c.category) AS categories
+                                ARRAY_AGG(DISTINCT c.category) AS categories
                               FROM products p
                               JOIN products_categories pc ON pc.product_id = p.product_id
                               JOIN categories c ON c.id = pc.category_id
                               WHERE p.product_id = $1
-                              GROUP BY p.product_id`;
+                              GROUP BY p.product_id, p.sku, p.product_name, p.product_description, p.price, p.stock, p.image_url, p.created_at, p.updated_at
+                              LIMIT 1`;
       const result = await db.query(queryStatement, [id]);
       
       return (result.rows.length === 0) ? {} : result.rows[0];

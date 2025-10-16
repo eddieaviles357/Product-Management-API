@@ -102,11 +102,28 @@ CREATE TABLE payment_details (
 );
 
 
+-- Materialized View for product list
+CREATE MATERIALIZED VIEW mv_product_list AS
+SELECT p.product_id AS id, p.sku, 
+       p.product_name AS "productName", 
+       p.product_description AS "productDescription", 
+       p.price, 
+       p.stock, 
+       p.image_url AS "imageURL", 
+       p.created_at AS "createdAt", 
+       p.updated_at AS "updatedAt", 
+       JSON_AGG(c.category) AS categories
+FROM products AS p
+      LEFT JOIN products_categories AS pc ON pc.product_id = p.product_id
+      LEFT JOIN categories AS c ON c.id = pc.category_id
+GROUP BY p.product_id, p.sku, p.product_name, p.product_description, p.price, p.stock, p.image_url, p.created_at, p.updated_at;
+-- Example query using the materialized view
+-- SELECT * FROM mv_product_list WHERE product_id = 1
 
 
 
-
-CREATE  FUNCTION update_updated_at_product()
+-- Functions and Triggers to update the updated_at field on UPDATE
+CREATE OR REPLACE FUNCTION update_updated_at_product()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = now();
@@ -114,14 +131,14 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_product_updated_at
+CREATE OR REPLACE TRIGGER update_product_updated_at
     BEFORE UPDATE
     ON
         products
     FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_product();
 
-CREATE  FUNCTION update_updated_at_review()
+CREATE OR REPLACE FUNCTION update_updated_at_review()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = now();
@@ -129,9 +146,38 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_review_updated_at
+CREATE OR REPLACE TRIGGER update_review_updated_at
     BEFORE UPDATE
     ON
         reviews
     FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_review();
+
+CREATE OR REPLACE FUNCTION refresh_mv_product_list()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        REFRESH MATERIALIZED VIEW mv_product_list;
+        RETURN NULL; -- Important for AFTER triggers
+    END;
+    $$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER refresh_mv_product_list_trigger
+    AFTER INSERT OR UPDATE OR DELETE
+    ON products
+    FOR EACH STATEMENT
+EXECUTE PROCEDURE refresh_mv_product_list();
+
+-- Views for easier querying
+-- CREATE OR REPLACE VIEW product_list AS
+--   SELECT p.product_id, p.sku, p.product_name, p.product_description, p.price, p.stock, p.image_url, p.created_at, p.updated_at,
+--          COALESCE(AVG(r.rating), 0) AS average_rating,
+--          COUNT(r.rating) AS number_of_reviews,
+--          JSON_AGG(DISTINCT c.category) AS categories
+--   FROM products p
+--        LEFT JOIN reviews r ON r.product_id = p.product_id
+--        LEFT JOIN products_categories pc ON pc.product_id = p.product_id
+--        LEFT JOIN categories c ON c.id = pc.category_id
+--   GROUP BY p.product_id, p.sku, p.product_name, p.product_description, p.price, p.stock, p.image_url, p.created_at, p.updated_at;     
+-- Example query using the view
+-- SELECT * FROM product_list WHERE product_id = 1;
+
