@@ -104,7 +104,8 @@ CREATE TABLE payment_details (
 
 -- Materialized View for product list
 CREATE MATERIALIZED VIEW mv_product_list AS
-SELECT p.product_id AS id, p.sku, 
+SELECT p.product_id AS id,
+       p.sku, 
        p.product_name AS "productName", 
        p.product_description AS "productDescription", 
        p.price, 
@@ -112,10 +113,10 @@ SELECT p.product_id AS id, p.sku,
        p.image_url AS "imageURL", 
        p.created_at AS "createdAt", 
        p.updated_at AS "updatedAt", 
-       JSON_AGG(c.category) AS categories
+       ARRAY_AGG(DISTINCT c.category) AS categories
 FROM products AS p
-      LEFT JOIN products_categories AS pc ON pc.product_id = p.product_id
-      LEFT JOIN categories AS c ON c.id = pc.category_id
+  JOIN products_categories AS pc ON pc.product_id = p.product_id
+  JOIN categories AS c ON c.id = pc.category_id
 GROUP BY p.product_id, p.sku, p.product_name, p.product_description, p.price, p.stock, p.image_url, p.created_at, p.updated_at;
 -- Example query using the materialized view
 -- SELECT * FROM mv_product_list WHERE product_id = 1
