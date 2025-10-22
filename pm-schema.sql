@@ -102,7 +102,7 @@ CREATE TABLE payment_details (
 );
 
 
--- Materialized View for product list
+-- Materialized View for getProducts
 CREATE MATERIALIZED VIEW mv_product_list AS
 SELECT p.product_id AS id,
        p.sku, 
@@ -121,6 +121,35 @@ GROUP BY p.product_id, p.sku, p.product_name, p.product_description, p.price, p.
 -- Example query using the materialized view
 -- SELECT * FROM mv_product_list WHERE product_id = 1
 
+-- Materialized View for findProductById
+CREATE MATERIALIZED VIEW mv_find_single_product AS
+SELECT
+    p.product_id AS id,
+    p.sku,
+    p.product_name AS name,
+    p.product_description AS description,
+    p.price,
+    p.stock,
+    p.image_url,
+    p.created_at AS "createdAt",
+    p.updated_at AS "updatedAt",
+    ARRAY_AGG(DISTINCT c.category) AS categories
+FROM products p
+JOIN products_categories pc ON pc.product_id = p.product_id
+JOIN categories c ON c.id = pc.category_id
+GROUP BY
+    p.product_id,
+    p.sku,
+    p.product_name,
+    p.product_description,
+    p.price,
+    p.stock,
+    p.image_url,
+    p.created_at,
+    p.updated_at
+WITH DATA;
+-- Example query using the materialized view
+-- SELECT * FROM mv_find_single_product WHERE product_id = 1
 
 
 -- Functions and Triggers to update the updated_at field on UPDATE
@@ -154,6 +183,7 @@ CREATE OR REPLACE TRIGGER update_review_updated_at
     FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_review();
 
+-- Function and Trigger to refresh materialized views on products table changes
 CREATE OR REPLACE FUNCTION refresh_mv_product_list()
     RETURNS TRIGGER AS $$
     BEGIN
@@ -167,6 +197,29 @@ CREATE TRIGGER refresh_mv_product_list_trigger
     ON products
     FOR EACH STATEMENT
 EXECUTE PROCEDURE refresh_mv_product_list();
+
+-- Function and Trigger to refresh materialized views on single product changes
+CREATE OR REPLACE FUNCTION refresh_mv_find_single_product()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        REFRESH MATERIALIZED VIEW mv_find_single_product;
+        RETURN NULL; -- Important for AFTER triggers
+    END;
+    $$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER refresh_mv_find_single_product_trigger
+    AFTER INSERT OR UPDATE OR DELETE
+    ON products
+    FOR EACH STATEMENT
+EXECUTE PROCEDURE refresh_mv_find_single_product();
+
+CREATE OR REPLACE FUNCTION refresh_mv_product_list()
+RETURNS TRIGGER AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW mv_product_list;
+    RETURN NULL; -- Important for AFTER triggers
+END;
+$$ LANGUAGE plpgsql;
 
 -- Views for easier querying
 -- CREATE OR REPLACE VIEW product_list AS
