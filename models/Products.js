@@ -55,7 +55,7 @@ class Products {
       if(!id) throw new BadRequestError("Invalid id");
 
       const queryStatement = `SELECT *
-                              FROM mv_find_single_product
+                              FROM mv_product_list
                               WHERE id = $1
                               LIMIT 1`;
       // const queryStatement = `SELECT
