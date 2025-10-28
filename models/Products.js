@@ -97,27 +97,39 @@ class Products {
         insert to products table, and use the return value id.
          Use return value id to our products_categories table setting default category to 'none' 
       */
-      const queryStatement = `WITH insert_to_prod AS ( 
-                                    INSERT INTO products ( 
-                                      sku, product_name, product_description, price, stock, image_url 
-                                      )
-                                    VALUES ($1, $2, $3, $4, $5, $6)
-                                    RETURNING 
-                                      product_id AS id, 
-                                      sku, 
-                                      product_name AS "productName", 
-                                      product_description AS "productDescription",
-                                      price,
-                                      stock,
-                                      image_url AS "imageURL",
-                                      created_at AS "createdAt" 
-                                    ),
-                              inserted AS ( 
-                                  INSERT INTO products_categories (product_id, category_id)
-                                  SELECT id, (SELECT id FROM categories WHERE category = 'none') FROM insert_to_prod 
+      const queryStatement = `WITH inserted_product AS (
+                                INSERT INTO products (
+                                  sku,
+                                  product_name,
+                                  product_description,
+                                  price,
+                                  stock,
+                                  image_url
+                                )
+                                VALUES ($1, $2, $3, $4, $5, $6)
+                                RETURNING
+                                  product_id AS id,
+                                  sku,
+                                  product_name AS "productName",
+                                  product_description AS "productDescription",
+                                  price,
+                                  stock,
+                                  image_url AS "imageURL",
+                                  created_at AS "createdAt"
+                                  ),
+                                  default_category AS (
+                                    SELECT id AS category_id
+                                    FROM categories
+                                    WHERE category = 'none'
+                                    LIMIT 1
+                                  ),
+                                  linked_category AS (
+                                    INSERT INTO products_categories (product_id, category_id)
+                                    SELECT p.id, c.category_id
+                                    FROM inserted_product p
+                                    CROSS JOIN default_category c
                                   )
-                              SELECT * FROM insert_to_prod`;
-                              // WITH insert_to_prod AS ( INSERT INTO products ( sku, product_name, product_description, price, stock, image_url ) VALUES (1234, 'tester', 'testerdesc', 13.00, 1, 'https://yah.com') RETURNING product_id AS id, sku, product_name AS "productName", product_description AS "productDescription", price, stock, image_url AS "imageURL", created_at AS "createdAt" ), inserted AS ( INSERT INTO products_categories (product_id, category_id) SELECT id, 1 FROM insert_to_prod ) SELECT * FROM insert_to_prod;
+                                SELECT * FROM inserted_product`;
       const queryValues = [sku, name, description, price, stock, imageURL]
       const result = await db.query(queryStatement, queryValues);
   
