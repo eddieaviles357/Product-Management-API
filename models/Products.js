@@ -13,14 +13,6 @@ const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChar
 // addCategoryToProduct 
 // removeCategoryFromProduct
 class Products {
-  // static async _doesProductExist(id) {
-  //   try {
-  //     const result = await db.query(`SELECT product_id FROM products WHERE product_id = $1`, [id]);
-  //     return (result.rows.length === 0) ? false : true;
-  //   } catch (error) {
-  //     throw new BadRequestError("Something went wrong retrieving product");
-  //   }
-  // }
   /**
    * Gets all products from the database.
    * @param {number} id - the id to use as a cursor
@@ -58,23 +50,6 @@ class Products {
                               FROM mv_product_list
                               WHERE id = $1
                               LIMIT 1`;
-      // const queryStatement = `SELECT
-      //                           p.product_id AS id,
-      //                           p.sku,
-      //                           p.product_name AS name,
-      //                           p.product_description AS description,
-      //                           p.price,
-      //                           p.stock,
-      //                           p.image_url,
-      //                           p.created_at AS "createdAt",
-      //                           p.updated_at AS "updatedAt",
-      //                           ARRAY_AGG(DISTINCT c.category) AS categories
-      //                         FROM products p
-      //                         JOIN products_categories pc ON pc.product_id = p.product_id
-      //                         JOIN categories c ON c.id = pc.category_id
-      //                         WHERE p.product_id = $1
-      //                         GROUP BY p.product_id, p.sku, p.product_name, p.product_description, p.price, p.stock, p.image_url, p.created_at, p.updated_at
-      //                         LIMIT 1`;
       const result = await db.query(queryStatement, [id]);
       
       return (result.rows.length === 0) ? {} : result.rows[0];
@@ -92,6 +67,7 @@ class Products {
    */
   static async addProduct({ sku, name, description, price, stock, imageURL }) {
     try {
+      // sanitize sku
       sku = removeNonAlphaNumericChars(sku);
       /* 
         insert to products table, and use the return value id.
@@ -133,7 +109,8 @@ class Products {
       const queryValues = [sku, name, description, price, stock, imageURL]
       const result = await db.query(queryStatement, queryValues);
   
-      if(result.length === 0) throw new BadRequestError("Something went wrong");
+      if(!result.rows || result.length === 0) throw new BadRequestError("Something went wrong");
+
       return result.rows[0];
     } catch (err) {
       if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Review for this product already exists");
@@ -144,25 +121,25 @@ class Products {
 
   /**
    * Updates stock to a product in the database.
-   * @param {number} id
-   * @param {number} stock
-   * @returns {object} - returns the updated product with id, sku, productName, productDescription, price, stock, imageURL, createdAt
+   * @param {number} id - The id of the product to update.
+   * @param {number} stock - The amount to add or subtract from stock.
+   * @returns {object} - Returns the updated product with id and stock.
    * @throws {BadRequestError} - if the product does not exist or if there is a database error
    */
   static async updateProductStock(id, stock) {
     try {
-      if((id === 0 && !id) || !stock) throw new BadRequestError("Invalid id or stock");
-      // const isProductExisting = await this._doesProductExist(id);
-      // if(!isProductExisting) throw new BadRequestError(`Product ${id} does not exist`);
+      if((!id && id !== 0) || stock === undefined || stock === null) throw new BadRequestError("Invalid id or stock");
 
       const queryStatement = `UPDATE products 
                               SET stock = stock + $1 
                               WHERE product_id = $2 
-                              RETURNING product_id AS id, stock`;
+                              RETURNING 
+                                product_id AS id, 
+                                stock`;
       const queryValues = [stock, id];
       const result = await db.query(queryStatement, queryValues);
   
-      if(result.rows.length === 0) throw new BadRequestError("Something went wrongfff");
+      if(!result.rows || result.rows.length === 0) throw new BadRequestError("Something went wrong updating stock");
       return result.rows[0];
     } catch (err) {
       if(err.code === '23514') throw new BadRequestError(`Product ${id} is out of stock`);
