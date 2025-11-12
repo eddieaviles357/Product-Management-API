@@ -150,8 +150,8 @@ class Products {
 
   /**
    * Updates a product in the database.
-   * @param {number} id
-   * @param {object} productBody (name, description, price, imageURL)
+   * @param {number} - Product id
+   * @param {object} productBody Product fields to update (name, description, price, imageURL)
    * @returns {object} - returns the updated product with id, sku, productName, productDescription, price, stock, imageURL, createdAt
    * @throws {BadRequestError} - if the product does not exist or if there is a database error
    */
@@ -172,41 +172,39 @@ class Products {
   
       if(existingProductQueryResults.rows.length === 0) throw new BadRequestError("No products to update");
       
-      const defVal = {
+      const defaultValues = {
         name: '', 
         description: '', 
         price: 0,
         imageURL: ''
       };
-  
-      // set default values if no values are given
-      let { 
-        name, 
-        description, 
-        price, 
-        imageURL 
-        } = Object.assign( {}, defVal, productBody );
-        
-      // if values are empty then return an empty object {}
-      if(  
-        name.length === 0 & 
-        description.length === 0 & 
-        price === 0 & 
+
+      // Merge defaults with provided values
+      const { name, description, price, imageURL } = { ...defaultValues, ...productBody };
+          
+      // if values are empty or zero, do nothing
+      if (
+        name.length === 0 &&
+        description.length === 0 &&
+        price === 0 &&
         imageURL.length === 0
-        ) return {};
+      ) {
+        return {};
+      }
 
       const existingProduct = JSON.stringify(existingProductQueryResults.rows[0]);
       const parsedProduct = JSON.parse(existingProduct);
 
       // must assign values different names to avoid collisions issues
       const {
-        name: nm, 
-        description: desc, 
-        price: prc,
-        image_url: imgURL
-      } = parsedProduct;
+        name: currentName,
+        description: currentDescription,
+        price: currentPrice,
+        image_url: currentImageURL,
+      } = existingProduct;
       
-      const queryStatement = `UPDATE products SET
+      const queryStatement = `UPDATE products 
+                              SET
                                 product_name =        COALESCE( NULLIF($1, ''), $5 ),
                                 product_description = COALESCE( NULLIF($2, ''), $6 ),
                                 price =               COALESCE( NULLIF($3, 0.00), $7 ),
@@ -222,10 +220,22 @@ class Products {
                                 image_url AS "imageURL",
                                 created_at AS "createdAt",
                                 updated_at AS "updatedAt"`;
-      const queryValues = [name, description, price, imageURL, nm, desc, prc, imgURL, id];
+      const queryValues = [
+        name,
+        description,
+        price,
+        imageURL,
+        currentName,
+        currentDescription,
+        currentPrice,
+        currentImageURL,
+        id,
+      ];
+
       const result = await db.query(queryStatement, queryValues);
   
-      if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
+      if (!result.rows || result.rows.length === 0) throw new BadRequestError("Something went wrong");
+      
       return result.rows[0];
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
