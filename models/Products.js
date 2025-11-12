@@ -113,7 +113,7 @@ class Products {
 
       return result.rows[0];
     } catch (err) {
-      if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Review for this product already exists");
+      if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("This product already exists");
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
@@ -168,6 +168,7 @@ class Products {
                                             created_at AS "createdAt",
                                             updated_at AS "updatedAt"
                                           FROM products WHERE product_id = $1`;
+
       const existingProductQueryResults = await db.query(productExistQueryStatement, [id]);
   
       if(existingProductQueryResults.rows.length === 0) throw new BadRequestError("No products to update");
@@ -192,8 +193,7 @@ class Products {
         return {};
       }
 
-      const existingProduct = JSON.stringify(existingProductQueryResults.rows[0]);
-      const parsedProduct = JSON.parse(existingProduct);
+      const existingProduct = existingProductQueryResults.rows[0];
 
       // must assign values different names to avoid collisions issues
       const {
