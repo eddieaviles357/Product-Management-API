@@ -253,24 +253,31 @@ class Products {
   static async addCategoryToProduct(productId, categoryId) {
     try {
       if(!productId || !categoryId) throw new BadRequestError("Invalid id");
-      // check if product exist in db
+
+      // confirm product exists in db
       const product = await this.findProductById(productId);
-      if(Object.keys(product).length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
+      if(!product || Object.keys(product).length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
   
       // does product contain default category "none" if so remove from db
-      const hasDefaultCategory = product.categories.includes('none');
-      if(hasDefaultCategory) await db.query(`DELETE FROM products_categories WHERE product_id = $1 AND category_id = 1`, [productId]);
-  
-      // insert category to product
+      if(product.categories.includes('none')) {
+        await db.query(
+          `DELETE FROM products_categories 
+          WHERE product_id = $1 AND category_id = 1`, 
+          [productId]
+        );
+      }
+
+      // insert the new category
       const queryStatement = `INSERT INTO products_categories (product_id, category_id)
                               VALUES ($1, $2)
                               RETURNING 
                                 product_id AS "productId", 
                                 category_id AS "categoryId"`;
-      const queryValues = [productId, categoryId]
-      const result = await db.query(queryStatement, queryValues);
+
+      const result = await db.query(queryStatement, [productId, categoryId]);
       
-      if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
+      if (!result.rows || result.rows.length === 0) throw new BadRequestError("Unable to add category to product");
+      
       return  result.rows[0];
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
