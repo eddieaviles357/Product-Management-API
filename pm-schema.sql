@@ -173,8 +173,16 @@ CREATE OR REPLACE FUNCTION refresh_mv_product_list()
     END;
     $$ LANGUAGE 'plpgsql';
 
+-- TRIGGER: Refresh when products table changes
 CREATE TRIGGER refresh_mv_product_list_trigger
     AFTER INSERT OR UPDATE OR DELETE
     ON products
     FOR EACH STATEMENT
+EXECUTE PROCEDURE refresh_mv_product_list();
+
+-- TRIGGER: Refresh when categories are added/removed to/from products
+CREATE TRIGGER refresh_mv_product_list_trigger_products_categories
+AFTER INSERT OR DELETE
+ON products_categories
+FOR EACH STATEMENT
 EXECUTE PROCEDURE refresh_mv_product_list();
