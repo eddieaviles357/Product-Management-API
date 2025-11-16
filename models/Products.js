@@ -277,7 +277,7 @@ class Products {
       const result = await db.query(queryStatement, [productId, categoryId]);
       
       if (!result.rows || result.rows.length === 0) throw new BadRequestError("Unable to add category to product");
-      
+
       return  result.rows[0];
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
@@ -285,52 +285,60 @@ class Products {
     }
   }
 
-    /**
-     * Removes a category from a product.
-     * @param {number} productId
-     * @param {number} categoryId
-     * @returns {object} - returns the removed category with productId and categoryId
-     * @throws {BadRequestError} - if the product does not exist or if there is a database error
-     */
-    static async removeCategoryFromProduct(productId, categoryId) {
-      try {
-        if(!productId || !categoryId) throw new BadRequestError("Invalid id");
-
-        let categoryCount;
-        // check if product exist in db
-        const product = await this.findProductById(productId);
-
-        if(Object.keys(product).length === 0) return { message : "Nothing to remove", success: false };
-
-        categoryCount = product.categories.length;
-  
-  
-        const queryStatement = `DELETE FROM products_categories 
-                                WHERE product_id = $1 AND category_id = $2
-                                RETURNING
-                                  product_id AS "productId", 
-                                  category_id AS "categoryId"`;
-        const queryValues = [productId, categoryId];
-        
-        const result = await db.query(queryStatement, queryValues);
-        
-        // if delete query was successful then we subtract from categoryCount
-        if(result.rows.length > 0) --categoryCount;
-        // if there are no categories then we add our default category "none"
-        if(categoryCount === 0) {
-          const insertQueryStatement = `INSERT INTO products_categories (product_id, category_id)
-                                        VALUES ($1, (SELECT id FROM categories WHERE category = 'none'))`;
-          await db.query(insertQueryStatement, [productId]);
-        }
-        
-        return (result.rows.length === 0) 
-        ? { message : "Nothing to remove", success: false } 
-        : { message : "Removed category", success: true };
-      } catch (err) {
-        if(err instanceof BadRequestError) throw err;
-        throw new BadRequestError("Something went wrong");
-      }
+  /**
+   * Removes a category from a product.
+   * @param {number} productId
+   * @param {number} categoryId
+   * @returns {object} - returns the removed category with productId and categoryId
+   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   */
+  static async removeCategoryFromProduct(productId, categoryId) {
+  try {
+    if (!productId || !categoryId) {
+      throw new BadRequestError("Invalid id");
     }
+
+    // Fetch product
+    const product = await this.findProductById(productId);
+    if (!product || !product.categories) {
+      return { message: "Nothing to remove", success: false };
+    }
+
+    const initialCount = product.categories.length;
+
+    // Delete category relation
+    const deleteResult = await db.query(
+      `DELETE FROM products_categories
+       WHERE product_id = $1 AND category_id = $2
+       RETURNING product_id AS "productId", category_id AS "categoryId"`,
+      [productId, categoryId]
+    );
+
+    const removed = deleteResult.rows.length > 0;
+
+    // If nothing removed, stop early
+    if (!removed) {
+      return { message: "Nothing to remove", success: false };
+    }
+
+    // Determine if we need to insert default category
+    const remainingCount = initialCount - 1;
+
+    if (remainingCount === 0) {
+      await db.query(
+        `INSERT INTO products_categories (product_id, category_id)
+         VALUES ($1, (SELECT id FROM categories WHERE category = 'none'))`,
+        [productId]
+      );
+    }
+
+    return { message: "Removed category", success: true };
+
+  } catch (err) {
+    if (err instanceof BadRequestError) throw err;
+    throw new BadRequestError("Something went wrong");
+  }
+}
 
   /**
    * Removes a product from the database.
