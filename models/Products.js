@@ -348,20 +348,32 @@ class Products {
    */
   static async removeProduct(id) {
     try {
-      if(!id) throw new BadRequestError("Invalid id");
+      if (!id) {
+        throw new BadRequestError("Invalid id");
+      }
 
-      const product = await db.query(`SELECT product_id FROM products WHERE product_id = $1`, [id]);
-      if(product.rows.length === 0) throw new BadRequestError(`Product with id ${id} does not exist`);
+      // Delete product
+      const result = await db.query(
+        `DELETE FROM products 
+        WHERE product_id = $1
+        RETURNING product_name AS "productName"`,
+        [id]
+      );
 
-      const queryStatement = `DELETE FROM products 
-                              WHERE product_id = $1
-                              RETURNING product_name AS "productName"`;
-      const result = await db.query(queryStatement, [id]);
-      return (result.rows.length === 0) 
-            ? { message : `Product with id ${id} not found`, success: false } 
-            : { message : `Removed product ${result.rows[0].productName}`, success: true };
+      if (result.rows.length === 0) {
+        return {
+          message: `Product with id ${id} does not exist`,
+          success: false
+        };
+      }
+
+      return {
+        message: `Removed product ${result.rows[0].productName}`,
+        success: true
+      };
+
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
+      if (err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
   }
