@@ -2,7 +2,12 @@
 
 const db = require("../db.js");
 const { BadRequestError, ConflictError } = require("../AppError");
-const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars.js");
+const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars");
+const { 
+  getAddProductQuery,
+  selectProductById,
+  updateProduct
+ } = require("../helpers/queries");
 
 // addProduct
 // removeProduct
@@ -21,16 +26,24 @@ class Products {
    */
   static async getProducts(id = 100000000) {
     try {
-      if(!id) throw new BadRequestError("Invalid id");
-      const queryStatement = `SELECT *
-                              FROM mv_product_list
-                              WHERE id < $1`;
-                              // LIMIT 20`;
-                              // LIMIT $2 OFFSET $3  -- Pagination
-      const result = await db.query(queryStatement, [id]);
-      return (result.rows.length === 0) ? [] : result.rows;
+      if (!id) {
+        throw new BadRequestError("Invalid id");
+      }
+
+      const result = await db.query(
+        `SELECT *
+        FROM mv_product_list
+        WHERE id < $1`, 
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        return [];
+      }
+      
+      return result.rows;
+
     } catch (err) {
-      console.log(err);
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
@@ -44,15 +57,24 @@ class Products {
    */
   static async findProductById(id) {
     try {
-      if(!id) throw new BadRequestError("Invalid id");
+      if (!id) {
+        throw new BadRequestError("Invalid id");
+      }
 
-      const queryStatement = `SELECT *
-                              FROM mv_product_list
-                              WHERE id = $1
-                              LIMIT 1`;
-      const result = await db.query(queryStatement, [id]);
+      const result = await db.query(
+        `SELECT *
+        FROM mv_product_list
+        WHERE id = $1
+        LIMIT 1`, 
+        [id]
+      );
       
-      return (result.rows.length === 0) ? {} : result.rows[0];
+      if (result.rows.length === 0) {
+        return {};
+      }
+
+      return result.rows[0];
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
@@ -73,48 +95,25 @@ class Products {
         insert to products table, and use the return value id.
          Use return value id to our products_categories table setting default category to 'none' 
       */
-      const queryStatement = `WITH inserted_product AS (
-                                INSERT INTO products (
-                                  sku,
-                                  product_name,
-                                  product_description,
-                                  price,
-                                  stock,
-                                  image_url
-                                )
-                                VALUES ($1, $2, $3, $4, $5, $6)
-                                RETURNING
-                                  product_id AS id,
-                                  sku,
-                                  product_name AS "productName",
-                                  product_description AS "productDescription",
-                                  price,
-                                  stock,
-                                  image_url AS "imageURL",
-                                  created_at AS "createdAt"
-                                  ),
-                                  default_category AS (
-                                    SELECT id AS category_id
-                                    FROM categories
-                                    WHERE category = 'none'
-                                    LIMIT 1
-                                  ),
-                                  linked_category AS (
-                                    INSERT INTO products_categories (product_id, category_id)
-                                    SELECT p.id, c.category_id
-                                    FROM inserted_product p
-                                    CROSS JOIN default_category c
-                                  )
-                                SELECT * FROM inserted_product`;
+      const queryStatement = getAddProductQuery();
       const queryValues = [sku, name, description, price, stock, imageURL]
       const result = await db.query(queryStatement, queryValues);
   
-      if(!result.rows || result.length === 0) throw new BadRequestError("Something went wrong");
+      if(!result.rows || result.length === 0) {
+        throw new BadRequestError("Something went wrong");
+      }
 
       return result.rows[0];
+
     } catch (err) {
-      if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("This product already exists");
-      if(err instanceof BadRequestError) throw err;
+      if(err.code === '23505' || err instanceof ConflictError) {
+        throw new ConflictError("This product already exists");
+      }
+
+      if(err instanceof BadRequestError) {
+        throw err;
+      }
+
       throw new BadRequestError("Something went wrong");
     }
   }
@@ -128,7 +127,13 @@ class Products {
    */
   static async updateProductStock(id, stock) {
     try {
-      if((!id && id !== 0) || stock === undefined || stock === null) throw new BadRequestError("Invalid id or stock");
+      if ( 
+        (!id && id !== 0) || 
+        stock === undefined || 
+        stock === null
+      ) {
+        throw new BadRequestError("Invalid id or stock");
+      }
 
       const queryStatement = `UPDATE products 
                               SET stock = stock + $1 
@@ -139,8 +144,12 @@ class Products {
       const queryValues = [stock, id];
       const result = await db.query(queryStatement, queryValues);
   
-      if(!result.rows || result.rows.length === 0) throw new BadRequestError("Something went wrong updating stock");
+      if(!result.rows || result.rows.length === 0) {
+        throw new BadRequestError("Something went wrong updating stock");
+      }
+
       return result.rows[0];
+
     } catch (err) {
       if(err.code === '23514') throw new BadRequestError(`Product ${id} is out of stock`);
       if(err instanceof BadRequestError) throw err;
@@ -157,21 +166,15 @@ class Products {
    */
   static async updateProduct(id, productBody) {
     try {  
-      if(!id) throw new BadRequestError("Invalid id");
+      if(!id) {
+        throw new BadRequestError("Invalid id");
+      }
 
-      const productExistQueryStatement = `SELECT
-                                            product_id AS id,
-                                            product_name AS name,
-                                            product_description AS description,
-                                            price,
-                                            image_url,
-                                            created_at AS "createdAt",
-                                            updated_at AS "updatedAt"
-                                          FROM products WHERE product_id = $1`;
-
-      const existingProductQueryResults = await db.query(productExistQueryStatement, [id]);
+      const existingProductQueryResults = await db.query(selectProductById(), [id]);
   
-      if(existingProductQueryResults.rows.length === 0) throw new BadRequestError("No products to update");
+      if(existingProductQueryResults.rows.length === 0) {
+        throw new BadRequestError("No products to update");
+      }
       
       const defaultValues = {
         name: '', 
@@ -181,7 +184,10 @@ class Products {
       };
 
       // Merge defaults with provided values
-      const { name, description, price, imageURL } = { ...defaultValues, ...productBody };
+      const { name, description, price, imageURL } = { 
+        ...defaultValues, 
+        ...productBody 
+      };
           
       // if values are empty or zero, do nothing
       if (
@@ -203,23 +209,6 @@ class Products {
         image_url: currentImageURL,
       } = existingProduct;
       
-      const queryStatement = `UPDATE products 
-                              SET
-                                product_name =        COALESCE( NULLIF($1, ''), $5 ),
-                                product_description = COALESCE( NULLIF($2, ''), $6 ),
-                                price =               COALESCE( NULLIF($3, 0.00), $7 ),
-                                image_url =           COALESCE( NULLIF($4, ''), $8 ),
-                                updated_at = NOW()
-                              WHERE product_id = $9
-                              RETURNING 
-                                product_id AS id,
-                                sku, 
-                                product_name AS "productName",
-                                product_description AS "productDescription",
-                                price,
-                                image_url AS "imageURL",
-                                created_at AS "createdAt",
-                                updated_at AS "updatedAt"`;
       const queryValues = [
         name,
         description,
@@ -232,11 +221,14 @@ class Products {
         id,
       ];
 
-      const result = await db.query(queryStatement, queryValues);
+      const result = await db.query(updateProduct(), queryValues);
   
-      if (!result.rows || result.rows.length === 0) throw new BadRequestError("Something went wrong");
+      if (!result.rows || result.rows.length === 0) {
+        throw new BadRequestError("Something went wrong");
+      }
       
       return result.rows[0];
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
@@ -378,5 +370,6 @@ class Products {
     }
   }
 }
+
 
 module.exports = Products;
