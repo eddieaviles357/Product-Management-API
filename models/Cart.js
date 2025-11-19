@@ -3,6 +3,16 @@
 const db = require("../db");
 const {BadRequestError} = require("../AppError");
 const getUserId = require("../helpers/getUserId");
+const {
+  getPrice,
+  getCartItems,
+  clearCart,
+  getCartItem,
+  getExistingCartItem,
+  insertCartItem,
+  updateCartItem,
+  deleteCartItem
+} = require("../helpers/sql/cartQueries");
 // const Product = require("./Products");
 
 class Cart {
@@ -14,10 +24,16 @@ class Cart {
   static async _getPrice(productId) {
     try {
       // get product price
-      if(productId === null) throw new BadRequestError(`Invalid productId provided`); // ensure productId is valid
-      const result = await db.query(`SELECT price FROM products WHERE product_id = $1`, [productId]);
-      return (result.rows.length === 0) ? null : Number(result.rows[0].price);
+      if(productId === null) {
+        throw new BadRequestError(`Invalid productId provided`); // ensure productId is valid
+      }
+
+      const result = await db.query(getPrice(), [productId]);
+      if (result.rows.length === 0) return null;
+      
       // price from db is returned as a string we have to cast to Int
+      return Number(result.rows[0].price);
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
@@ -34,22 +50,18 @@ class Cart {
      or [] 
     */
     try {
-      if(!username) throw new BadRequestError(`Invalid username provided`);
+      if(!username) {
+        throw new BadRequestError(`Invalid username provided`);
+      }
+
       const userId = await getUserId(username);
+
       if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
-      const queryStatement = `SELECT 
-                                id, 
-                                user_id AS "userId", 
-                                product_id AS "productId", 
-                                quantity,
-                                price,
-                                added_at AS "addedAt", 
-                                updated_at AS "updatedAt"
-                              FROM cart
-                              WHERE user_id = $1`;
-      const cartResult = await db.query(queryStatement, [userId]);
-      return (cartResult.rows.length === 0) ? [] : cartResult.rows;
+      const result = await db.query(getCartItems(), [userId]);
+
+      return result.rows.length ? result.rows : [];
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
@@ -63,13 +75,20 @@ class Cart {
    */
   static async clear (username) {
     try {
-      if(!username) throw new BadRequestError(`Invalid username provided`);
-      const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      if(!username) {
+        throw new BadRequestError(`Invalid username provided`);
+      }
 
-      const removedResult = await db.query(`DELETE FROM cart WHERE user_id = $1 RETURNING *`, [userId]);
+      const userId = await getUserId(username);
+
+      if(userId === 0 || !userId) {
+        throw new BadRequestError("User does not exist");
+      }
+
+      const removedResult = await db.query(clearCart(), [userId]);
       
       return (removedResult.rows.length > 0) ? true : false; 
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
@@ -85,29 +104,33 @@ class Cart {
    */
   static async addToCart(username, productId, quantity = 1) {
     try {
-      // const productStock = await Product.updateProductStock(productId, -quantity); // update the product stock {id, stock}
-      // if(Object.keys(productStock).length === 0) throw new BadRequestError(`Product ${productId} is out of stock`);
-      // if(productStock.stock < 0) throw new BadRequestError(`Product ${productId} is out of stock`);
-      if(!username) throw new BadRequestError(`Invalid username provided`);
-      let price;
+      if(!username) {
+        throw new BadRequestError(`Invalid username provided`);
+      }
+
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      
+      if(userId === 0 || !userId) {
+        throw new BadRequestError("User does not exist");
+      }
 
-      price = await Cart._getPrice(productId);
+      const price = await Cart._getPrice(productId);
 
-      if(!price) throw new BadRequestError(`Product ${productId} does not exist`); // ensure the product exists in db
-      price *= quantity; // multiply the price by the quantity to get the total price for the cart item
+      if (!price) {
+        throw new BadRequestError(`Product ${productId} does not exist`); // ensure the product exists in db
+      }
 
-      const cartItemResult = await db.query(`SELECT user_id AS "userId", product_id AS "productId", quantity, price FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
+      const totalPrice = price * quantity; // multiply the price by the quantity to get the total price for the cart item
+
+      // If item already exists, return it
+      const cartItemResult = await db.query(getExistingCartItem(), [userId, productId]);
       if(cartItemResult.rows.length > 0) return cartItemResult.rows[0];
 
-      // add product to cart using user id, product id, and price
-      const queryStatement = `INSERT INTO cart(user_id, product_id, quantity, price) 
-                              VALUES($1, $2, $3, $4) 
-                              RETURNING user_id AS "userId", product_id AS "productId", quantity, price`;
-      const values = [userId, productId, quantity, price];
-      const cartResult = await db.query(queryStatement, values);
+      // insert new item
+      const cartResult = await db.query(insertCartItem(), [userId, productId, quantity, price]);
+
       return cartResult.rows[0];
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
@@ -124,37 +147,44 @@ class Cart {
    */
   static async updateCartItemQty(username, productId, quantity = 0) {
     try {
-      if(!username) throw new BadRequestError(`Invalid username provided`);
-      let price;
-      let qty;
+      if(!username) {
+        throw new BadRequestError(`Invalid username provided`);
+      }
+
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
-      price = await Cart._getPrice(productId);
-      if(!price) throw new BadRequestError(`Product ${productId} does not exist`); // ensure the product exists in db
+      if(userId === 0 || !userId) {
+        throw new BadRequestError("User does not exist");
+      }
 
-      // get cart item details, if no data exist throw error
-      const itemResult = await db.query(`SELECT quantity FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
-      if(itemResult.rows.length === 0) throw new BadRequestError(`Nothing to update`);
+      const price = await Cart._getPrice(productId);
 
-      // Object that contains { quantity, price}
-      const { quantity: currentQty } = itemResult.rows[0];
-      price = price * ( currentQty + quantity );
-      qty = currentQty + quantity;
+      if (!price) {
+        throw new BadRequestError(`Product ${productId} does not exist`); // ensure the product exists in db
+      }
       
-      if(qty <= 0) await db.query(`DELETE FROM cart WHERE user_id = $1 AND product_id = $2`, [userId, productId]);
+      // get cart item details, if no data exist throw error
+      const existing = await db.query(getCartItem(), [userId, productId]);
 
-      // update
-      const queryStatement = `UPDATE cart SET
-                              quantity = $3,
-                              price = $4
-                              WHERE user_id = $1 AND product_id = $2
-                              RETURNING user_id AS "userId", product_id AS "productId", quantity, price`;
-                              
-      const values = [userId, productId, qty, price];
-      const updatedResult = await db.query(queryStatement, values);
+      if (existing.rows.length === 0) {
+        throw new BadRequestError(`Nothing to update`);
+      }
 
-      return updatedResult.rows[0] || {}; // return empty object if nothing was updated
+      const currentQty = existing.rows[0].quantity;
+      const newQty = currentQty + quantity;
+
+      if (newQty <= 0) {
+        // delete the cart item if quantity is less than or equal to zero
+        await db.query(deleteCartItem(), [userId, productId]);
+        return {};
+      }
+
+      const newPrice = price * newQty;
+
+      const update = await db.query(updateCartItem(), [userId, productId, newQty, newPrice]);
+
+      return update.rows[0] || {}; // return empty object if nothing was updated
+      
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
@@ -169,15 +199,21 @@ class Cart {
    */
   static async removeCartItem (username, productId) {
     try {
-      if(!username) throw new BadRequestError(`Invalid username provided`);
+      if(!username) {
+        throw new BadRequestError(`Invalid username provided`);
+      }
+
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
-      const queryStatement = `DELETE FROM cart WHERE user_id = $1 AND product_id = $2 RETURNING product_id AS "productId"`;
-      const values = [userId, productId];
-      const deleteResult = await db.query(queryStatement, values);
+      if(userId === 0 || !userId) {
+        throw new BadRequestError("User does not exist");
+      }
 
-      return (deleteResult.rows.length === 0) ? 'Nothing to delete' : deleteResult.rows[0].productId;
+      const result = await db.query(deleteCartItem(), [userId, productId]);
+
+      if (result.rows.length === 0) return 'Nothing to delete';
+      
+      return result.rows[0].productId;
 
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
