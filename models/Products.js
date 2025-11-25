@@ -7,7 +7,7 @@ const {
   getAddProductQuery,
   selectProductById,
   updateProduct
- } = require("../helpers/queries");
+ } = require("../helpers/sql/productQueries");
 
 // addProduct
 // removeProduct
@@ -244,11 +244,16 @@ class Products {
    */
   static async addCategoryToProduct(productId, categoryId) {
     try {
-      if(!productId || !categoryId) throw new BadRequestError("Invalid id");
+      if(!productId || !categoryId) {
+        throw new BadRequestError("Invalid id");
+      }
 
       // confirm product exists in db
       const product = await this.findProductById(productId);
-      if(!product || Object.keys(product).length === 0) throw new BadRequestError(`product with id ${productId} does not exist`);
+
+      if(!product || Object.keys(product).length === 0) {
+        throw new BadRequestError(`product with id ${productId} does not exist`);
+      }
   
       // does product contain default category "none" if so remove from db
       if(product.categories.includes('none')) {
@@ -268,9 +273,12 @@ class Products {
 
       const result = await db.query(queryStatement, [productId, categoryId]);
       
-      if (!result.rows || result.rows.length === 0) throw new BadRequestError("Unable to add category to product");
+      if (!result.rows || result.rows.length === 0) {
+        throw new BadRequestError("Unable to add category to product");
+      }
 
       return  result.rows[0];
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
