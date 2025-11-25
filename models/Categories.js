@@ -6,6 +6,24 @@ const { BadRequestError, ConflictError, NotFoundError } = require("../AppError")
 
 class Categories {
 
+    /** 
+    * VALIDATION HELPERS 
+    */
+  static #validateId(id, field = "id") {
+    if (!/^\d+$/.test(id)) {
+      throw new BadRequestError(`${field} must be a valid number`);
+    }
+  }
+
+  static #validateCategoryString(str, field = "category") {
+    if (typeof str !== "string" || /^\d+$/.test(str)) {
+      throw new BadRequestError(`${field} must be a string`);
+    }
+    if (str.length === 0) throw new BadRequestError(`${field} cannot be empty`);
+    if (str.length > 20) throw new BadRequestError(`${field} must be less than 20 characters`);
+    return removeNonAlphabeticChars(str);
+  }
+
   /**
   * Retrieves all categories from the database.
   * @param {number} id - The id to limit the categories
