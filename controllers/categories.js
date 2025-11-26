@@ -105,18 +105,25 @@ exports.getCategoryProducts = async (req, res, next) => {
   }
 }
 // @desc      Get all products in a category using multiple category ids
-// @route     GET /api/v1/categories/products/filter
+// @route     GET /api/v1/categories/products/filter?ids=1,2,3
 // @access    Public
 exports.getMultipleCategoryProducts = async (req, res, next) => {
   try {
-    if(Object.keys(req.query).length === 0) {
-      throw new BadRequestError("at least one category id is required");
+    if (!req.query.ids) {
+      throw new BadRequestError("Query parameter 'ids' is required");
     }
-    // extract all category ids from query params
-    // e.g. /api/v1/categories/products/filter?cat1=1&cat2=2&cat3=3
-    const categoryIds = Object.values(req.query);
-    // convert all category ids to numbers
-    const idArray = categoryIds.map(id => +id);
+
+    // Split “1,2,3” → ["1","2","3"]
+    const rawIds = req.query.ids.split(",");
+
+    // Convert to integers
+    const idArray = rawIds.map(id => {
+      const parsed = Number(id);
+      if (!Number.isInteger(parsed) || parsed <= 0) {
+        throw new BadRequestError("Each category ID must be a positive integer");
+      }
+      return parsed;
+    });
     const categoryProducts = await Categories.getMultipleCategoryProducts(idArray);
     
     return res.status(200).json({
