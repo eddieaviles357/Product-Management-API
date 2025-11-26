@@ -33,14 +33,21 @@ class Categories {
   */
   static async getAllCategories(id = 100000000) {
     try {
-      if(id === null || id === undefined || id < 0) throw new BadRequestError("id must be a number greater than 0");
-      const queryStatement = `SELECT id, category 
-                            FROM categories 
-                            WHERE id < $1
-                            ORDER BY id DESC
-                            LIMIT 20`;
-      const result = await db.query(queryStatement, [id]);
-      return (result.rows.length === 0) ? [] : result.rows;
+      if (id === null || id < 0) {
+        throw new BadRequestError("id must be a number greater than 0");
+      }
+      
+      const result = await db.query(
+        `SELECT id, category 
+        FROM categories 
+        WHERE id < $1
+        ORDER BY id DESC
+        LIMIT 20`, 
+        [id]
+      );
+
+      return result.rows;
+      
     } catch (err) {
       throw new BadRequestError('Something went wrong');
     }
@@ -56,17 +63,20 @@ class Categories {
   */
   static async searchCategory(searchTerm) {
     try {
-      const isNumber = /^\d+$/.test(searchTerm);
-      if(isNumber || typeof searchTerm !== 'string') throw new BadRequestError("search term must be a string");
-      if(searchTerm.length === 0) throw new BadRequestError('Please check inputs');
-      if(searchTerm.length > 20) throw new BadRequestError('Search term must be less than 20 characters');
+      const term = this.#validateCategoryString(searchTerm, "searchTerm");
 
-      const term = removeNonAlphabeticChars(searchTerm);
-      const queryStatement = `SELECT id, category FROM categories WHERE category ILIKE $1`;
-      const result = await db.query(queryStatement, [`%${term}%`]);
-      return (result.rows.length === 0) ? [] : result.rows;
+      const result = await db.query(
+        `SELECT id, category 
+        FROM categories 
+        WHERE category 
+        ILIKE $1`, 
+        [`%${term}%`]
+      );
+
+      return result.rows;
+      
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
+      if (err instanceof BadRequestError) throw err;
       throw new BadRequestError();
     }
   }
@@ -81,24 +91,22 @@ class Categories {
   */
   static async addCategory(newCategory) {
     try {
-      const isNumber = /^\d+$/.test(newCategory);
-      if(isNumber || typeof newCategory !== 'string') throw new BadRequestError("search term must be a string");
-      if(newCategory.length === 0) throw new BadRequestError('Please check inputs');
-      if(newCategory.length > 20) throw new BadRequestError('Category must be less than 20 characters');
-      if(!newCategory && newCategory.length === 0) throw new BadRequestError('Please check inputs');
+      newCategory = this.#validateCategoryString(newCategory);
+  
+      const result = await db.query(
+        `INSERT INTO categories (category)
+        VALUES ( LOWER($1) )
+        RETURNING id, category`, 
+        [newCategory]
+      );
+  
+      if (result.rows.length === 0) throw new BadRequestError("Something went wrong");
 
-      newCategory = removeNonAlphabeticChars(newCategory);
-  
-      const queryStatement = `INSERT INTO categories (category)
-                              VALUES ( LOWER($1) )
-                              RETURNING id, category`;
-      const result = await db.query(queryStatement, [newCategory]);
-  
-      if(result.rows.length === 0) throw new BadRequestError("Something went wrong");
       return result.rows[0];
+
     } catch (err) {
-      if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Review for this product already exists");
-      if(err instanceof BadRequestError) throw err;
+      if (err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Review for this product already exists");
+      if (err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
     }
   }
@@ -116,37 +124,44 @@ class Categories {
   */
   static async updateCategory(catId, updatedCategory) {
     try {
-      const isNumber = /^\d+$/.test(updatedCategory);
-      if(isNumber || typeof updatedCategory !== 'string') throw new BadRequestError("search term must be a string");
-      if(updatedCategory.length === 0) throw new BadRequestError('Please check inputs');
-      if(updatedCategory.length > 20) throw new BadRequestError('Category must be less than 20 characters');
+      this.#validateId(catId, "category Id");
+      updatedCategory = this.#validateCategoryString(updatedCategory, "updatedCategory");
 
-      updatedCategory = removeNonAlphabeticChars(updatedCategory);
-  
-      // does category exist in db 🤔
-      const doesCategoryExistStatement = `SELECT id, category
-                                          FROM categories 
-                                          WHERE id = $1`
-      const categoryExistQuery = await db.query(doesCategoryExistStatement, [catId]);
-      // doesn't exist in db lets return error ❌
-      if(categoryExistQuery.rows.length === 0) throw new NotFoundError(`${updatedCategory} does not exist`);
-      
-      if(categoryExistQuery.rows[0].category === 'none') throw new BadRequestError(`Category with id ${catId} cannot be updated`);
-      const { category } = categoryExistQuery.rows[0];
-  
-      if(category === updatedCategory) throw new ConflictError(`${updatedCategory} already exists`);
-      const updateQueryStatement = `UPDATE categories 
-                                    SET category = ( COALESCE(NULLIF(LOWER($1), ''), LOWER($2) ) )
-                                    WHERE id = $3
-                                    RETURNING id, category`;
-      const updateQueryValues = [updatedCategory, category, catId];
-      const result = await db.query(updateQueryStatement, updateQueryValues);
-  
+      const existing = await db.query(
+        `SELECT id, category
+        FROM categories 
+        WHERE id = $1`, 
+        [catId]
+      );
+
+      if (existing.rows.length === 0) {
+        throw new NotFoundError(`${updatedCategory} does not exist`);
+      }
+
+      const { category } = existing.rows[0];
+
+      if (category === "none") {
+        throw new BadRequestError(`Category with id ${catId} cannot be updated`);
+      }
+
+      if (category === updatedCategory) {
+        throw new ConflictError(`${updatedCategory} already exists`);
+      }
+;
+      const result = await db.query(
+        `UPDATE categories 
+        SET category = LOWER($1)
+        WHERE id = $2
+        RETURNING id, category`, 
+        [updatedCategory, catId]
+      );
+
       return result.rows[0];
+      
     } catch (err) {
-      if(err.code === '23505') throw new ConflictError("Category already exists");
-      if(err instanceof NotFoundError) throw err;
-      if(err instanceof BadRequestError) throw err;
+      if (err.code === '23505') throw new ConflictError("Category already exists");
+      if (err instanceof NotFoundError) throw err;
+      if (err instanceof BadRequestError) throw err;
       throw new BadRequestError('Something went wrong');
     }
   }
@@ -162,11 +177,18 @@ class Categories {
   */
   static async getAllCategoryProducts(catId) {
     try {
-      const isNumber = /^\d+$/.test(catId);
-      if(!isNumber) throw new BadRequestError("catId must be a number");
+      this.#validateId(catId, "category Id");
 
-      const categoryExist = await db.query(`SELECT category FROM categories WHERE id = $1`, [catId]);
-      if(categoryExist.rows.length === 0) throw new NotFoundError(`Category with id ${catId} not found`);
+      const exist = await db.query(
+        `SELECT category 
+        FROM categories 
+        WHERE id = $1`, 
+        [catId]
+      );
+
+      if (exist.rows.length === 0) {
+        throw new NotFoundError(`Category with id ${catId} not found`);
+      }
       
       const queryStatement = `WITH all_product_id AS 
                                 ( SELECT p.product_id 
@@ -191,11 +213,13 @@ class Categories {
                               JOIN categories cat ON cat.id = p_c.category_id 
                               WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
                               GROUP BY prod.product_id`;
+
       const result = await db.query(queryStatement, [catId]);
-      return (result.rows.length === 0) ? [] : result.rows;
+
+      return result.rows;
+
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      if(err instanceof NotFoundError) throw err;
+      if (err instanceof BadRequestError || err instanceof NotFoundError ) throw err;
       throw new BadRequestError();
     }
   }
@@ -212,23 +236,38 @@ class Categories {
   */
   static async removeCategory(catId) {
     try {
-      const isNumber = /^\d+$/.test(catId);
-      if(!isNumber) throw new BadRequestError("catId must be a number");
-      const isCategoryNone = `SELECT id, category FROM categories WHERE id = $1`;
-      const categoryQuery = await db.query(isCategoryNone, [catId]);
-      if(categoryQuery.rows.length === 0) throw new NotFoundError(`Category with id ${catId} not found`);
-      if(categoryQuery.rows[0].category === 'none') throw new BadRequestError(`Category with id ${catId} cannot be deleted`);
+      this.#validateId(catId, "category Id");
 
-      const queryStatement = `DELETE FROM categories WHERE id = $1
-                              RETURNING category`;
-      const result = await db.query(queryStatement, [catId]);
+      const check = await db.query(
+        `SELECT id, category 
+        FROM categories 
+        WHERE id = $1`, 
+        [catId]
+      );
+
+      if (check.rows.length === 0) {
+        throw new NotFoundError(`Category with id ${catId} not found`);
+      }
+
+      if (check.rows[0].category === 'none') {
+        throw new BadRequestError(`Category with id ${catId} cannot be deleted`);
+      }
+
+      const result = await db.query(
+        `DELETE 
+        FROM categories 
+        WHERE id = $1
+        RETURNING category`, 
+        [catId]
+      );
       
-      return (result.rows.length === 0) 
-              ? { category: `Category with id ${catId} not found`, success: false } 
-              : { category: result.rows[0], success: true };
+      return {
+        category: result.rows[0] || `Category with id ${catId} not found`,
+        success: !!result.rows.length,
+      };
+      
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      if(err instanceof NotFoundError) throw err;
+      if (err instanceof BadRequestError ||err instanceof NotFoundError) throw err;
       throw new BadRequestError();
     }
   }
@@ -243,11 +282,12 @@ class Categories {
    */
   static async getMultipleCategoryProducts(idArray) {
     try {
-      if(!Array.isArray(idArray) || idArray.length === 0) throw new BadRequestError("idArray must be a non-empty array");
-      for(const id of idArray) {
-        const isNumber = /^\d+$/.test(id);
-        if(!isNumber) throw new BadRequestError("All elements in idArray must be numbers");
+      if (!Array.isArray(idArray) || idArray.length === 0) {
+        throw new BadRequestError("idArray must be a non-empty array");
       }
+
+      idArray.forEach(id => this.#validateId(id, "category Id"));
+      
       const queryStatement = `WITH all_product_id AS (
                                   SELECT p.product_id 
                                   FROM products p 
@@ -271,17 +311,13 @@ class Categories {
                               JOIN categories cat ON cat.id = p_c.category_id 
                               WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
                               GROUP BY prod.product_id;`;
-    /*  SELECT p.product_id 
-        FROM products p 
-        JOIN products_categories pc ON pc.product_id = p.product_id 
-        JOIN categories c ON c.id = pc.category_id 
-        WHERE c.id = ANY($1::int[])  -- Multiple category IDs
-        LIMIT $2 OFFSET $3           -- Pagination */
+
       const result = await db.query(queryStatement, [idArray]);
-      return (result.rows.length === 0) ? [] : result.rows;
+
+      return result.rows;
+
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      if(err instanceof NotFoundError) throw err;
+      if (err instanceof BadRequestError || err instanceof NotFoundError) throw err;
       throw new BadRequestError();
     }
   }
