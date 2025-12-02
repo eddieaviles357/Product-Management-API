@@ -11,7 +11,7 @@ exports.registerUser = async (req, res, next) => {
   try {
     const body = req.body
     const newUser = await Users.register(body);
-    const token = createToken(newUser);
+    const token = await createToken(newUser);
 
     return res.status(201).json({ token });
     } catch(err) {
@@ -26,7 +26,7 @@ exports.authenticateUser = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     const user = await Users.authenticate(username, password);
-    const token = createToken(user);
+    const token = await createToken(user);
     
     return res.json({ token });
   } catch (err) {
