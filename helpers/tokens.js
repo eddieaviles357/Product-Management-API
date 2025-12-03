@@ -21,15 +21,12 @@ const createToken = async (user) => {
   if (isAdmin === undefined) {
     throw new BadRequestError("isAdmin property is required");
   }
-
+  
   const payload = {
     username,
-    isAdmin: Boolean(isAdmin) // ensures strict boolean
+    isAdmin: Boolean(isAdmin), // strict boolean
+    jti: crypto.randomUUID()   // Adds a unique token ID
   };
-
-  // return jwt.sign(payload, SECRET_KEY, {
-  //   expiresIn: "1h" // Clearly states what the token expiration is
-  // });
 
   return new Promise((resolve, reject) => {
     jwt.sign(

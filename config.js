@@ -4,7 +4,7 @@
 
 // require("dotenv").config();
 
-const SECRET_KEY = process.env.SECRET_KEY || "Product_Management_Secret!!";
+const SECRET_KEY = process.env.SECRET_KEY || crypto.randomUUID();
 
 const PORT = +process.env.PORT || 3001;
 
