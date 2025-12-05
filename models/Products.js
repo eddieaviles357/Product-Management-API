@@ -33,32 +33,45 @@ class Products {
       throw new BadRequestError("Something went wrong fetching product count");
     }
   }
-  
+
   /**
-   * Gets all products from the database.
+   * Gets all products from the database with pagination.
    * @param {number} id - the id to use as a cursor
    * @returns {array} - returns an array of products
    * @throws {BadRequestError} - if there is a database error
    */
-  static async getProducts(id = 100000000) {
+  static async getProducts(page = 1, limit = 10) {
     try {
-      if (!id) {
-        throw new BadRequestError("Invalid id");
+      // Validate inputs
+      if (page < 1 || limit < 1) {
+        throw new BadRequestError("Page and limit must be greater than 0");
       }
 
+      const offset = (page - 1) * limit;
+
+      // Fetch products for the current page
       const result = await db.query(
         `SELECT *
         FROM mv_product_list
-        WHERE id < $1`, 
-        [id]
+        ORDER BY id DESC
+        LIMIT $1 OFFSET $2`, 
+        [limit, offset]
       );
 
-      if (result.rows.length === 0) {
-        return [];
-      }
-      
-      return result.rows;
+      // Get total count for pagination metadata
+      const totalCount = await this.getTotalProductCount();
+      const totalPages = Math.ceil(totalCount / limit);
 
+      return {
+        products: result.rows,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          total: totalCount,
+          totalPages: totalPages
+        }
+      };
+      
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
       throw new BadRequestError("Something went wrong");
