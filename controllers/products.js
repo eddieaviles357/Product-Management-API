@@ -8,16 +8,13 @@ const { BadRequestError } = require("../AppError");
 // @access    Private/Admin ?????????
 exports.getProducts = async (req, res, next) => {
   try {
-    let cursor = undefined;
-    // we will use cursor query to retrieve more products from db
-    cursor = req.query.cursor;
-    if(isNaN(cursor) || cursor === undefined || Object.keys(req.query).length === 0) cursor = undefined;
-
-    const productsList = await Products.getProducts(cursor);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const result = await Products.getProducts(page, limit);
 
     return res.status(200).json({
       success: true,
-      products: productsList
+      result
     });
 
   } catch (err) {
