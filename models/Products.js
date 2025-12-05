@@ -19,6 +19,22 @@ const {
 // removeCategoryFromProduct
 class Products {
   /**
+   * Gets the total count of products in the database.
+   * @returns {number} - returns the total number of products
+   * @throws {BadRequestError} - if there is a database error
+   */
+  static async getTotalProductCount() {
+    try {
+      const result = await db.query(
+        `SELECT COUNT(*) as total FROM mv_product_list`
+      );
+      return parseInt(result.rows[0].total, 10);
+    } catch (err) {
+      throw new BadRequestError("Something went wrong fetching product count");
+    }
+  }
+  
+  /**
    * Gets all products from the database.
    * @param {number} id - the id to use as a cursor
    * @returns {array} - returns an array of products
