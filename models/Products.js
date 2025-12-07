@@ -9,47 +9,34 @@ const {
   updateProduct
  } = require("../helpers/sql/productQueries");
 
-// addProduct
-// removeProduct
-// getProducts
-// findProductById
-
-// updateProduct
-// addCategoryToProduct 
-// removeCategoryFromProduct
 class Products {
   /**
    * Gets the total count of products in the database.
    * @returns {number} - returns the total number of products
    * @throws {BadRequestError} - if there is a database error
    */
-  static async getTotalProductCount() {
+  static async #getTotalProductCount() {
     try {
       const result = await db.query(
         `SELECT COUNT(*) as total FROM mv_product_list`
       );
       return parseInt(result.rows[0].total, 10);
     } catch (err) {
-      throw new BadRequestError("Something went wrong fetching product count");
+      throw new BadRequestError("Failed to fetch product count");
     }
   }
 
   /**
    * Gets all products from the database with pagination.
-   * @param {number} id - the id to use as a cursor
-   * @returns {array} - returns an array of products
+   * @param {number} page - the page number
+   * @param {number} limit - items per page
+   * @returns {object} - returns { products: [], pagination: {...} }
    * @throws {BadRequestError} - if there is a database error
    */
   static async getProducts(page = 1, limit = 10) {
     try {
-      // Validate inputs
-      if (page < 1 || limit < 1) {
-        throw new BadRequestError("Page and limit must be greater than 0");
-      }
-
       const offset = (page - 1) * limit;
 
-      // Fetch products for the current page
       const result = await db.query(
         `SELECT *
         FROM mv_product_list
@@ -58,8 +45,7 @@ class Products {
         [limit, offset]
       );
 
-      // Get total count for pagination metadata
-      const totalCount = await this.getTotalProductCount();
+      const totalCount = await this.#getTotalProductCount();
       const totalPages = Math.ceil(totalCount / limit);
 
       return {
@@ -71,23 +57,23 @@ class Products {
           totalPages: totalPages
         }
       };
-      
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError("Failed to retrieve products");
     }
   }
 
   /**
    * Finds a product by id.
    * @param {number} id
-   * @returns {object} - returns the product with id, sku, productName, productDescription, price, imageURL, createdAt, updatedAt
+   * @returns {object} - returns product object or empty object if not found
    * @throws {BadRequestError} - if there is a database error
    */
   static async findProductById(id) {
     try {
-      if (!id) {
-        throw new BadRequestError("Invalid id");
+      if (!id || id <= 0) {
+        throw new BadRequestError("Product id must be a positive number");
       }
 
       const result = await db.query(
@@ -98,52 +84,43 @@ class Products {
         [id]
       );
       
-      if (result.rows.length === 0) {
-        return {};
-      }
-
-      return result.rows[0];
+      return result.rows.length > 0 ? result.rows[0] : {};
 
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError("Failed to retrieve product");
     }
   }
 
   /**
    * Adds a product to the database.
-   * @param {object} productBody
-   * @returns {object} - returns the added product with id, sku, productName, productDescription, price, stock, imageURL, createdAt
+   * @param {object} productBody - { sku, name, description, price, stock, imageURL }
+   * @returns {object} - returns the added product
    * @throws {BadRequestError} - if there is a database error
+   * @throws {ConflictError} - if product sku already exists
    */
   static async addProduct({ sku, name, description, price, stock, imageURL }) {
     try {
-      // sanitize sku
       sku = removeNonAlphaNumericChars(sku);
-      /* 
-        insert to products table, and use the return value id.
-         Use return value id to our products_categories table setting default category to 'none' 
-      */
+      
       const queryStatement = getAddProductQuery();
       const queryValues = [sku, name, description, price, stock, imageURL]
       const result = await db.query(queryStatement, queryValues);
   
-      if(!result.rows || result.length === 0) {
-        throw new BadRequestError("Something went wrong");
+      if(!result.rows || result.rows.length === 0) {
+        throw new BadRequestError("Failed to create product");
       }
 
       return result.rows[0];
 
     } catch (err) {
       if(err.code === '23505' || err instanceof ConflictError) {
-        throw new ConflictError("This product already exists");
+        throw new ConflictError("Product with this SKU already exists");
       }
-
       if(err instanceof BadRequestError) {
         throw err;
       }
-
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError("Failed to create product");
     }
   }
 
@@ -188,21 +165,21 @@ class Products {
 
   /**
    * Updates a product in the database.
-   * @param {number} - Product id
-   * @param {object} productBody Product fields to update (name, description, price, imageURL)
-   * @returns {object} - returns the updated product with id, sku, productName, productDescription, price, stock, imageURL, createdAt
-   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   * @param {number} id - Product id
+   * @param {object} productBody - Product fields to update
+   * @returns {object} - returns the updated product
+   * @throws {BadRequestError} - if the product does not exist or database error
    */
   static async updateProduct(id, productBody) {
     try {  
-      if(!id) {
-        throw new BadRequestError("Invalid id");
+      if(!id || id <= 0) {
+        throw new BadRequestError("Product id must be a positive number");
       }
 
       const existingProductQueryResults = await db.query(selectProductById(), [id]);
   
       if(existingProductQueryResults.rows.length === 0) {
-        throw new BadRequestError("No products to update");
+        throw new BadRequestError(`Product with id ${id} not found`);
       }
       
       const defaultValues = {
@@ -253,14 +230,14 @@ class Products {
       const result = await db.query(updateProduct(), queryValues);
   
       if (!result.rows || result.rows.length === 0) {
-        throw new BadRequestError("Something went wrong");
+        throw new BadRequestError("Failed to update product");
       }
       
       return result.rows[0];
 
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError("Failed to update product");
     }
   }
 
@@ -268,20 +245,20 @@ class Products {
    * Adds a category to a product.
    * @param {number} productId
    * @param {number} categoryId
-   * @returns {object} - returns the added category with productId and categoryId
-   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   * @returns {object} - returns { productId, categoryId }
+   * @throws {BadRequestError} - if product or category does not exist
    */
   static async addCategoryToProduct(productId, categoryId) {
     try {
-      if(!productId || !categoryId) {
-        throw new BadRequestError("Invalid id");
+      if(!productId || !categoryId || productId <= 0 || categoryId <= 0) {
+        throw new BadRequestError("Product id and category id must be positive numbers");
       }
 
       // confirm product exists in db
       const product = await this.findProductById(productId);
 
       if(!product || Object.keys(product).length === 0) {
-        throw new BadRequestError(`product with id ${productId} does not exist`);
+        throw new BadRequestError(`Product with id ${productId} not found`);
       }
   
       // does product contain default category "none" if so remove from db
@@ -303,14 +280,14 @@ class Products {
       const result = await db.query(queryStatement, [productId, categoryId]);
       
       if (!result.rows || result.rows.length === 0) {
-        throw new BadRequestError("Unable to add category to product");
+        throw new BadRequestError("Failed to add category to product");
       }
 
-      return  result.rows[0];
+      return result.rows[0];
 
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError("Failed to add category to product");
     }
   }
 
@@ -318,67 +295,63 @@ class Products {
    * Removes a category from a product.
    * @param {number} productId
    * @param {number} categoryId
-   * @returns {object} - returns the removed category with productId and categoryId
-   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   * @returns {object} - { message, success }
+   * @throws {BadRequestError} - if database error occurs
    */
   static async removeCategoryFromProduct(productId, categoryId) {
-  try {
-    if (!productId || !categoryId) {
-      throw new BadRequestError("Invalid id");
-    }
+    try {
+      if (!productId || !categoryId || productId <= 0 || categoryId <= 0) {
+        throw new BadRequestError("Product id and category id must be positive numbers");
+      }
 
-    // Fetch product
-    const product = await this.findProductById(productId);
-    if (!product || !product.categories) {
-      return { message: "Nothing to remove", success: false };
-    }
+      const product = await this.findProductById(productId);
+      if (!product || !product.categories) {
+        return { message: "Nothing to remove", success: false };
+      }
 
-    const initialCount = product.categories.length;
+      const initialCount = product.categories.length;
 
-    // Delete category relation
-    const deleteResult = await db.query(
-      `DELETE FROM products_categories
-       WHERE product_id = $1 AND category_id = $2
-       RETURNING product_id AS "productId", category_id AS "categoryId"`,
-      [productId, categoryId]
-    );
-
-    const removed = deleteResult.rows.length > 0;
-
-    // If nothing removed, stop early
-    if (!removed) {
-      return { message: "Nothing to remove", success: false };
-    }
-
-    // Determine if we need to insert default category
-    const remainingCount = initialCount - 1;
-
-    if (remainingCount === 0) {
-      await db.query(
-        `INSERT INTO products_categories (product_id, category_id)
-         VALUES ($1, (SELECT id FROM categories WHERE category = 'none'))`,
-        [productId]
+      const deleteResult = await db.query(
+        `DELETE FROM products_categories
+         WHERE product_id = $1 AND category_id = $2
+         RETURNING product_id AS "productId", category_id AS "categoryId"`,
+        [productId, categoryId]
       );
+
+      const removed = deleteResult.rows.length > 0;
+
+      if (!removed) {
+        return { message: "Category not found on product", success: false };
+      }
+
+      const remainingCount = initialCount - 1;
+
+      if (remainingCount === 0) {
+        await db.query(
+          `INSERT INTO products_categories (product_id, category_id)
+           VALUES ($1, (SELECT id FROM categories WHERE category = 'none'))`,
+          [productId]
+        );
+      }
+
+      return { message: "Category removed from product", success: true };
+
+    } catch (err) {
+      if (err instanceof BadRequestError) throw err;
+      throw new BadRequestError("Failed to remove category from product");
     }
-
-    return { message: "Removed category", success: true };
-
-  } catch (err) {
-    if (err instanceof BadRequestError) throw err;
-    throw new BadRequestError("Something went wrong");
   }
-}
 
   /**
    * Removes a product from the database.
    * @param {number} id
-   * @returns {object} - returns the removed product with productName and success status
-   * @throws {BadRequestError} - if the product does not exist or if there is a database error
+   * @returns {object} - { message, success }
+   * @throws {BadRequestError} - if database error occurs
    */
   static async removeProduct(id) {
     try {
-      if (!id) {
-        throw new BadRequestError("Invalid id");
+      if (!id || id <= 0) {
+        throw new BadRequestError("Product id must be a positive number");
       }
 
       // Delete product
@@ -391,22 +364,21 @@ class Products {
 
       if (result.rows.length === 0) {
         return {
-          message: `Product with id ${id} does not exist`,
+          message: `Product with id ${id} not found`,
           success: false
         };
       }
 
       return {
-        message: `Removed product ${result.rows[0].productName}`,
+        message: `Product "${result.rows[0].productName}" removed successfully`,
         success: true
       };
 
     } catch (err) {
       if (err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError("Failed to remove product");
     }
   }
 }
-
 
 module.exports = Products;
