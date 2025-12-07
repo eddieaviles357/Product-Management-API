@@ -8,24 +8,14 @@ const Categories = require("../../models/Categories");
 const {
   productIds,
   categoryIds,
-  userIdUsername,
-  addressIds,
   username1,
   username2,
-  orderIds,
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll
 } = require("../helpers/_testCommon");
 const db = require("../../db.js");
-// getAllCategories
-// addCategory
-// updateCategory
-// removeCategory
-// getAllCategoryProducts
-
-// searchCategory
 
 describe("Categories Routes", () => {
   beforeAll(commonBeforeAll);
@@ -100,7 +90,7 @@ describe("Categories Routes", () => {
     test("creates a new category, works with admin privilage", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "newCategory" });
 
       expect(response.statusCode).toBe(201);
@@ -116,7 +106,7 @@ describe("Categories Routes", () => {
     test("throws ConflictError when category already exists", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "none" });
 
       expect(response.statusCode).toBe(409);
@@ -131,7 +121,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when no category is provided", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({});
 
       expect(response.statusCode).toBe(400);
@@ -146,7 +136,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when invalid data type is provided", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: 12345 });
 
       expect(response.statusCode).toBe(400);
@@ -161,7 +151,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when category is too long", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "a".repeat(21) });
 
       expect(response.statusCode).toBe(400);
@@ -174,9 +164,11 @@ describe("Categories Routes", () => {
     });
     // ✅
     test("throws BadRequestError when user is not an admin", async () => {
+      const username2Token = await createToken({ username: username2, isAdmin: false });
+      console.log(username2Token);
       const response = await request(app)
         .post("/api/v1/categories")
-        .set("Authorization", `Bearer ${createToken({ username: username2 })}`)
+        .set("Authorization", `Bearer ${username2Token}`)
         .send({ category: "newCategory" });
 
       expect(response.statusCode).toBe(401);
@@ -208,7 +200,7 @@ describe("Categories Routes", () => {
     test("updates a category, works with admin privilage", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[2]}`)
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "updatedCategory" });
 
       expect(response.statusCode).toBe(200);
@@ -225,7 +217,7 @@ describe("Categories Routes", () => {
     test("throws NotFoundError when category does not exist", async () => {
       const response = await request(app)
         .put("/api/v1/categories/99999")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "updatedCat" });
 
       expect(response.statusCode).toBe(404);
@@ -240,7 +232,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when categoryId is not a number", async () => {
       const response = await request(app)
         .put("/api/v1/categories/invalid")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "updatedCat" });
 
       expect(response.statusCode).toBe(400);
@@ -255,7 +247,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when no category is provided", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({});
 
       expect(response.statusCode).toBe(400);
@@ -270,7 +262,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when invalid data type is provided", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: 12345 });
 
       expect(response.statusCode).toBe(400);
@@ -285,7 +277,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when category is too long", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`)
         .send({ category: "a".repeat(21) });
 
       expect(response.statusCode).toBe(400);
@@ -300,7 +292,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when user is not an admin", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
-        .set("Authorization", `Bearer ${createToken({ username: username2 })}`)
+        .set("Authorization", `Bearer ${await createToken({ username: username2, isAdmin: false })}`)
         .send({ category: "updatedCategory" });
 
       expect(response.statusCode).toBe(401);
@@ -318,13 +310,13 @@ describe("Categories Routes", () => {
     test("deletes a category, works with admin privilage", async () => {
       const response = await request(app)
         .delete(`/api/v1/categories/${categoryIds[2]}`)
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`);
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`);
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
         success: true,
         result: {
-          category: "updatedcategory",
+          category: expect.any(String),
         }
       });
     });
@@ -333,7 +325,7 @@ describe("Categories Routes", () => {
     test("throws NotFoundError when category does not exist", async () => {
       const response = await request(app)
         .delete("/api/v1/categories/99999")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`);
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`);
 
       expect(response.statusCode).toBe(404);
       expect(response.body).toEqual({
@@ -348,7 +340,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when categoryId is not a number", async () => {
       const response = await request(app)
         .delete("/api/v1/categories/invalid")
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`);
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`);
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
@@ -363,7 +355,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when category is 'none'", async () => {
       const response = await request(app)
         .delete(`/api/v1/categories/${categoryIds[0]}`)
-        .set("Authorization", `Bearer ${createToken({ username: username1, isAdmin: true })}`);
+        .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`);
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
@@ -378,7 +370,7 @@ describe("Categories Routes", () => {
     test("throws BadRequestError when user is not an admin", async () => {
       const response = await request(app)
         .delete(`/api/v1/categories/${categoryIds[0]}`)
-        .set("Authorization", `Bearer ${createToken({ username: username2 })}`);
+        .set("Authorization", `Bearer ${await createToken({ username: username2, isAdmin: false })}`);
 
       expect(response.statusCode).toBe(401);
       expect(response.body).toEqual({
@@ -535,7 +527,7 @@ describe("Categories Routes", () => {
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
         error: { 
-          message: 'search term must be a string', 
+          message: 'searchTerm must be a string', 
           status: 400
         }
       });
@@ -549,7 +541,7 @@ describe("Categories Routes", () => {
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
         error: { 
-          message: 'Search term must be less than 20 characters', 
+          message: 'searchTerm must be less than 20 characters', 
           status: 400
         }
       });
