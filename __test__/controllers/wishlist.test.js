@@ -9,12 +9,7 @@ const { BadRequestError, ConflictError } = require("../../AppError");
 const db = require("../../db.js");
 const {
   productIds,
-  categoryIds,
-  userIdUsername,
-  addressIds,
   username1,
-  username2,
-  orderIds,
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
@@ -38,7 +33,7 @@ describe("Wishlist Model", function () {
 
     test("works", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .get(`/api/v1/wishlist/${username1}`)
@@ -66,7 +61,7 @@ describe("Wishlist Model", function () {
 
     test("unauthorized", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .get(`/api/v1/wishlist/nonexistentuser`)
@@ -85,7 +80,7 @@ describe("Wishlist Model", function () {
     test("no products in wishlist", async function () {
       addTestUser();
       const currentUser = await User.authenticate(testuser, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .get(`/api/v1/wishlist/${testuser}`)
@@ -102,7 +97,7 @@ describe("Wishlist Model", function () {
 
     test("missing username", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .get(`/api/v1/wishlist/`)
@@ -119,7 +114,7 @@ describe("Wishlist Model", function () {
 
     test("invalid username", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .get(`/api/v1/wishlist/invalidusername`)
@@ -139,7 +134,7 @@ describe("Wishlist Model", function () {
     test("works", async function () {
       addTestUser();
       const currentUser = await User.authenticate(testuser, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .post(`/api/v1/wishlist/${testuser}/${productIds[2]}`)
@@ -159,7 +154,7 @@ describe("Wishlist Model", function () {
 
     test("unauthorized", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .post(`/api/v1/wishlist/nonexistentuser/${productIds[2]}`)
@@ -176,7 +171,7 @@ describe("Wishlist Model", function () {
 
     test("invalid username", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .post(`/api/v1/wishlist/invalidusername/${productIds[2]}`)
@@ -193,7 +188,7 @@ describe("Wishlist Model", function () {
 
     test("missing username", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const result = await request(app)
         .post(`/api/v1/wishlist/${productIds[2]}`)
         .set("Authorization", `Bearer ${token}`);
@@ -209,7 +204,7 @@ describe("Wishlist Model", function () {
   );
     test("product already exists in wishlist", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .post(`/api/v1/wishlist/${username1}/${productIds[0]}`)
@@ -228,7 +223,7 @@ describe("Wishlist Model", function () {
   describe("deleteToWishlist", function () {
     test("works", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/${username1}/${productIds[0]}`)
@@ -243,7 +238,7 @@ describe("Wishlist Model", function () {
 
     test("unauthorized", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/nonexistentuser/${productIds[0]}`)
@@ -260,7 +255,7 @@ describe("Wishlist Model", function () {
 
     test("invalid username", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/invalidusername/${productIds[0]}`)
@@ -277,7 +272,7 @@ describe("Wishlist Model", function () {
 
     test("missing username", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/${productIds[0]}`)
@@ -295,7 +290,7 @@ describe("Wishlist Model", function () {
     test("product not found in wishlist", async function () {
       addTestUser();
       const currentUser = await User.authenticate(testuser, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/${testuser}/${productIds[2]}`)
@@ -312,7 +307,7 @@ describe("Wishlist Model", function () {
   describe("clearWishlist", function () {
     test("works", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/${username1}`)
@@ -327,7 +322,7 @@ describe("Wishlist Model", function () {
 
     test("unauthorized", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/nonexistentuser`)
@@ -344,7 +339,7 @@ describe("Wishlist Model", function () {
 
     test("invalid username", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/invalidusername`)
@@ -361,7 +356,7 @@ describe("Wishlist Model", function () {
 
     test("missing username", async function () {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/`)
@@ -379,7 +374,7 @@ describe("Wishlist Model", function () {
     test("nothing to remove", async function () {
       addTestUser();
       const currentUser = await User.authenticate(testuser, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/${testuser}`)
