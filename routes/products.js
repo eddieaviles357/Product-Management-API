@@ -11,18 +11,17 @@ const {
   addCategoryToProduct,
   deleteCategoryFromProduct,
 } = require("../controllers/products");
-// const router = require("express").Router({mergeParams: true});
+
 const router = require("express").Router({mergeParams: true});
 const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth/auth");
-
 const validateSchema = require("../middleware/validation/validateSchema");
 const newProductSchema = require("../schemas/newProductSchema.json");
 const updatedProductSchema = require("../schemas/updateProductSchema.json");
 
 router
-  .route('/', )
+  .route('/')
   .get(getProducts)
-  .post(ensureLoggedIn, ensureAdmin, validateSchema(newProductSchema),addProduct)
+  .post(ensureLoggedIn, ensureAdmin, validateSchema(newProductSchema), addProduct)
 
 router
   .route('/:id')
@@ -33,7 +32,7 @@ router
 router
   .route('/:productId/category/:categoryId')
   .post(ensureLoggedIn, ensureAdmin, addCategoryToProduct)
-  .delete(ensureLoggedIn, ensureAdmin,deleteCategoryFromProduct,)
+  .delete(ensureLoggedIn, ensureAdmin, deleteCategoryFromProduct)
 
 module.exports = router;
 

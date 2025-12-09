@@ -10,7 +10,6 @@ exports.getProducts = async (req, res, next) => {
   try {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
-
     // Validate pagination parameters
     if (page < 1) {
       throw new BadRequestError("Page must be greater than 0");
