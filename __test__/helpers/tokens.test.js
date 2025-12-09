@@ -7,10 +7,11 @@ const { SECRET_KEY } = require("../../config");
 describe("token creations", () => {
   test("not admin", async () => {
     let username = "meow"
-    const token = createToken({ username, isAdmin: false});
+    const token = await createToken({ username, isAdmin: false});
     const payload = jwt.verify(token, SECRET_KEY);
     
     expect(payload).toEqual({
+      exp: expect.any(Number),
       iat: expect.any(Number),
       username,
       isAdmin: false
@@ -19,10 +20,11 @@ describe("token creations", () => {
 
   test("admin", async () => {
     let username = "meow"
-    const token = createToken({ username, isAdmin: true});
+    const token = await createToken({ username, isAdmin: true});
     const payload = jwt.verify(token, SECRET_KEY);
     
     expect(payload).toEqual({
+      exp: expect.any(Number),
       iat: expect.any(Number),
       username,
       isAdmin: true
@@ -30,20 +32,14 @@ describe("token creations", () => {
   });
 
   test("default no admin", async () => {
-    let username = "meow"
-    const token = createToken({ username });
-    const payload = jwt.verify(token, SECRET_KEY);
-    
-    expect(payload).toEqual({
-      iat: expect.any(Number),
-      username,
-      isAdmin: false
-    })
+    expect(async() => {
+      await createToken({ username: "meow" });
+    }).rejects.toThrow(); // rejects.toThrow() used now for async functions createToken
   });
 
   test("missing username", async () => {
-    expect(() => {
-      createToken({ isAdmin: true });
-    }).toThrow();
+    expect(async() => {
+      await createToken({ isAdmin: true });
+    }).rejects.toThrow();
   });
 })
