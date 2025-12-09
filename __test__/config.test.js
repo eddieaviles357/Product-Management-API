@@ -2,8 +2,8 @@
 
 // test('test', () => expect(true).toBe(true) )
 
-describe("config can come from env", function () {
-  test("works", function() {
+describe("config can come from env", () => {
+  test("works", () => {
     process.env.SECRET_KEY = "test-secret";
     process.env.PORT = 5000;
     process.env.DATABASE_URL = "test-database";
@@ -25,5 +25,4 @@ describe("config can come from env", function () {
 
     expect(config.getDatabaseUri()).toEqual("product_management_test");
   });
-
-})
+});

@@ -8,10 +8,7 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  productIds,
-  categoryIds,
-  userIdUsername,
-  addressIds
+  userIdUsername
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -25,7 +22,7 @@ describe("helper get user id from db", () => {
     const userId = await getUserId(username);
     expect(id).toEqual(userId);
     expect(Number.isInteger(userId)).toBe(true);
-  })
+  });
 
   test("no user exist should equal 0", async () => {
     const userId = await getUserId('fail');
@@ -35,7 +32,7 @@ describe("helper get user id from db", () => {
   
   test("should throw BadRequestError for invalid input", async () => {
     jest.spyOn(db, "query").mockImplementationOnce(() => {
-      throw new Error("Database error"); // Simulate a database error
+      throw new Error("Database error");
     });
 
     try {
@@ -52,4 +49,3 @@ describe("helper get user id from db", () => {
     expect(userId).toEqual(0);
   });
 });
-// test("test", () => expect(true).toBe(true) )

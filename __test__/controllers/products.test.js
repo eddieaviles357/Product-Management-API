@@ -95,7 +95,6 @@ describe("Products Controller", () => {
         .send(newProduct)
         .set("Authorization", `Bearer ${token}`);
 
-      console.log(response.body);
       expect(response.statusCode).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.product).toBeDefined();

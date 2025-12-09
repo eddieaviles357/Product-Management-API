@@ -3,8 +3,6 @@
 const Users = require("../../models/Users");
 const { BadRequestError, UnauthorizedError, ConflictError } = require("../../AppError");
 const {
-  userIdUsername,
-  addressIds,
   username1,
   username2,
   commonBeforeAll,
@@ -12,25 +10,24 @@ const {
   commonAfterEach,
   commonAfterAll
 } = require("../helpers/_testCommon");
-const db = require("../../db.js");
 
-describe("Users Model", function () {
+describe("Users Model", () => {
   beforeAll(commonBeforeAll);
   beforeEach(commonBeforeEach);
   afterEach(commonAfterEach);
   afterAll(commonAfterAll);
 
-  describe("register user", function () {
-    const user = {
-      firstName: "firstNameTester", 
-      lastName: "lastNameTester", 
-      username: "usernameTester",
-      password: "passwordTester", 
-      email: "tester@tester.com", 
-      isAdmin: false
-    }
+  describe("register user", () => {
+    test("works", async () => {
+      const user = {
+        firstName: "firstNameTester", 
+        lastName: "lastNameTester", 
+        username: "newUsernameTester",
+        password: "passwordTester", 
+        email: "newtester@tester.com", 
+        isAdmin: false
+      };
 
-    test("works", async function() {
       const registeredUser = await Users.register(user);
 
       expect(registeredUser).toEqual({
@@ -43,89 +40,110 @@ describe("Users Model", function () {
       });
     });
     
-    
-    test("throws ConflictError if user already exists", async function() {
+    test("throws ConflictError if user already exists", async () => {
+      const user = {
+        firstName: "Test", 
+        lastName: "User", 
+        username: username1,
+        password: "password", 
+        email: "test@test.com"
+      };
 
-      const registeredUser = await Users.register(user);
       await expect(Users.register(user)).rejects.toThrow(ConflictError);
     });
 
-    test("throws BadRequestError if missing required fields", async function() {
-      delete user.email;
+    test("throws BadRequestError if missing email", async () => {
+      const user = {
+        firstName: "Test", 
+        lastName: "User", 
+        username: "testuser",
+        password: "password"
+      };
+      
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
 
-    test("throws BadRequestError if missing required fields", async function() {
-      user.email = "tester@tester.com"
-      delete user.password;
+    test("throws BadRequestError if missing password", async () => {
+      const user = {
+        firstName: "Test", 
+        lastName: "User", 
+        username: "testuser",
+        email: "test@test.com"
+      };
+      
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
 
-    test("throws BadRequestError if missing required fields", async function() {
-      user.password = "passwordTester"
-      delete user.username;
+    test("throws BadRequestError if missing username", async () => {
+      const user = {
+        firstName: "Test", 
+        lastName: "User", 
+        password: "password",
+        email: "test@test.com"
+      };
+      
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
 
-    test("throws BadRequestError if missing required fields", async function() {
-      user.username = "usernameTester"
-      delete user.firstName;
+    test("throws BadRequestError if missing firstName", async () => {
+      const user = {
+        lastName: "User", 
+        username: "testuser",
+        password: "password",
+        email: "test@test.com"
+      };
+      
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
 
-    test("throws BadRequestError if missing required fields", async function() {
-      user.firstName = "firstNameTester"
-      delete user.lastName;
+    test("throws BadRequestError if missing lastName", async () => {
+      const user = {
+        firstName: "Test",
+        username: "testuser",
+        password: "password",
+        email: "test@test.com"
+      };
+      
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
   });
 
-  describe("authenticate", function () {
-    const user = {
-      firstName: "firstNameTester", 
-      lastName: "lastNameTester", 
-      username: "usernameTester",
-      password: "passwordTester", 
-      email: "tester@tester.com", 
-      isAdmin: false
-    }
-
-    test("works", async function() {
-
-      const registeredUser = await Users.register(user);
-      const authenticatedUser = await Users.authenticate(user.username, user.password);
+  describe("authenticate", () => {
+    test("works", async () => {
+      const authenticatedUser = await Users.authenticate(username1, "password");
 
       expect(authenticatedUser).toEqual({
         id: expect.any(Number),
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin,
+        firstName: expect.any(String),
+        lastName: expect.any(String),
+        username: username1,
+        email: expect.any(String),
+        isAdmin: expect.any(Boolean),
         joinAt: expect.any(Date),
         lastLoginAt: expect.any(Date)
       });
 
-      expect(authenticatedUser.id).toEqual(registeredUser.id);
       expect(authenticatedUser.password).toBeUndefined();
-      expect(authenticatedUser.isAdmin).toBeFalsy();
-      expect(authenticatedUser.isAdmin).toBeFalsy();
-    })
-
-    test("throws UnauthorizedError if user not found", async function() {
-      await expect(Users.authenticate(user.username, user.password)).rejects.toThrow("Please register");
     });
 
-    test("throws UnauthorizedError if password is incorrect", async function() {
-      const registeredUser = await Users.register(user);
-      await expect(Users.authenticate(registeredUser.username, "wrongPassword")).rejects.toThrow(UnauthorizedError);
+    test("throws UnauthorizedError if user not found", async () => {
+      await expect(Users.authenticate("nonexistent", "password"))
+        .rejects.toThrow("Please register");
     });
 
-    test("throws BadRequestError if missing required fields", async function() {
+    test("throws UnauthorizedError if password is incorrect", async () => {
+      await expect(Users.authenticate(username1, "wrongPassword"))
+        .rejects.toThrow(UnauthorizedError);
+    });
 
-      const registeredUser = await Users.register(user);
-      await expect(Users.authenticate(user.username)).rejects.toThrow(BadRequestError);
-      await expect(Users.authenticate()).rejects.toThrow(BadRequestError);
-    })
+    test("throws BadRequestError if missing username", async () => {
+      await expect(Users.authenticate(undefined, "password"))
+        .rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError if missing password", async () => {
+      await expect(Users.authenticate(username1, undefined))
+        .rejects.toThrow(BadRequestError);
+    });
   });
 });

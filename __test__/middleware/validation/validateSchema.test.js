@@ -56,7 +56,7 @@ describe("validateSchema Middleware", () => {
   }); 
 
   test("should privide detail error for exceeding username length max 20 characters", () => {
-    req.body = { username: "morethan20+morethan20", password: "Test@1234" };
+    req.body = { username: "morethan20+morethan20morethan20", password: "Test@1234" };
 // 20 password 60
     validateSchema(userAuthSchema)(req, res, next);
 

@@ -39,7 +39,7 @@ describe("Cart Routes", () => {
     // ✅
     test("works for logged in user", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .post(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
@@ -61,7 +61,7 @@ describe("Cart Routes", () => {
     // ✅
     test("works for logged in user with no quantity", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .post(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
@@ -81,7 +81,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws errro if no product id is given", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .post(`/api/v1/cart/${currentUser.username}/`)
         .set("authorization", `Bearer ${token}`)
@@ -98,7 +98,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if no username is given", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .post(`/api/v1/cart//${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
@@ -129,7 +129,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if user does not exist", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .post(`/api/v1/cart/${'doesnexist'}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
@@ -146,7 +146,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if product does not exist", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const fakeProduct = 99999
       const response = await request(app)
         .post(`/api/v1/cart/${currentUser.username}/${99999}`)
@@ -166,7 +166,7 @@ describe("Cart Routes", () => {
     // ✅
     test("works for logged in user", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .put(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
@@ -188,7 +188,7 @@ describe("Cart Routes", () => {
     // ✅
     test("works for logged in user with no quantity", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .put(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
@@ -208,7 +208,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if no product id is given", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .put(`/api/v1/cart/${currentUser.username}/`)
         .set("authorization", `Bearer ${token}`)
@@ -225,7 +225,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if no username is given", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .put(`/api/v1/cart//${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
@@ -256,7 +256,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if user does not exist", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .put(`/api/v1/cart/${'doesnexist'}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
@@ -273,7 +273,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if product does not exist", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const fakeProduct = 99999
       const response = await request(app)
         .put(`/api/v1/cart/${currentUser.username}/${99999}`)
@@ -291,7 +291,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if nothing to update", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .put(`/api/v1/cart/${currentUser.username}/${productIds[1]}`)
         .set("authorization", `Bearer ${token}`)
@@ -312,7 +312,7 @@ describe("Cart Routes", () => {
     // ✅
     test("works for logged in user", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .delete(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`);
@@ -326,7 +326,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if no username is given", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .delete(`/api/v1/cart//${productIds[0]}`)
         .set("authorization", `Bearer ${token}`);
@@ -357,7 +357,7 @@ describe("Cart Routes", () => {
     // ✅
     test("works for logged in user", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .get(`/api/v1/cart/${currentUser.username}`)
         .set("authorization", `Bearer ${token}`);
@@ -371,7 +371,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if no username is given", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .get(`/api/v1/cart//`)
         .set("authorization", `Bearer ${token}`);
@@ -400,7 +400,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if user does not exist", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .get(`/api/v1/cart/${'doesnexist'}`)
         .set("authorization", `Bearer ${token}`);
@@ -418,7 +418,7 @@ describe("Cart Routes", () => {
     // ✅
     test("works for logged in user", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const addProductToCartResponse = await request(app)
         .post(`/api/v1/cart/${currentUser.username}/${productIds[1]}`)
         .set("authorization", `Bearer ${token}`)
@@ -439,7 +439,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if no username is given", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .delete(`/api/v1/cart//`)
         .set("authorization", `Bearer ${token}`);
@@ -468,7 +468,7 @@ describe("Cart Routes", () => {
     // ✅
     test("throws error if user does not exist", async () => {
       const currentUser = await User.authenticate(username1, "password");
-      const token = createToken(currentUser);
+      const token = await createToken(currentUser);
       const response = await request(app)
         .delete(`/api/v1/cart/${'doesnexist'}`)
         .set("authorization", `Bearer ${token}`);

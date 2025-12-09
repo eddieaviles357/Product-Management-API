@@ -83,7 +83,7 @@ describe("ensureUser", () => {
       expect(err instanceof UnauthorizedError).toBeTruthy();
     }
     ensureUser(req, res, next);
-  })
+  });
 })
 
 describe("ensureLoggedIn", () => {

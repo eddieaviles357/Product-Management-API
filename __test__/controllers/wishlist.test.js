@@ -2,10 +2,10 @@
 
 const request = require("supertest");
 const app = require("../../app");
-const Wishlist = require("../../models/Wishlist");
+// const Wishlist = require("../../models/Wishlist");
 const User = require("../../models/Users");
 const createToken = require("../../helpers/tokens");
-const { BadRequestError, ConflictError } = require("../../AppError");
+// const { BadRequestError, ConflictError } = require("../../AppError");
 const db = require("../../db.js");
 const {
   productIds,

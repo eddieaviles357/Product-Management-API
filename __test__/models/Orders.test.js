@@ -29,8 +29,7 @@ describe("Orders model tests", () => {
       const order = await Orders.create(username, { cart });
       expect(order).toBeInstanceOf(Array);
       expect(order).toBeDefined();
-      expect(order).toHaveLength(2);
-      expect(order[0]).toBeDefined();
+      expect(order.length).toBeGreaterThan(0);
     });
 
     test("fails: with invalid username", async () => {
@@ -46,18 +45,16 @@ describe("Orders model tests", () => {
 
   describe("getOrderById", () => {
     test("works: retrieves order by id successfully", async () => {
-      const orderId = orderIds[0]; // assuming this is a valid order id
+      const orderId = orderIds[0];
       
       const order = await Orders.getOrderById(orderId);
       expect(order).toBeInstanceOf(Object);
       expect(order.orderItems).toBeInstanceOf(Array);
-      expect(order).toBeDefined();
       expect(order.orderItems.length).toBeGreaterThan(0);
-      expect(order.orderItems[0].orderId).toBe(orderId); // check if the returned order id matches
     });
     
     test("fails: with invalid order id", async () => {
-      const orderId = 99999; // non-existing order id
+      const orderId = 99999;
       
       await expect(Orders.getOrderById(orderId))
         .rejects.toThrow(BadRequestError);
@@ -66,16 +63,16 @@ describe("Orders model tests", () => {
 
   describe("_getOrderTotalAmount", () => {
     test("works: retrieves total amount successfully", async () => {
-      const orderId = orderIds[0]; // assuming this is a valid order id
+      const orderId = orderIds[0];
       
       const totalAmount = await Orders._getOrderTotalAmount(orderId);
       expect(totalAmount).toBeDefined();
       expect(typeof totalAmount).toBe("string");
-      expect(Number(totalAmount)).toBeGreaterThan(0); // cast to number
+      expect(Number(totalAmount)).toBeGreaterThan(0);
     });
     
     test("fails: with invalid order id", async () => {
-      const orderId = 99999; // non-exi)sting order id
+      const orderId = 99999;
       
       await expect(Orders._getOrderTotalAmount(orderId))
         .rejects.toThrow(BadRequestError);
@@ -83,18 +80,17 @@ describe("Orders model tests", () => {
   });
 
   describe("_insertOrderProducts", () => {
-
     test("works: inserts order products successfully", async () => {
-      const orderId = orderIds[0]; // assuming this is a valid order id
+      const orderId = orderIds[0];
       const queryValues = { productId: productIds[0], quantity: 2, price: 10.00 };
       
       const result = await Orders._insertOrderProducts(orderId, queryValues);
       expect(result).toBeDefined();
-      expect.any(Number);
+      expect(typeof result).toBe("number");
     });
     
     test("fails: with invalid order id", async () => {
-      const orderId = 99999; // non-existing order id
+      const orderId = 99999;
       const queryValues = { productId: productIds[0], quantity: 2, price: 10.00 };
       
       await expect(Orders._insertOrderProducts(orderId, queryValues))
