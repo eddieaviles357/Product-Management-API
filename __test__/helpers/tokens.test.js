@@ -13,6 +13,7 @@ describe("token creations", () => {
     expect(payload).toEqual({
       exp: expect.any(Number),
       iat: expect.any(Number),
+      jti: expect.any(String),
       username,
       isAdmin: false
     })
@@ -26,6 +27,7 @@ describe("token creations", () => {
     expect(payload).toEqual({
       exp: expect.any(Number),
       iat: expect.any(Number),
+      jti: expect.any(String),
       username,
       isAdmin: true
     })
