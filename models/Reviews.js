@@ -5,7 +5,112 @@ const { BadRequestError, ConflictError, NotFoundError } = require("../AppError")
 const getUserId = require("../helpers/getUserId");
 
 class Reviews {
+
+    /**
+   * Get paginated reviews for a single product
+   *
+   * @param {number} prodId
+   * @param {number} page
+   * @param {number} limit
+   * @returns {Object} { reviews, totalReviews, totalPages, currentPage }
+   * @throws {BadRequestError}
+   */
+  static async getReviewsForOneProduct(prodId, page = 1, limit = 10) {
+    try {
+      if (!prodId) throw new BadRequestError("Missing product id");
+
+      // validate product exists
+      const product = await db.query(
+        `SELECT product_id FROM products WHERE product_id = $1`,
+        [prodId]
+      );
+      if (product.rows.length === 0)
+        throw new BadRequestError("Product does not exist");
+
+      // sanitize pagination inputs
+      page = Number(page);
+      limit = Number(limit);
+      if (page < 1) page = 1;
+      if (limit < 1) limit = 10;
+
+      const offset = (page - 1) * limit;
+
+      // 1. Get total count
+      const countResult = await db.query(
+        `SELECT COUNT(*) AS "count"
+        FROM reviews
+        WHERE product_id = $1`,
+        [prodId]
+      );
+      const totalReviews = Number(countResult.rows[0].count);
+      const totalPages = Math.ceil(totalReviews / limit);
+
+      // 2. Get paginated reviews
+      const queryStatement = `
+        SELECT 
+          r.product_id AS "productId",
+          r.user_id AS "userId",
+          u.first_name AS "firstName",
+          r.review,
+          r.rating,
+          r.created_at AS "createdAt",
+          r.updated_at AS "updatedAt"
+        FROM reviews r
+        JOIN products p ON p.product_id = r.product_id
+        JOIN users u ON u.id = r.user_id
+        WHERE p.product_id = $1
+        ORDER BY r.created_at DESC
+        LIMIT $2 OFFSET $3
+      `;
+      const result = await db.query(queryStatement, [prodId, limit, offset]);
+
+      return {
+        reviews: result.rows,
+        totalReviews,
+        totalPages,
+        currentPage: page,
+      };
+    } catch (err) {
+      if (err instanceof BadRequestError) throw err;
+      throw new BadRequestError(err.message);
+    }
+  }
+
+  // GETS REVIEWS FOR A PRODUCT
   /**
+   * @param {number} prodId
+   * @returns {Array} array of review objects
+   * @throws {BadRequestError} if prodId is missing
+   * @throws {BadRequestError} if there is an error in the database query
+   */
+  // static async getReviewsForOneProduct(prodId) { 
+  //   try {
+  //     if(!prodId) throw new BadRequestError("Missing data");
+
+  //     const product = await db.query(`SELECT product_id FROM products WHERE product_id = $1`, [prodId]);
+  //     if(product.rows.length === 0) throw new BadRequestError("Product does not exist");
+
+  //     const queryStatement = `SELECT 
+  //                               r.product_id AS "productId",
+  //                               r.user_id AS "userId",
+  //                               u.first_name AS "firstName",
+  //                               r.review,
+  //                               r.rating,
+  //                               r.created_at AS "createdAt",
+  //                               r.updated_at AS "updatedAt"
+  //                             FROM reviews r
+  //                             JOIN products p ON p.product_id = r.product_id
+  //                             JOIN users u ON u.id = r.user_id
+  //                             WHERE p.product_id = $1`;
+  //     const result = await db.query(queryStatement, [prodId]);
+  //     return (result.rows.length === 0) ? [] : result.rows;
+  //   } catch (err) {
+  //     if(err instanceof BadRequestError) throw err;
+  //     throw new BadRequestError(err.message);
+  //   }
+  // };
+
+    /**
    * @param {number} productId
    * @param {string} username
    * @returns {Object} review object
@@ -38,41 +143,7 @@ class Reviews {
       throw new BadRequestError(err.message);
     }
   };
-
-  // GETS REVIEWS FOR A PRODUCT
-  /**
-   * @param {number} prodId
-   * @returns {Array} array of review objects
-   * @throws {BadRequestError} if prodId is missing
-   * @throws {BadRequestError} if there is an error in the database query
-   */
-  static async getReviewsForOneProduct(prodId) { 
-    try {
-      if(!prodId) throw new BadRequestError("Missing data");
-
-      const product = await db.query(`SELECT product_id FROM products WHERE product_id = $1`, [prodId]);
-      if(product.rows.length === 0) throw new BadRequestError("Product does not exist");
-
-      const queryStatement = `SELECT 
-                                r.product_id AS "productId",
-                                r.user_id AS "userId",
-                                u.first_name AS "firstName",
-                                r.review,
-                                r.rating,
-                                r.created_at AS "createdAt",
-                                r.updated_at AS "updatedAt"
-                              FROM reviews r
-                              JOIN products p ON p.product_id = r.product_id
-                              JOIN users u ON u.id = r.user_id
-                              WHERE p.product_id = $1`;
-      const result = await db.query(queryStatement, [prodId]);
-      return (result.rows.length === 0) ? [] : result.rows;
-    } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError(err.message);
-    }
-  };
-
+  
   /**
    * @param {number} prodId
    * @param {string} username
