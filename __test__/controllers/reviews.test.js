@@ -28,11 +28,24 @@ describe("Reviews Controller", () => {
       const response = await request(app)
         .get(`/api/v1/reviews/product/${productIds[0]}`);
 
+      const body = response.body;
+      const { success, reviews, pagination, averageRating } = body;
       expect(response.statusCode).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.totalReviews).toBeGreaterThan(0);
-      expect(response.body.averageRating).toBeGreaterThan(0);
+      expect(success).toBe(true);
+      expect(pagination.totalReviews).toBeGreaterThan(0);
+      expect(averageRating).toBeGreaterThanOrEqual(1);
+      expect(averageRating).toBeLessThanOrEqual(5);
       expect(response.body.reviews).toBeInstanceOf(Array);
+      expect(reviews[0]).toStrictEqual(expect.objectContaining({
+          productId: expect.any(Number),
+          userId: expect.any(Number),
+          firstName: expect.any(String),
+          review: expect.any(String),
+          rating: expect.any(Number),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String)
+        })
+      );
     });
 
     test("should return 400 if id is not a number", async () => {

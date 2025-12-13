@@ -5,12 +5,9 @@ const Reviews = require("../../models/Reviews");
 const { BadRequestError, ConflictError } = require("../../AppError");
 const {
   productIds,
-  categoryIds,
   userIdUsername,
-  addressIds,
   username1,
   username2,
-  orderIds,
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
@@ -47,7 +44,6 @@ describe("Reviews Model", function () {
 
     test("not found if no review exists", async function () {
       const noReviewResult = await Reviews.getSingleReview(productIds[1], username2);
-
       expect(noReviewResult).toEqual({});
       expect(noReviewResult).toBeInstanceOf(Object);
     });
@@ -61,7 +57,7 @@ describe("Reviews Model", function () {
 
   describe("getReviewsForOneProduct", function () {
     test("works", async function () {
-      const reviews = await Reviews.getReviewsForOneProduct(productIds[0]);
+      const { reviews } = await Reviews.getReviewsForOneProduct(productIds[0]);
       expect(reviews).toBeInstanceOf(Array);
       expect(reviews.length).toEqual(2);
       expect(reviews).toEqual([
@@ -86,10 +82,8 @@ describe("Reviews Model", function () {
       ]);
     });
 
-    test("not found if no reviews exist for product", async function () {
-      const noReviewsResult = await Reviews.getReviewsForOneProduct(productIds[2]);
-      expect(noReviewsResult).toEqual([]);
-      expect(noReviewsResult).toBeInstanceOf(Array);
+    test("throws BadRequestError if no review exist", async function () {
+      await expect(Reviews.getReviewsForOneProduct(100000)).rejects.toThrow(BadRequestError);
     });
     
     test("throws BadRequestError if prodId is missing", async function () {
