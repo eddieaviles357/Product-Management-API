@@ -24,6 +24,7 @@ class Reviews {
         `SELECT product_id FROM products WHERE product_id = $1`,
         [prodId]
       );
+      
       if (product.rows.length === 0)
         throw new BadRequestError("Product does not exist");
 
@@ -76,40 +77,6 @@ class Reviews {
     }
   }
 
-  // GETS REVIEWS FOR A PRODUCT
-  /**
-   * @param {number} prodId
-   * @returns {Array} array of review objects
-   * @throws {BadRequestError} if prodId is missing
-   * @throws {BadRequestError} if there is an error in the database query
-   */
-  // static async getReviewsForOneProduct(prodId) { 
-  //   try {
-  //     if(!prodId) throw new BadRequestError("Missing data");
-
-  //     const product = await db.query(`SELECT product_id FROM products WHERE product_id = $1`, [prodId]);
-  //     if(product.rows.length === 0) throw new BadRequestError("Product does not exist");
-
-  //     const queryStatement = `SELECT 
-  //                               r.product_id AS "productId",
-  //                               r.user_id AS "userId",
-  //                               u.first_name AS "firstName",
-  //                               r.review,
-  //                               r.rating,
-  //                               r.created_at AS "createdAt",
-  //                               r.updated_at AS "updatedAt"
-  //                             FROM reviews r
-  //                             JOIN products p ON p.product_id = r.product_id
-  //                             JOIN users u ON u.id = r.user_id
-  //                             WHERE p.product_id = $1`;
-  //     const result = await db.query(queryStatement, [prodId]);
-  //     return (result.rows.length === 0) ? [] : result.rows;
-  //   } catch (err) {
-  //     if(err instanceof BadRequestError) throw err;
-  //     throw new BadRequestError(err.message);
-  //   }
-  // };
-
     /**
    * @param {number} productId
    * @param {string} username
@@ -143,7 +110,7 @@ class Reviews {
       throw new BadRequestError(err.message);
     }
   };
-  
+
   /**
    * @param {number} prodId
    * @param {string} username
