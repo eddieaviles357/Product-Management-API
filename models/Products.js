@@ -49,7 +49,7 @@ class Products {
       const totalPages = Math.ceil(totalCount / limit);
 
       return {
-        products: result.rows,
+        data: result.rows,
         pagination: {
           currentPage: page,
           pageSize: limit,
