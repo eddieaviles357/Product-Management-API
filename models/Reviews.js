@@ -20,33 +20,20 @@ class Reviews {
       if (!prodId) throw new BadRequestError("Missing product id");
 
       // validate product exists
-      const product = await db.query(
-        `SELECT product_id FROM products WHERE product_id = $1`,
+      const productExist = await db.query(
+        `SELECT 1 FROM products WHERE product_id = $1`,
         [prodId]
       );
       
-      if (product.rows.length === 0)
+      if (productExist.rows.length === 0)
         throw new BadRequestError("Product does not exist");
 
       // sanitize pagination inputs
-      page = Number(page);
-      limit = Number(limit);
-      if (page < 1) page = 1;
-      if (limit < 1) limit = 10;
-
+      page = Math.max(1, Number(page) || 1);
+      limit = Math.max(1, Number(limit) || 10);
       const offset = (page - 1) * limit;
 
-      // 1. Get total count
-      const countResult = await db.query(
-        `SELECT COUNT(*) AS "count"
-        FROM reviews
-        WHERE product_id = $1`,
-        [prodId]
-      );
-      const totalReviews = Number(countResult.rows[0].count);
-      const totalPages = Math.ceil(totalReviews / limit);
 
-      // 2. Get paginated reviews
       const queryStatement = `
         SELECT 
           r.product_id AS "productId",
@@ -55,22 +42,30 @@ class Reviews {
           r.review,
           r.rating,
           r.created_at AS "createdAt",
-          r.updated_at AS "updatedAt"
+          r.updated_at AS "updatedAt",
+          COUNT(*) OVER() AS "totalReviews"
         FROM reviews r
-        JOIN products p ON p.product_id = r.product_id
         JOIN users u ON u.id = r.user_id
-        WHERE p.product_id = $1
+        WHERE r.product_id = $1
         ORDER BY r.created_at DESC
         LIMIT $2 OFFSET $3
       `;
       const result = await db.query(queryStatement, [prodId, limit, offset]);
 
+      const totalReviews = +result.rows[0]?.totalReviews ?? 0;
+      const totalPages = Math.ceil(totalReviews / limit);
+
+
       return {
-        reviews: result.rows,
-        totalReviews,
-        totalPages,
-        currentPage: page,
+        data: result.rows.map( ({ totalReviews, ...row }) => row ), // remove totalCount from each row
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          totalReviews,
+          totalPages
+        }
       };
+      
     } catch (err) {
       if (err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
