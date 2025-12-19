@@ -102,21 +102,23 @@ CREATE TABLE payment_details (
 );
 
 
+-- NEW CODE.
 -- Materialized View for getProducts
 CREATE MATERIALIZED VIEW mv_product_list AS
-SELECT p.product_id AS id,
-       p.sku,
-       p.product_name AS "productName", 
-       p.product_description AS "productDescription",
-       p.price, 
-       p.stock, 
-       p.image_url AS "imageURL", 
-       p.created_at AS "createdAt", 
-       p.updated_at AS "updatedAt", 
-       ARRAY_AGG(DISTINCT c.category) AS categories
+SELECT
+    p.product_id AS id,
+    p.sku,
+    p.product_name AS "productName", 
+    p.product_description AS "productDescription",
+    p.price, 
+    p.stock, 
+    p.image_url AS "imageURL", 
+    p.created_at AS "createdAt", 
+    p.updated_at AS "updatedAt", 
+    ARRAY_AGG(DISTINCT c.category) AS categories
 FROM products AS p
-  JOIN products_categories AS pc ON pc.product_id = p.product_id
-  JOIN categories AS c ON c.id = pc.category_id
+JOIN products_categories AS pc ON pc.product_id = p.product_id
+JOIN categories AS c ON c.id = pc.category_id
 GROUP BY 
     p.product_id, 
     p.sku, 
@@ -128,61 +130,87 @@ GROUP BY
     p.created_at,
     p.updated_at
 WITH DATA;
--- Example query using the materialized view
--- SELECT * FROM mv_product_list WHERE product_id = 1
 
 
-
--- Functions and Triggers to update the updated_at field on UPDATE
-CREATE OR REPLACE FUNCTION update_updated_at_product()
+CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = now();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER update_product_updated_at
-    BEFORE UPDATE
-    ON
-        products
-    FOR EACH ROW
-EXECUTE PROCEDURE update_updated_at_product();
+CREATE TRIGGER update_product_updated_at
+BEFORE UPDATE ON products
+FOR EACH ROW
+EXECUTE PROCEDURE set_updated_at();
 
-CREATE OR REPLACE FUNCTION update_updated_at_review()
+CREATE TRIGGER update_review_updated_at
+BEFORE UPDATE ON reviews
+FOR EACH ROW
+EXECUTE PROCEDURE set_updated_at();
+
+CREATE TRIGGER update_categories_updated_at_trigger
+BEFORE UPDATE ON categories
+FOR EACH ROW
+EXECUTE PROCEDURE set_updated_at();
+
+CREATE TABLE IF NOT EXISTS mv_refresh_queue (
+    view_name TEXT PRIMARY KEY,
+    needs_refresh BOOLEAN NOT NULL DEFAULT FALSE,
+    last_refreshed_at TIMESTAMP
+);
+
+INSERT INTO mv_refresh_queue (view_name)
+VALUES ('mv_product_list')
+ON CONFLICT DO NOTHING;
+
+CREATE OR REPLACE FUNCTION mark_mv_product_list_dirty()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
+    UPDATE mv_refresh_queue
+    SET needs_refresh = TRUE
+    WHERE view_name = 'mv_product_list';
+
+    RETURN NULL;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER update_review_updated_at
-    BEFORE UPDATE
-    ON
-        reviews
-    FOR EACH ROW
-EXECUTE PROCEDURE update_updated_at_review();
 
--- Function and Trigger to refresh materialized views on products table changes
-CREATE OR REPLACE FUNCTION refresh_mv_product_list()
-    RETURNS TRIGGER AS $$
-    BEGIN
-        REFRESH MATERIALIZED VIEW mv_product_list;
-        RETURN NULL; -- Important for AFTER triggers
-    END;
-    $$ LANGUAGE 'plpgsql';
+CREATE TRIGGER mark_mv_product_list_dirty_products
+AFTER INSERT OR UPDATE OR DELETE
+ON products
+FOR EACH STATEMENT
+EXECUTE PROCEDURE mark_mv_product_list_dirty();
 
--- TRIGGER: Refresh when products table changes
-CREATE TRIGGER refresh_mv_product_list_trigger
-    AFTER INSERT OR UPDATE OR DELETE
-    ON products
-    FOR EACH STATEMENT
-EXECUTE PROCEDURE refresh_mv_product_list();
-
--- TRIGGER: Refresh when categories are added/removed to/from products
-CREATE TRIGGER refresh_mv_product_list_trigger_products_categories
+CREATE TRIGGER mark_mv_product_list_dirty_products_categories
 AFTER INSERT OR DELETE
 ON products_categories
 FOR EACH STATEMENT
-EXECUTE PROCEDURE refresh_mv_product_list();
+EXECUTE PROCEDURE mark_mv_product_list_dirty();
+
+CREATE OR REPLACE FUNCTION refresh_mv_product_list_safe()
+RETURNS VOID AS $$
+BEGIN
+    -- prevent concurrent refreshes
+    IF NOT pg_try_advisory_lock(hashtext('mv_product_list_refresh')) THEN
+        RETURN;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM mv_refresh_queue
+        WHERE view_name = 'mv_product_list'
+          AND needs_refresh = TRUE
+    ) THEN
+        REFRESH MATERIALIZED VIEW CONCURRENTLY mv_product_list;
+
+        UPDATE mv_refresh_queue
+        SET needs_refresh = FALSE,
+            last_refreshed_at = now()
+        WHERE view_name = 'mv_product_list';
+    END IF;
+
+    PERFORM pg_advisory_unlock(hashtext('mv_product_list_refresh'));
+END;
+$$ LANGUAGE plpgsql;
