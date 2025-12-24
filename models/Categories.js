@@ -31,24 +31,45 @@ class Categories {
   * @throws {BadRequestError} If id is not a number or is less than 0
   * @throws {BadRequestError} If an error occurs while querying the database
   */
-  static async getAllCategories(id = 100000000) {
+  static async getAllCategories(page = 1, limit = 20) {
     try {
-      if (id === null || id < 0) {
-        throw new BadRequestError("id must be a number greater than 0");
+      page = Number(page);
+      limit = Number(limit);
+
+      if (!Number.isInteger(page) || page <= 0) {
+        throw new BadRequestError("Page must be a positive integer");
       }
-      
+      const MAX_LIMIT = 100;
+      if (!Number.isInteger(limit) || limit <= 0 || limit > MAX_LIMIT) {
+        throw new BadRequestError(`Limit must be an integer between 1 and ${MAX_LIMIT}`);
+      }
+
+      const offset = (page - 1) * limit;
+
       const result = await db.query(
-        `SELECT id, category 
-        FROM categories 
-        WHERE id < $1
-        ORDER BY id DESC
-        LIMIT 20`, 
-        [id]
+        `SELECT id, category
+         FROM categories
+         ORDER BY id DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
       );
 
-      return result.rows;
-      
+      const countRes = await db.query(`SELECT COUNT(*) AS total FROM categories`);
+      const total = parseInt(countRes.rows[0].total, 10);
+      const totalPages = total === 0 ? 0 : Math.max(1, Math.ceil(total / limit));
+
+      return {
+        categories: result.rows,
+        pagination: {
+          currentPage: page,
+          pageSize: limit,
+          total,
+          totalPages
+        }
+      };
+
     } catch (err) {
+      if (err instanceof BadRequestError) throw err;
       throw new BadRequestError('Something went wrong');
     }
   }

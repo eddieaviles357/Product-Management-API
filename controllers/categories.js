@@ -8,17 +8,15 @@ const { BadRequestError } = require("../AppError");
 // @access    Public
 exports.getCategories = async (req, res, next) => {
   try {
-    let cursor = undefined;
-    // we will use cursor query to retrieve more categories from db
-    // if cursor is not a number or is undefined or empty object, we will set it to undefined
-    // if cursor is a number, we will use it to retrieve more categories
-    cursor = req.query.cursor;
-    if(isNaN(cursor) || cursor === undefined || Object.keys(req.query).length === 0) cursor = undefined;
-    const categories = await Categories.getAllCategories(cursor);
+    // page/limit pagination to match Products and Reviews responses
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
 
-    return res.status(200).json({ 
-      success: true, 
-      categories
+    const result = await Categories.getAllCategories(page, limit);
+
+    return res.status(200).json({
+      success: true,
+      ...result
     });
 
 
