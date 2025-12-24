@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, ConflictError } = require("../AppError");
+const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
 
 const getUserId = require("../helpers/getUserId");
 
@@ -19,7 +19,7 @@ class Wishlist {
       if (!username) throw new BadRequestError("Username is required");
 
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      if (!userId) throw new BadRequestError("User does not exist");
 
       // Get all products in wishlist using user id
       const getWishListQuery = `SELECT 
@@ -68,9 +68,16 @@ class Wishlist {
   static async addProduct(username, productId) {
     try {
       if (!username) throw new BadRequestError("Username is required");
-      if (!productId) throw new BadRequestError("Product ID is required");
+      productId = Number(productId);
+      if (!productId || !Number.isInteger(productId) || productId <= 0) {
+        throw new BadRequestError("Product ID must be a positive integer");
+      }
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      if (!userId) throw new BadRequestError("User does not exist");
+
+      // Verify product exists
+      const prod = await db.query(`SELECT 1 FROM products WHERE product_id = $1 LIMIT 1`, [productId]);
+      if (prod.rows.length === 0) throw new NotFoundError("Product not found");
 
       // add product to wishlist using user id and product id
       const queryStatement = `INSERT INTO wishlist(user_id, product_id) VALUES($1, $2) RETURNING user_id AS "userId", product_id AS "productId"`;
@@ -96,11 +103,14 @@ class Wishlist {
   static async removeProduct(username, productId) {
     try {
       if (!username) throw new BadRequestError("Username is required");
-      if (!productId) throw new BadRequestError("Product ID is required");
-      
+      productId = Number(productId);
+      if (!productId || !Number.isInteger(productId) || productId <= 0) {
+        throw new BadRequestError("Product ID must be a positive integer");
+      }
+
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
-      
+      if (!userId) throw new BadRequestError("User does not exist");
+
       // Delete product from wishlist using user id and product id
       const queryStatement = `DELETE FROM wishlist 
                               WHERE user_id = $1 AND product_id = $2
@@ -130,7 +140,7 @@ class Wishlist {
     try {
       if (!username) throw new BadRequestError("Username is required");
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
+      if (!userId) throw new BadRequestError("User does not exist");
       
       // Clear entire wishlist using user id
       const queryStatement = `DELETE FROM wishlist WHERE user_id = $1`;
