@@ -124,6 +124,14 @@ CREATE TRIGGER update_reviews_updated_at
 BEFORE UPDATE ON reviews
 FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 
+CREATE TRIGGER update_reviews_updated_at
+BEFORE UPDATE ON cart
+FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+
+CREATE TRIGGER update_reviews_updated_at
+BEFORE UPDATE ON payment_details
+FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+
 
 /* =========================================================
    MATERIALIZED VIEW
