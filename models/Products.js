@@ -18,7 +18,7 @@ class Products {
   static async #getTotalProductCount() {
     try {
       const result = await db.query(
-        `SELECT COUNT(*) as total FROM mv_product_list`
+        `SELECT COUNT(*) as total FROM get_product_list()`
       );
       return parseInt(result.rows[0].total, 10);
     } catch (err) {
@@ -39,7 +39,7 @@ class Products {
 
       const result = await db.query(
         `SELECT *
-        FROM mv_product_list
+        FROM get_product_list()
         ORDER BY id DESC
         LIMIT $1 OFFSET $2`, 
         [limit, offset]
@@ -78,7 +78,7 @@ class Products {
 
       const result = await db.query(
         `SELECT *
-        FROM mv_product_list
+        FROM get_product_list()
         WHERE id = $1
         LIMIT 1`, 
         [id]
