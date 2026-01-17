@@ -25,6 +25,8 @@ CREATE TABLE products_categories (
   category_id INTEGER NOT NULL REFERENCES categories ON DELETE CASCADE
 );
 
+CREATE EXTENSION IF NOT EXISTS citext;
+
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   first_name VARCHAR(30) NOT NULL,
@@ -33,9 +35,22 @@ CREATE TABLE users (
   password VARCHAR(60) NOT NULL,
   join_at TIMESTAMP NOT NULL DEFAULT NOW(),
   last_login_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  email VARCHAR(50) NOT NULL CHECK (position('@' IN email) > 1),
-  is_admin BOOLEAN NOT NULL DEFAULT FALSE
+  email CITEXT NOT NULL UNIQUE
+    CHECK (
+      email = btrim(email)
+      AND email ~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$'
+    ),
+  is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  email_verified_at TIMESTAMP NULL
 );
+
+CREATE TABLE email_verification_tokens (
+  id SERIAL PRIMARY KEY,
+  email CITEXT NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL
+);
+
 
 CREATE TABLE addresses (
   id SERIAL PRIMARY KEY,
