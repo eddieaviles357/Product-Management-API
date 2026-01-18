@@ -19,8 +19,8 @@ function _generateToken() {
 }
 
 function _buildVerificationUrl(token) {
-  const frontend = process.env.FRONTEND_URL || `http://localhost:3000`;
-  return `${frontend.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}`;
+  const frontend = process.env.FRONTEND_URL || `http://localhost:3001`;
+  return `${frontend.replace(/\/$/, "")}/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`;
 }
 
 /**
@@ -50,6 +50,7 @@ async function createAndSendVerification(user) {
 
   // If SMTP configured and nodemailer available, try to send
   const smtpConfigured = nodemailer && process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS;
+
   if (smtpConfigured) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
