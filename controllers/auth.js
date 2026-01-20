@@ -3,8 +3,9 @@
 const Users = require("../models/Users");
 const { BadRequestError } = require("../AppError");
 const createToken = require("../helpers/tokens");
+const emailVerification = require("../helpers/emailVerification");
 
-// @desc      Registers a new user to the database
+// @desc      Registers a new user to the database, create a verification token, and sends verification email.
 // @route     POST /api/v1/auth/register
 // @access    Private/Admin ?????????
 exports.registerUser = async (req, res, next) => {
@@ -32,4 +33,18 @@ exports.authenticateUser = async (req, res, next) => {
   } catch (err) {
     return next(err);
   }
-}
+};
+
+// @desc      Verifies user email using token
+// @route     POST /api/v1/auth/verify-email
+// @access    Private/Admin ?????????
+exports.verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+    const verificationResult = await emailVerification.verifyTokenAndActivate(token);
+    
+    return res.json({ verifiedAt: verificationResult.verifiedAt });
+  } catch (err) {
+    return next(err);
+  }
+};

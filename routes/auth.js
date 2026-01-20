@@ -3,6 +3,7 @@
 const {
   registerUser,
   authenticateUser,
+  verifyEmail,
 } = require("../controllers/auth");
 const router = require("express").Router();
 const validateSchema = require("../middleware/validation/validateSchema");
@@ -18,4 +19,7 @@ router
   .route("/authenticate")
   .post(authLimiter, validateSchema(userAuthSchema), authenticateUser)
 
+router
+  .route("/verify-email")
+  .post(authLimiter, verifyEmail)
 module.exports = router;
