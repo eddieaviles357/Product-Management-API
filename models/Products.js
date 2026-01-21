@@ -93,11 +93,20 @@ class Products {
   }
 
   /**
+   * @typedef {object} productBody
+   * @property {string} sku
+   * @property {string} name
+   * @property {string} description
+   * @property {number} price
+   * @property {number} stock
+   * @property {string} imageURL
+   */
+  /**
    * Adds a product to the database.
-   * @param {object} productBody - { sku, name, description, price, stock, imageURL }
-   * @returns {object} - returns the added product
+   * @param {productBody} productBody
+   * @returns {object} - returns the created product
    * @throws {BadRequestError} - if there is a database error
-   * @throws {ConflictError} - if product sku already exists
+   * @throws {ConflictError} - if product with same SKU already exists
    */
   static async addProduct({ sku, name, description, price, stock, imageURL }) {
     try {
