@@ -11,16 +11,21 @@ const {
 const { createAndSendVerification } = require("../helpers/emailVerification");
 
 class Users {
+  /**
+   * @typedef {Object} userRegistrationData
+   * @property {string} firstName
+   * @property {string} lastName
+   * @property {string} username
+   * @property {string} password
+   * @property {string} email
+   * @property {boolean} isAdmin
+   */
+
   /** register user
-   * 
-   * @param {object} user 
-   * @param {string} user.firstName 
-   * @param {string} user.lastName 
-   * @param {string} user.username 
-   * @param {string} user.password 
-   * @param {string} user.email 
-   * @param {boolean} user.isAdmin
+   * @param {userRegistrationData} user
    * @returns {object} user
+   * @throws {ConflictError} if user already exists
+   * @throws {BadRequestError} if there is a problem with the database query
    */
   static async register({firstName, lastName, username, password, email, isAdmin=false}) {
     try {
