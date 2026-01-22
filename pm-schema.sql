@@ -3,7 +3,7 @@
    ========================================================= */
 
 CREATE TABLE products (
-  product_id SERIAL PRIMARY KEY,
+  product_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   sku VARCHAR(8) NOT NULL UNIQUE CHECK(LENGTH(sku) > 0),
   product_name VARCHAR(30) NOT NULL CHECK(LENGTH(product_name) > 0),
   product_description VARCHAR(255) NOT NULL CHECK(LENGTH(product_description) > 0),
@@ -15,7 +15,7 @@ CREATE TABLE products (
 );
 
 CREATE TABLE categories (
-  id SERIAL PRIMARY KEY,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   category VARCHAR(20) NOT NULL UNIQUE
 );
 
@@ -28,7 +28,7 @@ CREATE TABLE products_categories (
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   first_name VARCHAR(30) NOT NULL,
   last_name VARCHAR(30) NOT NULL,
   username VARCHAR(20) UNIQUE NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE email_verification_tokens (
-  id SERIAL PRIMARY KEY,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   email CITEXT NOT NULL,
   token TEXT NOT NULL UNIQUE,
   expires_at TIMESTAMP NOT NULL
@@ -53,13 +53,21 @@ CREATE TABLE email_verification_tokens (
 
 
 CREATE TABLE addresses (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
   address_1 VARCHAR(95) NOT NULL,
   address_2 VARCHAR(95),
   city VARCHAR(35) NOT NULL,
-  state VARCHAR(2) NOT NULL,
-  zipcode VARCHAR(5) NOT NULL
+  state CHAR(2) NOT NULL,
+  CHECK (state IN (
+    'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
+    'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+    'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+    'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+    'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
+    )),
+  zipcode VARCHAR(10) NOT NULL,
+  CHECK ( zipcode ~ '^\d{5}(-\d{4})?$' )
 );
 
 CREATE TABLE reviews (
@@ -86,7 +94,7 @@ CREATE TABLE wishlist (
 );
 
 CREATE TABLE cart (
-  id SERIAL PRIMARY KEY,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
   quantity INTEGER NOT NULL CHECK (quantity > -1),
@@ -96,14 +104,14 @@ CREATE TABLE cart (
 );
 
 CREATE TABLE orders (
-  id SERIAL PRIMARY KEY,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE order_products (
-  id SERIAL PRIMARY KEY,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
   product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
   quantity INTEGER NOT NULL,
@@ -112,7 +120,7 @@ CREATE TABLE order_products (
 );
 
 CREATE TABLE payment_details (
-  id SERIAL PRIMARY KEY,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
   amount NUMERIC(7,2) NOT NULL CHECK(amount > 0.00),
   status BOOLEAN NOT NULL DEFAULT false,
