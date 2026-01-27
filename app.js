@@ -11,6 +11,7 @@ const authRoutes = require("./routes/auth");
 const wishlistRoutes = require("./routes/wishlist");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/checkout");
+const addressRoutes = require("./routes/address");
 const { NotFoundError } = require("./AppError");
 const {globalLimiter} = require("./middleware/limiter");
 const helmet = require('helmet');
@@ -30,6 +31,7 @@ app.use("/api/v1/auth", authRoutes); // Authentication routes
 app.use("/api/v1/wishlist", wishlistRoutes); // Wishlist routes
 app.use("/api/v1/cart", cartRoutes); // Cart routes
 app.use("/api/v1/checkout", orderRoutes); // Checkout routes
+app.use("/api/v1/address", addressRoutes); // Address routes
 
 
 /** Handle 404 errors -- this matches everything */
