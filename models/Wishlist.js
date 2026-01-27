@@ -4,6 +4,8 @@ const db = require("../db");
 const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
 
 const getUserId = require("../helpers/getUserId");
+const validateUsername = require("../helpers/validateUsername");
+const validateProductId = require("../helpers/validateProductId");
 
 class Wishlist {
   /**
@@ -12,14 +14,12 @@ class Wishlist {
    * @returns {array} wishlist
    * @throws {BadRequestError} if username is not provided
    * @throws {BadRequestError} if user does not exist or if there is an error in the query
-   * @throws {BadRequestError} if no products found in wishlist
    */
   static async getWishlist(username) {
     try {
-      if (!username) throw new BadRequestError("Username is required");
+      validateUsername(username);
 
       const userId = await getUserId(username);
-      if (!userId) throw new BadRequestError("User does not exist");
 
       // Get all products in wishlist using user id
       const getWishListQuery = `SELECT 
@@ -32,13 +32,11 @@ class Wishlist {
                               WHERE w.user_id = $1`;
       const values = [userId];
       const wishlistValues = await db.query(getWishListQuery, values);
-
-      if (wishlistValues.rows.length === 0) throw new BadRequestError("No products found in wishlist");
       
       return wishlistValues.rows;
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
   // static async getWishlistCount(username) {
@@ -67,13 +65,11 @@ class Wishlist {
    */
   static async addProduct(username, productId) {
     try {
-      if (!username) throw new BadRequestError("Username is required");
-      productId = Number(productId);
-      if (!productId || !Number.isInteger(productId) || productId <= 0) {
-        throw new BadRequestError("Product ID must be a positive integer");
-      }
+      validateUsername(username);
+
+      productId = validateProductId(productId);
+
       const userId = await getUserId(username);
-      if (!userId) throw new BadRequestError("User does not exist");
 
       // Verify product exists
       const prod = await db.query(`SELECT 1 FROM products WHERE product_id = $1 LIMIT 1`, [productId]);
@@ -88,7 +84,7 @@ class Wishlist {
     } catch (err) {
       if(err.code === '23505') throw new ConflictError("Product already exists in wishlist");
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -102,14 +98,11 @@ class Wishlist {
    */
   static async removeProduct(username, productId) {
     try {
-      if (!username) throw new BadRequestError("Username is required");
-      productId = Number(productId);
-      if (!productId || !Number.isInteger(productId) || productId <= 0) {
-        throw new BadRequestError("Product ID must be a positive integer");
-      }
+      validateUsername(username);
+
+      productId = validateProductId(productId);
 
       const userId = await getUserId(username);
-      if (!userId) throw new BadRequestError("User does not exist");
 
       // Delete product from wishlist using user id and product id
       const queryStatement = `DELETE FROM wishlist 
@@ -138,9 +131,9 @@ class Wishlist {
    */
   static async removeAll(username) {
     try {
-      if (!username) throw new BadRequestError("Username is required");
+      validateUsername(username);
+
       const userId = await getUserId(username);
-      if (!userId) throw new BadRequestError("User does not exist");
       
       // Clear entire wishlist using user id
       const queryStatement = `DELETE FROM wishlist WHERE user_id = $1`;
@@ -148,11 +141,11 @@ class Wishlist {
       const rowsRemoved = removedResult.rowCount;
 
       // if no rows were removed then we will return false
-      return (rowsRemoved !== 0) ? true : false;
+      return rowsRemoved > 0;
 
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 };
