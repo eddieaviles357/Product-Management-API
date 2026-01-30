@@ -1,19 +1,25 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
+const { 
+  BadRequestError, 
+  ConflictError, 
+  NotFoundError 
+} = require("../AppError");
 
 const getUserId = require("../helpers/getUserId");
+const isProductInDB = require("../helpers/isProductInDB");
 const validateUsername = require("../helpers/validateUsername");
 const validateProductId = require("../helpers/validateProductId");
+const ensureProductExistInDB = require("../helpers/isProductInDB");
+const Queries = require("../helpers/sql/wishListQueries");
 
 class Wishlist {
   /**
-   * @param {string} username
    * @param {string} username 
-   * @returns {array} wishlist
-   * @throws {BadRequestError} if username is not provided
-   * @throws {BadRequestError} if user does not exist or if there is an error in the query
+   * @returns {array} wishlist items
+   * @throws {BadRequestError} if username missing
+   * @throws {BadRequestError} if user does not exist
    */
   static async getWishlist(username) {
     try {
@@ -21,17 +27,8 @@ class Wishlist {
 
       const userId = await getUserId(username);
 
-      // Get all products in wishlist using user id
-      const getWishListQuery = `SELECT 
-                                p.product_id AS "productId",
-                                p.product_name AS "productName",
-                                p.price AS "productPrice",
-                                p.image_url AS "productImageUrl"
-                              FROM wishlist w
-                              JOIN products p ON w.product_id = p.product_id
-                              WHERE w.user_id = $1`;
-      const values = [userId];
-      const wishlistValues = await db.query(getWishListQuery, values);
+      // Get wishlist using user id
+      const wishlistValues = await db.query(Queries.getWishList(), [userId]);
       
       return wishlistValues.rows;
     } catch (err) {
@@ -71,14 +68,11 @@ class Wishlist {
 
       const userId = await getUserId(username);
 
-      // Verify product exists
-      const prod = await db.query(`SELECT 1 FROM products WHERE product_id = $1 LIMIT 1`, [productId]);
-      if (prod.rows.length === 0) throw new NotFoundError("Product not found");
+      // Verify product exists in products table
+      ensureProductExistInDB(productId);
 
       // add product to wishlist using user id and product id
-      const queryStatement = `INSERT INTO wishlist(user_id, product_id) VALUES($1, $2) RETURNING user_id AS "userId", product_id AS "productId"`;
-      const values = [userId, productId];
-      const wishlistValues = await db.query(queryStatement, values);
+      const wishlistValues = await db.query(Queries.insertIntoWishlist(), [userId, productId]);
 
       return wishlistValues.rows[0];
     } catch (err) {
@@ -91,12 +85,12 @@ class Wishlist {
   /**
    * @param {string} username
    * @param {number} productId
-   * @returns {object} removed product object or message
-   * @throws {BadRequestError} if username or productId is not provided
-   * @throws {BadRequestError} if user does not exist or if there is an error in the query
+   * @returns {boolean} true if product was removed, false otherwise
+   * @throws {BadRequestError} if username or productId is invalid
+   * @throws {BadRequestError} if user does not exist
    * 
    */
-  static async removeProduct(username, productId) {
+  static async removeProductFromWishlist(username, productId) {
     try {
       validateUsername(username);
 
@@ -105,27 +99,19 @@ class Wishlist {
       const userId = await getUserId(username);
 
       // Delete product from wishlist using user id and product id
-      const queryStatement = `DELETE FROM wishlist 
-                              WHERE user_id = $1 AND product_id = $2
-                              RETURNING 
-                                user_id AS "userId",
-                                product_id AS "productId"`;
-      const values = [userId, productId];
-      const removedResult = await db.query(queryStatement, values);
+      const removedResult = await db.query(Queries.deleteSingleItem(), [userId, productId]);
 
       // if no rows were removed then we will return false
-      return (removedResult.rowCount !== 0)
-              ? { product: removedResult.rows[0].productId, success: true}
-              : { product: productId, success: false};
+      return (removedResult.rowCount > 0);
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
   /**
    * @param {string} username
-   * @returns {boolean} true if wishlist was cleared, false otherwise
+   * @returns {boolean} true if wishlist was cleared, false otherwise 
    * @throws {BadRequestError} if username is not provided
    * @throws {BadRequestError} if user does not exist or if there is an error in the query
    */
@@ -136,8 +122,7 @@ class Wishlist {
       const userId = await getUserId(username);
       
       // Clear entire wishlist using user id
-      const queryStatement = `DELETE FROM wishlist WHERE user_id = $1`;
-      const removedResult = await db.query(queryStatement, [userId]);
+      const removedResult = await db.query(Queries.deleteWishList(), [userId]);
       const rowsRemoved = removedResult.rowCount;
 
       // if no rows were removed then we will return false
