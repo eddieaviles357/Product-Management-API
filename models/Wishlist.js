@@ -8,7 +8,6 @@ const {
 } = require("../AppError");
 
 const getUserId = require("../helpers/getUserId");
-const isProductInDB = require("../helpers/isProductInDB");
 const validateUsername = require("../helpers/validateUsername");
 const validateProductId = require("../helpers/validateProductId");
 const ensureProductExistInDB = require("../helpers/isProductInDB");
