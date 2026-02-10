@@ -68,7 +68,7 @@ class Wishlist {
       const userId = await getUserId(username);
 
       // Verify product exists in products table
-      ensureProductExistInDB(productId);
+      await ensureProductExistInDB(productId);
 
       // add product to wishlist using user id and product id
       const wishlistValues = await db.query(Queries.insertIntoWishlist(), [userId, productId]);
