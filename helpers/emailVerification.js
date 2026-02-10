@@ -24,9 +24,15 @@ function _buildVerificationUrl(token) {
 }
 
 /**
+ * @typedef {Object} userObject
+ * @property {string} email
+ * @property {string} username
+ */
+
+/**
  * Create a verification token record for an email and optionally send an email.
- * @param {{email:string, username?:string}} user
- * @returns {Promise<{ok:boolean, token:string, url:string}>}
+ * @param {userObject} user
+ * @returns {object} boolean, token, url
  */
 async function createAndSendVerification(user) {
   if (!user || !user.email) {
