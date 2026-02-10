@@ -3,9 +3,9 @@
 const db = require("../db");
 const { NotFoundError } = require("../AppError");
 
-const isProductInDB = async (productId) => {
+const ensureProductExistInDB = async (productId) => {
   const prod = await db.query(`SELECT 1 FROM products WHERE product_id = $1 LIMIT 1`, [productId]);
-  return prod.rows.length > 0;
+  if (prod.rows.length === 0) throw new NotFoundError("Product not found");
 }
 
-module.exports = isProductInDB;
+module.exports = ensureProductExistInDB;
