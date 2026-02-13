@@ -56,8 +56,6 @@ class Cart {
 
       const userId = await getUserId(username);
 
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
-
       const result = await db.query(getCartItems(), [userId]);
 
       return result.rows.length ? result.rows : [];
@@ -80,10 +78,6 @@ class Cart {
       }
 
       const userId = await getUserId(username);
-
-      if(userId === 0 || !userId) {
-        throw new BadRequestError("User does not exist");
-      }
 
       const removedResult = await db.query(clearCart(), [userId]);
       
@@ -109,10 +103,6 @@ class Cart {
       }
 
       const userId = await getUserId(username);
-      
-      if(userId === 0 || !userId) {
-        throw new BadRequestError("User does not exist");
-      }
 
       const price = await Cart._getPrice(productId);
 
@@ -152,10 +142,6 @@ class Cart {
       }
 
       const userId = await getUserId(username);
-
-      if(userId === 0 || !userId) {
-        throw new BadRequestError("User does not exist");
-      }
 
       const price = await Cart._getPrice(productId);
 
@@ -204,10 +190,6 @@ class Cart {
       }
 
       const userId = await getUserId(username);
-
-      if(userId === 0 || !userId) {
-        throw new BadRequestError("User does not exist");
-      }
 
       const result = await db.query(deleteCartItem(), [userId, productId]);
 
