@@ -157,13 +157,13 @@ exports.deleteProductById = async (req, res, next) => {
       throw new BadRequestError("Product id must be a positive number");
     }
 
-    const { success, message } = await Products.removeProduct(id);
+    const isDeleted = await Products.removeProduct(id);
 
-    const statusCode = success ? 200 : 204;
+    const statusCode = isDeleted ? 200 : 204;
 
     return res.status(statusCode).json({ 
-      success,
-      message
+      success: isDeleted,
+      message: isDeleted ? `Product with id ${id} deleted successfully` : `Product with id ${id} not found`
     });
   } catch (err) {
     return next(err);
