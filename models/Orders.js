@@ -80,7 +80,6 @@ class Orders {
   static async create(username, {cart}) {
     try {
       const userId = await getUserId(username);
-      if(userId === 0 || !userId) throw new BadRequestError("User does not exist");
 
       // returns an array of objects containing productId, quantity, and price
       // the first value of the array will always be the price ( total amount int )
