@@ -63,10 +63,21 @@ function updateReview() {
             updated_at AS "updatedAt"`;
 }
 
+function deleteReview() {
+  return `DELETE FROM reviews 
+          WHERE product_id = $1 AND user_id = $2
+          RETURNING 
+            user_id AS "userId",
+            product_id AS "productId",
+            review,
+            rating`;
+}
+
 module.exports = {
   getReviews,
   getSingleReview,
   addReview,
   doesReviewExist,
-  updateReview
+  updateReview,
+  deleteReview
 };
