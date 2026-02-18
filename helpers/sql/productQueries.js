@@ -1,6 +1,3 @@
-/* --------------------------------------------
- * SQL HELPERS
- * -------------------------------------------- */
 
 function getInsertProductQuery() {
   return `
@@ -53,13 +50,13 @@ function getAddProductQuery() {
       ${getDefaultCategoryQuery()},
       ${getLinkCategoryQuery()}
     SELECT * FROM inserted_product
-  `;
+    `;
 }
 
 /* --------------------------------------------
  * UPDATE PRODUCT QUERIES
  * -------------------------------------------- */
-function selectProductById() {
+function getProductById() {
   return `
     SELECT
       product_id AS id,
@@ -71,7 +68,7 @@ function selectProductById() {
       updated_at AS "updatedAt"
     FROM products 
     WHERE product_id = $1
-  `;
+    `;
 }
 
 function updateProduct() {
@@ -93,15 +90,100 @@ function updateProduct() {
       image_url AS "imageURL",
       created_at AS "createdAt",
       updated_at AS "updatedAt"
-  `;
+    `;
 } 
 /* --------------------------------------------
  * UPDATE PRODUCT QUERIES END
  * -------------------------------------------- */
 
+function getProductsPagination() {
+  return `
+    SELECT *
+    FROM get_product_list()
+    ORDER BY id DESC
+    LIMIT $1 OFFSET $2
+    `;
+}
+
+
+function updateProductStock() {
+  return `
+    UPDATE products 
+    SET stock = stock + $1 
+    WHERE product_id = $2 
+    RETURNING 
+    product_id AS id, 
+    stock
+    `;
+}
+function getSingleProduct() {
+  return `
+    SELECT *
+    FROM get_product_list()
+    WHERE id = $1
+    LIMIT 1
+    `;
+}
+
+function getProductListCount() {
+  return `
+    SELECT COUNT(*) as total 
+    FROM get_product_list()
+    `;
+}
+
+
+function insertToProductCategories() {
+  return `
+    INSERT INTO products_categories (product_id, category_id)
+    VALUES ($1, $2)
+    RETURNING 
+    product_id AS "productId", 
+    category_id AS "categoryId"
+    `;
+}
+
+function deleteCategoryNone() {
+  return `
+    DELETE FROM products_categories 
+    WHERE product_id = $1 AND category_id = 1
+    `;
+}
+
+function deleteProductCategory() {
+  return `
+    DELETE FROM products_categories
+    WHERE product_id = $1 AND category_id = $2
+    RETURNING product_id AS "productId", category_id AS "categoryId"
+    `;
+}
+
+function insertIntoProductCategories() {
+  return `
+    INSERT INTO products_categories (product_id, category_id)
+    VALUES ($1, (SELECT id FROM categories WHERE category = 'none'))
+  `;
+}
+
+function deleteFromProduct() {
+  return `
+    DELETE FROM products 
+    WHERE product_id = $1
+    RETURNING product_name AS "productName"
+    `;
+}
 
 module.exports = {
   getAddProductQuery,
-  selectProductById,
+  getProductsPagination,
+  getProductById,
+  getSingleProduct,
+  getProductListCount,
   updateProduct,
+  updateProductStock,
+  insertToProductCategories,
+  insertIntoProductCategories,
+  deleteCategoryNone,
+  deleteProductCategory,
+  deleteFromProduct
 };
