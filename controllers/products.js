@@ -132,13 +132,13 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
       throw new BadRequestError("Product id and category id must be positive numbers");
     }
     
-    const { success, message } = await Products.removeCategoryFromProduct(pId, cId);
+    const success = await Products.removeCategoryFromProduct(pId, cId);
 
     const statusCode = success ? 200 : 204;
 
     return res.status(statusCode).json({ 
       success,
-      message
+      message: success ? `Category with id ${cId} removed from product with id ${pId}` : `Category with id ${cId} not found on product with id ${pId}`
     });
   } catch (err) {
     return next(err);
