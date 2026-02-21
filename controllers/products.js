@@ -138,7 +138,9 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
 
     return res.status(statusCode).json({ 
       success,
-      message: success ? `Category with id ${cId} removed from product with id ${pId}` : `Category with id ${cId} not found on product with id ${pId}`
+      message: success 
+        ? `Category with id ${cId} removed from product with id ${pId}` 
+        : `Category with id ${cId} not found on product with id ${pId}`,
     });
   } catch (err) {
     return next(err);
@@ -163,7 +165,9 @@ exports.deleteProductById = async (req, res, next) => {
 
     return res.status(statusCode).json({ 
       success: isDeleted,
-      message: isDeleted ? `Product with id ${id} deleted successfully` : `Product with id ${id} not found`
+      message: isDeleted 
+        ? `Product with id ${id} deleted successfully` 
+        : `Product with id ${id} not found`,
     });
   } catch (err) {
     return next(err);
