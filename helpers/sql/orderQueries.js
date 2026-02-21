@@ -27,8 +27,17 @@ function getOrderById() {
     `;
 }
 
+function insertIntoOrders() {
+  return `
+    INSERT INTO orders(user_id, total_amount) 
+    VALUES($1, $2) 
+    RETURNING id
+    `;
+}
+
 module.exports = {
   insertIntoOrderProducts,
+  insertIntoOrders,
   getTotalAmount,
   getOrderById
 }
