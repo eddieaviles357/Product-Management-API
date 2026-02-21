@@ -3,6 +3,7 @@
 const db = require("../db");
 const { BadRequestError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
+const Queries = require("../helpers/sql/orderQueries");
 
 class Orders {
   /**
@@ -12,17 +13,23 @@ class Orders {
    * @return {number} - returns the id of the inserted order_product
    * @throws {BadRequestError} - if there is an error in the query
    */
-  static async _insertOrderProducts(orderId, queryValues) {
+  static async #insertOrderProducts(orderId, queryValues) {
     try {
-      const {productId, quantity, price} = queryValues;
-      const orderProductsStatement = `INSERT INTO order_products(order_id, product_id, quantity, total_amount)
-                                      VALUES($1, $2, $3, $4)
-                                      RETURNING id`;
-      const result = await db.query(orderProductsStatement, [orderId, productId, quantity, price]);
+      const {
+        productId, 
+        quantity, 
+        price
+      } = queryValues;
+
+      const values = [orderId, productId, quantity, price];
+      
+      const {result} = await db.query(Queries.insertIntoOrderProducts(), values);
+
       return result.rows[0].id;
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   };
 
@@ -32,16 +39,17 @@ class Orders {
    * @returns {number} - returns the total amount of the order
    * @throws {BadRequestError} - if the order is not found or if there is an error in the query
    */
-  static async _getOrderTotalAmount(orderId) {
+  static async #getOrderTotalAmount(orderId) {
     try {
-      const orderTotalStatement = `SELECT total_amount AS "totalAmount" FROM orders WHERE id = $1`;
-      const result = await db.query(orderTotalStatement, [orderId]);
+      const result = await db.query(Queries.getTotalAmount(), [orderId]);
 
       if (result.rows.length === 0) throw new BadRequestError("Order not found");
+
       return result.rows[0].totalAmount;
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -53,21 +61,17 @@ class Orders {
    */
   static async getOrderById(orderId) {
     try {
-      const totalAmount = await this._getOrderTotalAmount(orderId);
-      
-      const orderStatement = `SELECT O.id AS "orderId",  
-                                     OP.product_id, 
-                                     OP.quantity, OP.total_amount AS "productTotalAmount" 
-                               FROM orders O 
-                               JOIN order_products OP ON O.id = OP.order_id
-                               WHERE O.id = $1`;
+      const totalAmount = await this.#getOrderTotalAmount(orderId);
 
-      const result = await db.query(orderStatement, [orderId]);
+      const result = await db.query(Queries.getOrderById(), [orderId]);
+      
       if (result.rows.length === 0) throw new BadRequestError("Order not found");
+
       return {totalAmount, orderItems: result.rows };
+      
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -104,27 +108,24 @@ class Orders {
       // remove first value from products which is the price and store in variable
       let totalPrice = products.shift(); // price total
       
-      const createOrderStatement = `INSERT INTO orders(user_id, total_amount) 
-                                    VALUES($1, $2) 
-                                    RETURNING id`;
-      const values = [userId, totalPrice];
-      
-      const orderResult = await db.query(createOrderStatement, values);
+      const orderResult = await db.query(Queries.insertIntoOrders(), [userId, totalPrice]);
+
       let orderId = orderResult.rows[0].id;
 
       // Insert into order_products table
       // Multiple async queries
       const orderProductIds = await Promise.all( 
         products.map( 
-          (prodValues) => Orders._insertOrderProducts(orderId, prodValues) 
+          (prodValues) => Orders.#insertOrderProducts(orderId, prodValues) 
         )
       )
       .then( (id) => id);
       
       return orderProductIds;
+
     } catch (err) {
       if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 };
