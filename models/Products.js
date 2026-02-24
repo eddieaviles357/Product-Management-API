@@ -25,7 +25,7 @@ class Products {
    * Gets all products from the database with pagination.
    * @param {number} page - the page number
    * @param {number} limit - items per page
-   * @returns {object} - returns { products: [], pagination: {...} }
+   * @returns {object} - Returns an object with data and pagination info
    * @throws {BadRequestError} - if there is a database error
    */
   static async getProducts(page = 1, limit = 10) {
@@ -39,15 +39,15 @@ class Products {
       const result = await db.query(Queries.getProductsPagination(), [limit, offset]);
 
       const data = result.rows;
-      const totalCount = await this.#getTotalProductCount();
-      const totalPages = Math.ceil(totalCount / limit);
+      const total = await this.#getTotalProductCount();
+      const totalPages = Math.ceil(total / limit);
 
       return {
         data,
         pagination: {
           currentPage,
           pageSize,
-          total: totalCount,
+          total,
           totalPages
         }
       };
@@ -161,7 +161,7 @@ class Products {
         throw new BadRequestError("Product id must be a positive number");
       }
 
-      const existingProductQueryResults = await db.query(getProductById(), [id]);
+      const existingProductQueryResults = await db.query(Queries.getProductById(), [id]);
   
       if(existingProductQueryResults.rows.length === 0) {
         throw new BadRequestError(`Product with id ${id} not found`);
@@ -212,7 +212,7 @@ class Products {
         id,
       ];
 
-      const result = await db.query(updateProduct(), queryValues);
+      const result = await db.query(Queries.updateProduct(), queryValues);
   
       if (!result.rows || result.rows.length === 0) {
         throw new BadRequestError("Failed to update product");
@@ -268,7 +268,7 @@ class Products {
    * Removes a category from a product.
    * @param {number} productId
    * @param {number} categoryId
-   * @returns {object} - { message, success }
+   * @returns {boolean} - true if category was removed, false otherwise
    * @throws {BadRequestError} - if database error occurs
    */
   static async removeCategoryFromProduct(productId, categoryId) {
@@ -279,21 +279,18 @@ class Products {
 
       const product = await this.findProductById(productId);
       if (!product || !product.categories) {
-        return { message: "Nothing to remove", success: false };
+        return false;
       }
 
       const initialCount = product.categories.length;
 
       const deleteResult = await db.query(Queries.deleteProductCategory(), [productId, categoryId]);
 
-      const removed = deleteResult.rows.length > 0;
-
-      if (!removed) {
-        return false;
-      }
+      if (deleteResult.rows.length === 0) return false;
 
       const remainingCount = initialCount - 1;
 
+      // If no categories remain, add the default "none" category back to the product
       if (remainingCount === 0) {
         await db.query(Queries.insertIntoProductCategories(), [productId]);
       }
