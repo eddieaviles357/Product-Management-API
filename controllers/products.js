@@ -137,10 +137,7 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
     const statusCode = success ? 200 : 204;
 
     return res.status(statusCode).json({ 
-      success,
-      message: success 
-        ? `Category with id ${cId} removed from product with id ${pId}` 
-        : `Category with id ${cId} not found on product with id ${pId}`,
+      success
     });
   } catch (err) {
     return next(err);
