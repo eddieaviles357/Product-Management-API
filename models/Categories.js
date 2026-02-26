@@ -3,6 +3,8 @@
 const db = require("../db.js");
 const removeNonAlphabeticChars = require("../helpers/removeNonAlphabeticChars.js");
 const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
+const sanitizePagination = require("../helpers/sanitizePagination.js");
+const Queries = require("../helpers/sql/categoryQueries.js");
 
 class Categories {
 
@@ -24,45 +26,46 @@ class Categories {
     return removeNonAlphabeticChars(str);
   }
 
-  /**
-  * Retrieves all categories from the database.
-  * @param {number} id - The id to limit the categories
-  * @returns {array} Array of categories or empty array if no categories found
-  * @throws {BadRequestError} If id is not a number or is less than 0
-  * @throws {BadRequestError} If an error occurs while querying the database
-  */
-  static async getAllCategories(page = 1, limit = 20) {
+    /**
+   * Gets the total count of categories in the database.
+   * @returns {number} - returns the total number of categories
+   * @throws {BadRequestError} - if there is a database error
+   */
+  static async #getTotalCategoryCount() {
     try {
-      page = Number(page);
-      limit = Number(limit);
+      const result = await db.query(Queries.getCount());
+      return parseInt(result.rows[0].total, 10);
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
 
-      if (!Number.isInteger(page) || page <= 0) {
-        throw new BadRequestError("Page must be a positive integer");
-      }
-      const MAX_LIMIT = 100;
-      if (!Number.isInteger(limit) || limit <= 0 || limit > MAX_LIMIT) {
-        throw new BadRequestError(`Limit must be an integer between 1 and ${MAX_LIMIT}`);
-      }
+  /**
+  * Retrieves a paginated list of categories from the database.
+  * @param {number} page - The page number
+  * @param {number} limit - The number of categories
+  * @returns {object} - Returns an object with data and pagination info
+  * @throws {BadRequestError} - If there is a database error
+  */ 
+  static async getAllCategories(page = 1, limit = 10) {
+    try {
+      const {
+        page: currentPage,
+        limit: pageSize,
+        offset
+      } = sanitizePagination(page, limit);
 
-      const offset = (page - 1) * limit;
+      const result = await db.query(Queries.getCategoriesPagination(),[limit, offset]);
 
-      const result = await db.query(
-        `SELECT id, category
-         FROM categories
-         ORDER BY id DESC
-         LIMIT $1 OFFSET $2`,
-        [limit, offset]
-      );
-
-      const countRes = await db.query(`SELECT COUNT(*) AS total FROM categories`);
-      const total = parseInt(countRes.rows[0].total, 10);
-      const totalPages = total === 0 ? 0 : Math.max(1, Math.ceil(total / limit));
+      const data = result.rows;
+      const total = await this.#getTotalCategoryCount();
+      const totalPages = Math.ceil(total / limit);
 
       return {
-        categories: result.rows,
+        data,
         pagination: {
-          currentPage: page,
-          pageSize: limit,
+          currentPage,
+          pageSize,
           total,
           totalPages
         }
@@ -70,7 +73,7 @@ class Categories {
 
     } catch (err) {
       if (err instanceof BadRequestError) throw err;
-      throw new BadRequestError('Something went wrong');
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -86,19 +89,13 @@ class Categories {
     try {
       const term = this.#validateCategoryString(searchTerm, "searchTerm");
 
-      const result = await db.query(
-        `SELECT id, category 
-        FROM categories 
-        WHERE category 
-        ILIKE $1`, 
-        [`%${term}%`]
-      );
+      const result = await db.query(Queries.searchCategoryByName(), [`%${term}%`]);
 
       return result.rows;
       
     } catch (err) {
       if (err instanceof BadRequestError) throw err;
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -114,21 +111,15 @@ class Categories {
     try {
       newCategory = this.#validateCategoryString(newCategory);
   
-      const result = await db.query(
-        `INSERT INTO categories (category)
-        VALUES ( LOWER($1) )
-        RETURNING id, category`, 
-        [newCategory]
-      );
+      const result = await db.query(Queries.insertIntoCategory(), [newCategory]);
   
       if (result.rows.length === 0) throw new BadRequestError("Something went wrong");
 
       return result.rows[0];
 
     } catch (err) {
-      if (err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Review for this product already exists");
-      if (err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      if (err.code === '23505' || err instanceof ConflictError) throw new ConflictError("Category already exists");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -148,42 +139,31 @@ class Categories {
       this.#validateId(catId, "category Id");
       updatedCategory = this.#validateCategoryString(updatedCategory, "updatedCategory");
 
-      const existing = await db.query(
-        `SELECT id, category
-        FROM categories 
-        WHERE id = $1`, 
-        [catId]
-      );
+      // throw error if trying to update 'none' category
+      if(catId === 1) {
+        throw new BadRequestError(`Category with id ${catId} cannot be updated`);
+      }
+
+      const existing = await db.query(Queries.doesCategoryExist(),[catId]);
 
       if (existing.rows.length === 0) {
-        throw new NotFoundError(`${updatedCategory} does not exist`);
+        throw new NotFoundError(`Category with id ${catId} does not exist`);
       }
 
       const { category } = existing.rows[0];
-
-      if (category === "none") {
-        throw new BadRequestError(`Category with id ${catId} cannot be updated`);
-      }
 
       if (category === updatedCategory) {
         throw new ConflictError(`${updatedCategory} already exists`);
       }
 ;
-      const result = await db.query(
-        `UPDATE categories 
-        SET category = LOWER($1)
-        WHERE id = $2
-        RETURNING id, category`, 
-        [updatedCategory, catId]
-      );
+      const result = await db.query(Queries.updateCategory(), [updatedCategory, catId]);
 
       return result.rows[0];
       
     } catch (err) {
       if (err.code === '23505') throw new ConflictError("Category already exists");
       if (err instanceof NotFoundError) throw err;
-      if (err instanceof BadRequestError) throw err;
-      throw new BadRequestError('Something went wrong');
+      throw new BadRequestError(err.message);
     }
   }
   
@@ -200,42 +180,13 @@ class Categories {
     try {
       this.#validateId(catId, "category Id");
 
-      const exist = await db.query(
-        `SELECT category 
-        FROM categories 
-        WHERE id = $1`, 
-        [catId]
-      );
+      const exist = await db.query(Queries.getCategory(), [catId]);
 
       if (exist.rows.length === 0) {
         throw new NotFoundError(`Category with id ${catId} not found`);
       }
-      
-      const queryStatement = `WITH all_product_id AS 
-                                ( SELECT p.product_id 
-                                  FROM products p 
-                                  JOIN products_categories pc ON pc.product_id = p.product_id 
-                                  JOIN categories c ON c.id = pc.category_id 
-                                  WHERE c.id = $1
-                                  LIMIT 20 ) 
-                              SELECT 
-                                prod.product_id AS id,
-                                prod.sku,
-                                prod.product_name AS "productName",
-                                prod.product_description AS "productDescription",
-                                prod.price,
-                                prod.stock,
-                                prod.image_url AS "imageURL",
-                                prod.created_at AS "createdAt",
-                                prod.updated_at AS "updatedAt",
-                                ARRAY_AGG(cat.category) AS categories 
-                              FROM products prod 
-                              JOIN products_categories p_c ON p_c.product_id = prod.product_id 
-                              JOIN categories cat ON cat.id = p_c.category_id 
-                              WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
-                              GROUP BY prod.product_id`;
 
-      const result = await db.query(queryStatement, [catId]);
+      const result = await db.query(Queries.getAllCategoryProducts(), [catId]);
 
       return result.rows;
 
