@@ -12,6 +12,7 @@ const {
 const router = require("express").Router();
 
 const validateSchema = require("../middleware/validation/validateSchema");
+const sanitizeCategoryIds = require("../middleware/validation/sanitizeCategoryIds");
 const newCategorySchema = require("../schemas/newCategorySchema.json");
 const updatedCategorySchema = require("../schemas/updateCategorySchema.json");
 
@@ -40,5 +41,6 @@ router
 
 router
   .route('/products/filter')
-  .get(getMultipleCategoryProducts)
+  .get(sanitizeCategoryIds, getMultipleCategoryProducts)
+  
 module.exports = router;
