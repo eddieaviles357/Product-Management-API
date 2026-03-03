@@ -10,7 +10,14 @@ exports.getCategories = async (req, res, next) => {
   try {
     // page/limit pagination to match Products and Reviews responses
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 10;
+    // Validate pagination parameters
+    if (page < 1) {
+      throw new BadRequestError("Page must be greater than 0");
+    }
+    if (limit < 1 || limit > 100) {
+      throw new BadRequestError("Limit must be between 1 and 100");
+    }
 
     const result = await Categories.getAllCategories(page, limit);
 
@@ -107,22 +114,7 @@ exports.getCategoryProducts = async (req, res, next) => {
 // @access    Public
 exports.getMultipleCategoryProducts = async (req, res, next) => {
   try {
-    if (!req.query.ids) {
-      throw new BadRequestError("Query parameter 'ids' is required");
-    }
-
-    // Split “1,2,3” → ["1","2","3"]
-    const rawIds = req.query.ids.split(",");
-
-    // Convert to integers
-    const idArray = rawIds.map(id => {
-      const parsed = Number(id);
-      if (!Number.isInteger(parsed) || parsed <= 0) {
-        throw new BadRequestError("Each category ID must be a positive integer");
-      }
-      return parsed;
-    });
-    const categoryProducts = await Categories.getMultipleCategoryProducts(idArray);
+    const categoryProducts = await Categories.getMultipleCategoryProducts(req.sanitizedCategoryIds);
     
     return res.status(200).json({
       success: true,
@@ -143,13 +135,14 @@ exports.deleteCategory = async (req, res, next) => {
 
     if(isNaN(catId)) throw new BadRequestError("category id must be a number");
     
-    const {success, category} = await Categories.removeCategory(catId);
+    const removedCategory = await Categories.removeCategory(catId);
     
-    const statusCode = success ? 200 : 204;
+    const statusCode = removedCategory[0] ? 200 : 204;
+    const success = removedCategory[0] ? true : false;
 
     return res.status(statusCode).json({ 
       success,
-      result: category
+      result: removedCategory[0]
     });
   } catch (err) {
     return next(err);
