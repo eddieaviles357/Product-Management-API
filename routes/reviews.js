@@ -1,5 +1,6 @@
 "use strict";
 
+// controllers
 const {
   getReviewsForProduct,
   getReview,
@@ -7,13 +8,24 @@ const {
   updateReviewToProduct,
   deleteReviewFromProduct
 } = require("../controllers/reviews");
+
 const router = require("express").Router();
 
+// middleware
+const validateParamId = require("../middleware/validation/validateParamId");
 const validateSchema = require("../middleware/validation/validateSchema");
+const validateUsername = require("../middleware/validation/validateUsername");
+
+// schemas
 const newReviewSchema = require("../schemas/newReviewSchema.json");
 const updateReviewSchema = require("../schemas/updateReviewSchema.json");
 
 const {ensureLoggedIn, ensureUser, ensureUserOrAdmin} = require("../middleware/auth/auth");
+
+// Register param validators
+router.param("id", validateParamId("id"));
+router.param("productId", validateParamId("productId"));
+router.param("username", validateUsername("username"));
 
 router
   .route("/product/:id")

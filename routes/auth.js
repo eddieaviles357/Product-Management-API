@@ -1,12 +1,18 @@
 "user strict";
 
+// controllers
 const {
   registerUser,
   authenticateUser,
   verifyEmail,
 } = require("../controllers/auth");
+
 const router = require("express").Router();
+
+// Middleware
 const validateSchema = require("../middleware/validation/validateSchema");
+
+// Schemas
 const userAuthSchema = require("../schemas/userAuthSchema.json");
 const newUserSchema = require("../schemas/newUserSchema.json");
 const { authLimiter } = require("../middleware/limiter");

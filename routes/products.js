@@ -1,7 +1,6 @@
 "use strict";
 
-/** Routes for Products. */
-
+// Controllers
 const {
   getProducts,
   addProduct,
@@ -13,14 +12,25 @@ const {
 } = require("../controllers/products");
 
 const router = require("express").Router({mergeParams: true});
+
+// Middleware
 const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth/auth");
 const validateSchema = require("../middleware/validation/validateSchema");
+const validatePagination = require("../middleware/validation/validatePagination");
+const validateParamId = require("../middleware/validation/validateParamId");
+
+// Schemas
 const newProductSchema = require("../schemas/newProductSchema.json");
 const updatedProductSchema = require("../schemas/updateProductSchema.json");
 
+// Register param validators
+router.param("id", validateParamId("id"));
+router.param("productId", validateParamId("productId"));
+router.param("categoryId", validateParamId("categoryId"));
+
 router
   .route('/')
-  .get(getProducts)
+  .get(validatePagination,getProducts)
   .post(ensureLoggedIn, ensureAdmin, validateSchema(newProductSchema), addProduct)
 
 router
