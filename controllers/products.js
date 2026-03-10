@@ -8,17 +8,7 @@ const { BadRequestError } = require("../AppError");
 // @access    Public
 exports.getProducts = async (req, res, next) => {
   try {
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    // Validate pagination parameters
-    if (page < 1) {
-      throw new BadRequestError("Page must be greater than 0");
-    }
-    if (limit < 1 || limit > 100) {
-      throw new BadRequestError("Limit must be between 1 and 100");
-    }
-
-    const result = await Products.getProducts(page, limit);
+    const result = await Products.getProducts(req.pagination.page, req.pagination.limit);
 
     return res.status(200).json({
       success: true,
@@ -35,16 +25,10 @@ exports.getProducts = async (req, res, next) => {
 // @access    Public
 exports.getProductById = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
-
-    if (isNaN(id) || id <= 0) {
-      throw new BadRequestError("Product id must be a positive number");
-    }
-
-    const product = await Products.findProductById(id);
+    const product = await Products.findProductById(req.params.id);
 
     if (!product || Object.keys(product).length === 0) {
-      throw new BadRequestError(`Product with id ${id} not found`);
+      throw new BadRequestError(`Product with id ${req.params.id} not found`);
     }
 
     return res.status(200).json({ 
@@ -78,14 +62,8 @@ exports.addProduct = async (req, res, next) => {
 // @access    Private/Admin
 exports.updateProduct = async (req, res, next) => {
   try {
-    const productId = Number(req.params.id);
-
-    if (isNaN(productId) || productId <= 0) {
-      throw new BadRequestError("Product id must be a positive number");
-    }
-
     const productBody = req.body;
-    const updatedProduct = await Products.updateProduct(productId, productBody);
+    const updatedProduct = await Products.updateProduct(req.params.id, productBody);
     
     return res.status(200).json({ 
       success: true, 
@@ -102,14 +80,7 @@ exports.updateProduct = async (req, res, next) => {
 // @access    Private/Admin
 exports.addCategoryToProduct = async (req, res, next) => {
   try {
-    const pId = Number(req.params.productId);
-    const cId = Number(req.params.categoryId);
-
-    if (isNaN(pId) || isNaN(cId) || pId <= 0 || cId <= 0) {
-      throw new BadRequestError("Product id and category id must be positive numbers");
-    }
-
-    const result = await Products.addCategoryToProduct(pId, cId);
+    const result = await Products.addCategoryToProduct(req.params.productId, req.params.categoryId);
 
     return res.status(201).json({ 
       success: true,
@@ -125,14 +96,7 @@ exports.addCategoryToProduct = async (req, res, next) => {
 // @access    Private/Admin
 exports.deleteCategoryFromProduct = async (req, res, next) => {
   try {
-    const pId = Number(req.params.productId);
-    const cId = Number(req.params.categoryId);
-
-    if (isNaN(pId) || isNaN(cId) || pId <= 0 || cId <= 0) {
-      throw new BadRequestError("Product id and category id must be positive numbers");
-    }
-    
-    const success = await Products.removeCategoryFromProduct(pId, cId);
+    const success = await Products.removeCategoryFromProduct(req.params.productId, req.params.categoryId);
 
     const statusCode = success ? 200 : 204;
 
@@ -150,21 +114,15 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
 // @access    Private/Admin
 exports.deleteProductById = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
-    
-    if (isNaN(id) || id <= 0) {
-      throw new BadRequestError("Product id must be a positive number");
-    }
-
-    const isDeleted = await Products.removeProduct(id);
+    const isDeleted = await Products.removeProduct(req.params.id);
 
     const statusCode = isDeleted ? 200 : 204;
 
     return res.status(statusCode).json({ 
       success: isDeleted,
       message: isDeleted 
-        ? `Product with id ${id} deleted successfully` 
-        : `Product with id ${id} not found`,
+        ? `Product with id ${req.params.id} deleted successfully` 
+        : `Product with id ${req.params.id} not found`,
     });
   } catch (err) {
     return next(err);

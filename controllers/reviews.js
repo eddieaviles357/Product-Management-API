@@ -8,24 +8,17 @@ const { BadRequestError } = require("../AppError");
 // @access    Private/Admin ?????????
 exports.getReviewsForProduct = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
-    if (isNaN(id)) throw new BadRequestError("Id must be a number");
-
-    // Pagination input
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-
     // Call updated model function
-    const { data, pagination } = await Reviews.getReviewsForOneProduct(id, page, limit);
-
-    // Calculate average rating (per page of results)
-    const sum = data.reduce((acc, { rating }) => acc + rating, 0);
-    const averageRating = sum / data.length || 0;
+    const { 
+      data,
+      averageRating,
+      pagination 
+    } = await Reviews.getReviewsForOneProduct(req.params.id, req.pagination.page, req.pagination.limit);
 
     return res.status(200).json({
       success: true,
-      pagination,
       averageRating,
+      pagination,
       data,
     });
 
@@ -39,11 +32,7 @@ exports.getReviewsForProduct = async (req, res, next) => {
 // @access    Private/Admin ?????????
 exports.getReview = async (req, res, next) => {
   try {
-    const productId = Number(req.params.productId);
-
-    if(isNaN(productId)) throw new BadRequestError("Id must be a number");
-
-    const review = await Reviews.getSingleReview(productId, req.params.username);
+    const review = await Reviews.getSingleReview(req.params.productId, req.params.username);
 
     return res.status(200).json({
       success: true,
@@ -60,13 +49,9 @@ exports.getReview = async (req, res, next) => {
 // @access    Private/Admin ?????????
 exports.addReviewToProduct = async (req, res, next) => {
   try {
-    const productId = Number(req.params.productId);
-    const username = req.params.username;
     const {review, rating} = req.body;
 
-    if(isNaN(productId)) throw new BadRequestError("Id must be a number");
-
-    const rev = await Reviews.addReview(productId, username, review, rating);
+    const rev = await Reviews.addReview(req.params.productId, req.params.username, review, rating);
 
     return res.status(201).json({
       success: true,
@@ -83,13 +68,9 @@ exports.addReviewToProduct = async (req, res, next) => {
 // @access    Private/Admin ?????????
 exports.updateReviewToProduct = async (req, res, next) => {
   try {
-    const productId = Number(req.params.productId);
-    const username = req.params.username;
     const {review, rating} = req.body;
 
-    if(isNaN(productId)) throw new BadRequestError("Id must be a number");
-
-    const updatedReview = await Reviews.updateReview(productId, username, review, rating);
+    const updatedReview = await Reviews.updateReview(req.params.productId, req.params.username, review, rating);
 
     return res.status(200).json({
       success: true,
@@ -106,10 +87,7 @@ exports.updateReviewToProduct = async (req, res, next) => {
 // // @access    Private/Admin ?????????
 exports.deleteReviewFromProduct = async (req, res, next) => {
   try {
-    const productId = Number(req.params.productId);
-    const username = req.params.username;
-
-    const {success, review} = await Reviews.deleteReview(productId, username);
+    const {success, review} = await Reviews.deleteReview(req.params.productId, req.params.username);
 
     const statusCode = success ? 200 : 204;
 
