@@ -9,9 +9,8 @@ const { BadRequestError } = require("../AppError");
 // @access    Private/Admin ?????????
 exports.createOrder = async (req, res, next) => {
   try {
-    const { username } = req.params;
     const cartOrder = req.body || {};
-    const order = await Orders.create(username, cartOrder);
+    const order = await Orders.create(req.params.username, cartOrder);
 
     return res.status(200).json({success: order});
   } catch (err) {
