@@ -8,18 +8,7 @@ const { BadRequestError } = require("../AppError");
 // @access    Public
 exports.getCategories = async (req, res, next) => {
   try {
-    // page/limit pagination to match Products and Reviews responses
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    // Validate pagination parameters
-    if (page < 1) {
-      throw new BadRequestError("Page must be greater than 0");
-    }
-    if (limit < 1 || limit > 100) {
-      throw new BadRequestError("Limit must be between 1 and 100");
-    }
-
-    const result = await Categories.getAllCategories(page, limit);
+    const result = await Categories.getAllCategories(req.pagination.page, req.pagination.limit);
 
     return res.status(200).json({
       success: true,
@@ -74,12 +63,7 @@ exports.addNewCategory = async (req, res, next) => {
 // @access    Admin
 exports.updateCategory = async (req, res, next) => {
   try {
-    const catId = Number(req.params.categoryId);
-    const updatedCategory = req.body.category;
-
-    if(isNaN(catId)) throw new BadRequestError("category id must be a number");
-
-    const category = await Categories.updateCategory(catId, updatedCategory);
+    const category = await Categories.updateCategory(req.params.categoryId, req.body.category);
     
     return res.status(200).json({
       success: true,
@@ -95,11 +79,7 @@ exports.updateCategory = async (req, res, next) => {
 // @access    Public
 exports.getCategoryProducts = async (req, res, next) => {
   try {
-    const catId = Number(req.params.categoryId);
-
-    if(isNaN(catId)) throw new BadRequestError("category id must be a number");
-
-    const categoryProducts = await Categories.getAllCategoryProducts(catId);
+    const categoryProducts = await Categories.getAllCategoryProducts(req.params.categoryId);
     
     return res.status(200).json({
       success: true,
@@ -131,11 +111,7 @@ exports.getMultipleCategoryProducts = async (req, res, next) => {
 // @access    Admin
 exports.deleteCategory = async (req, res, next) => {
   try {
-    const catId = Number(req.params.categoryId);
-
-    if(isNaN(catId)) throw new BadRequestError("category id must be a number");
-    
-    const removedCategory = await Categories.removeCategory(catId);
+    const removedCategory = await Categories.removeCategory(req.params.categoryId);
     
     const statusCode = removedCategory[0] ? 200 : 204;
     const success = removedCategory[0] ? true : false;
