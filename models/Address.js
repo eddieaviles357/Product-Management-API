@@ -3,8 +3,31 @@
 const db = require("../db");
 const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
+const Queries = require("../helpers/sql/addressQueries");
 
 class Address {
+
+  /** Validates address data
+   * @param {Object} addressData - The address data to validate
+   * @throws {BadRequestError} If any validation fails
+   */
+  static #validateAddressData(addressData) {
+    const { address1, address2, city, state, zipcode } = addressData;
+    // Validate required fields
+    if (!address1 || !city || !state || !zipcode) {
+      throw new BadRequestError("address1, city, state, and zipcode are required");
+    }
+    // Validate state (2 character code)
+    if (typeof state !== "string" || state.length !== 2) {
+      throw new BadRequestError("State must be a 2-character code");
+    }
+    // Validate zipcode format (5 or 9 digits)
+    if (!zipcode || !/^\d{5}(-\d{4})?$/.test(zipcode)) {
+      throw new BadRequestError("Zipcode must be 5 digits or 5+4 format (e.g., 12345 or 12345-6789)");
+    }
+  }
+
+
   /**
    * Get address for a user
    * @param {string} username
@@ -14,32 +37,19 @@ class Address {
    */
   static async getAddress(username) {
     try {
-      if (!username) throw new BadRequestError("Username is required");
-
       const userId = await getUserId(username);
       if (!userId) throw new BadRequestError("User does not exist");
 
-      const query = `SELECT 
-                      id,
-                      user_id AS "userId",
-                      address_1 AS "address1",
-                      address_2 AS "address2",
-                      city,
-                      state,
-                      zipcode
-                    FROM addresses
-                    WHERE user_id = $1`;
-      
-      const result = await db.query(query, [userId]);
+      const result = await db.query(Queries.getAddressInfo(), [userId]);
       
       if (result.rows.length === 0) {
         throw new NotFoundError("Address not found for this user");
       }
 
       return result.rows[0];
+
     } catch (err) {
-      if (err instanceof BadRequestError || err instanceof NotFoundError) throw err;
-      throw new BadRequestError("Something went wrong retrieving address");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -52,60 +62,39 @@ class Address {
    */
   static async upsertAddress(username, addressData) {
     try {
-      if (!username) throw new BadRequestError("Username is required");
-      if (!addressData) throw new BadRequestError("Address data is required");
+      this.#validateAddressData(addressData);
 
       const { address1, address2, city, state, zipcode } = addressData;
-
-      // Validate required fields
-      if (!address1 || !city || !state || !zipcode) {
-        throw new BadRequestError("address1, city, state, and zipcode are required");
-      }
-
-      // Validate state (2 character code)
-      if (typeof state !== "string" || state.length !== 2) {
-        throw new BadRequestError("State must be a 2-character code");
-      }
-
-      // Validate zipcode format (5 or 9 digits)
-      if (!zipcode || !/^\d{5}(-\d{4})?$/.test(zipcode)) {
-        throw new BadRequestError("Zipcode must be 5 digits or 5+4 format (e.g., 12345 or 12345-6789)");
-      }
 
       const userId = await getUserId(username);
       if (!userId) throw new BadRequestError("User does not exist");
 
-      // Check if address exists
-      const checkQuery = `SELECT id FROM addresses WHERE user_id = $1`;
-      const checkResult = await db.query(checkQuery, [userId]);
+      // Check if address exists for this user
+      const checkResult = await db.query(Queries.getAddressId(), [userId]);
 
       let query, values;
       
       if (checkResult.rows.length > 0) {
         // Update existing address
-        query = `UPDATE addresses 
-                 SET address_1 = $1, address_2 = $2, city = $3, state = $4, zipcode = $5
-                 WHERE user_id = $6
-                 RETURNING id, user_id AS "userId", address_1 AS "address1", 
-                          address_2 AS "address2", city, state, zipcode`;
+        query = Queries.updateAddress();
+
         values = [address1, address2 || null, city, state.toUpperCase(), zipcode, userId];
       } else {
         // Create new address
-        query = `INSERT INTO addresses (user_id, address_1, address_2, city, state, zipcode)
-                 VALUES ($1, $2, $3, $4, $5, $6)
-                 RETURNING id, user_id AS "userId", address_1 AS "address1", 
-                          address_2 AS "address2", city, state, zipcode`;
+        query = Queries.insertToAddress();
+
         values = [userId, address1, address2 || null, city, state.toUpperCase(), zipcode];
       }
 
       const result = await db.query(query, values);
+
       return result.rows[0];
+
     } catch (err) {
-      if (err instanceof BadRequestError) throw err;
       if (err.constraint === "addresses_user_id_key") {
         throw new ConflictError("User already has an address");
       }
-      throw new BadRequestError("Error saving address");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -118,13 +107,10 @@ class Address {
    */
   static async deleteAddress(username) {
     try {
-      if (!username) throw new BadRequestError("Username is required");
-
       const userId = await getUserId(username);
       if (!userId) throw new BadRequestError("User does not exist");
 
-      const query = `DELETE FROM addresses WHERE user_id = $1 RETURNING id`;
-      const result = await db.query(query, [userId]);
+      const result = await db.query(Queries.deleteAddress(), [userId]);
 
       if (result.rows.length === 0) {
         throw new NotFoundError("Address not found for this user");
@@ -132,8 +118,8 @@ class Address {
 
       return { success: true, message: "Address deleted successfully" };
     } catch (err) {
-      if (err instanceof BadRequestError || err instanceof NotFoundError) throw err;
-      throw new BadRequestError("Error deleting address");
+      if (err instanceof NotFoundError) throw err;
+      throw new BadRequestError(err.message);
     }
   }
 }
