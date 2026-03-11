@@ -1,5 +1,7 @@
 "use strict";
 
+const { BadRequestError } = require("../../AppError");
+
 const validatePagination = (req, res, next) => {
   const page = Number(req.query.page ?? 1);
   const limit = Number(req.query.limit ?? 10);
