@@ -15,6 +15,7 @@ const router = require("express").Router();
 const validateParamId = require("../middleware/validation/validateParamId");
 const validateSchema = require("../middleware/validation/validateSchema");
 const validateUsername = require("../middleware/validation/validateUsername");
+const validatePagination = require("../middleware/validation/validatePagination");
 
 // schemas
 const newReviewSchema = require("../schemas/newReviewSchema.json");
@@ -29,7 +30,7 @@ router.param("username", validateUsername("username"));
 
 router
   .route("/product/:id")
-  .get(getReviewsForProduct)
+  .get(validatePagination, getReviewsForProduct)
 
 router
   .route("/product/:productId/:username")
