@@ -4,6 +4,7 @@ const db = require("../db.js");
 const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
 const validateProductId = require("../helpers/validateProductId");
+const validateUsername = require("../helpers/validateUsername");
 const ensureProductExistInDB = require("../helpers/isProductInDB");
 const Queries = require("../helpers/sql/reviewsQueries");
 const sanitizePagination = require("../helpers/sanitizePagination");
@@ -37,8 +38,13 @@ class Reviews {
      
       const data = rows.map(({ totalReviews, ...review }) => review);
 
+      // Calculate average rating (per page of results)
+      const sum = data.reduce((acc, { rating }) => acc + rating, 0);
+      const averageRating = sum / data.length || 0;
+      
       return {
         data,
+        averageRating,
         pagination: {
           currentPage,
           pageSize,
@@ -48,7 +54,6 @@ class Reviews {
       };
       
     } catch (err) {
-      if (err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -72,8 +77,6 @@ class Reviews {
 
       return (rows.length === 0) ? {} : rows[0];
     } catch(err) {
-      if(err instanceof BadRequestError) throw err;
-
       if(err instanceof NotFoundError) throw err;
 
       throw new BadRequestError(err.message);
@@ -107,8 +110,6 @@ class Reviews {
       return rows[0];
     } catch (err) {
       if(err.code === '23505') throw new ConflictError("Review for this product already exists");
-      
-      if(err instanceof BadRequestError) throw err;
 
       throw new BadRequestError(err.message);
     }
@@ -132,10 +133,6 @@ class Reviews {
 
       const userId = await getUserId(username);
       
-      /************************************
-       ****** CHECK IF REVIEW EXIST *******
-      ************************************/
-      
       // check if there is already a review in the database to update
       const { rows: reviewExistRows } = await db.query(Queries.doesReviewExist(), [prodId, userId]);
 
@@ -151,10 +148,6 @@ class Reviews {
       // must assign values different names to avoid collisions issues
       const { review: rev } = parsedReview;
 
-      /************************************
-       ********** UPDATE REVIEW ***********
-      ************************************/
-
       // pg statment for updating review
       const updatingReviewValues = [prodId, userId, review, rating, rev];
 
@@ -163,7 +156,6 @@ class Reviews {
       if(rows.length === 0) throw new BadRequestError("Something went wrong");
       return rows[0];
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   };
@@ -192,7 +184,6 @@ class Reviews {
       const result = await db.query(Queries.deleteReview(), [prodId, uId]);
       return (result.rows.length > 0);
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
