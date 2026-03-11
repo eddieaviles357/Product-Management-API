@@ -23,6 +23,9 @@ const validatePagination = require("../middleware/validation/validatePagination"
 const newCategorySchema = require("../schemas/newCategorySchema.json");
 const updatedCategorySchema = require("../schemas/updateCategorySchema.json");
 
+// Register param validators
+router.param("categoryId", validateParamId("categoryId"));
+
 router
   .route('/')
   .get(validatePagination, getCategories)
@@ -30,12 +33,12 @@ router
 
 router
   .route('/:categoryId')
-  .put(ensureLoggedIn, ensureAdmin, validateParamId("categoryId"), validateSchema(updatedCategorySchema), updateCategory)
-  .delete(ensureLoggedIn, ensureAdmin, validateParamId("categoryId"), deleteCategory)
+  .put(ensureLoggedIn, ensureAdmin, validateSchema(updatedCategorySchema), updateCategory)
+  .delete(ensureLoggedIn, ensureAdmin, deleteCategory)
 
 router
   .route('/:categoryId/products')
-  .get(validateParamId("categoryId"), getCategoryProducts)
+  .get(getCategoryProducts)
 
 router
   .route('/search/:searchTerm')
