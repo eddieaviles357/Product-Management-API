@@ -1,6 +1,5 @@
 "use strict";
 
-const { BadRequestError } = require("../../AppError");
 const jsonSchema = require("jsonschema");
 
 const validateSchema = (schema) => (req, res, next) => {
