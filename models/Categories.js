@@ -17,6 +17,14 @@ class Categories {
     }
   }
 
+/**
+  * Validates a category string.
+  * @param {string} str - The category string to validate
+  * @param {string} field - The name of the field being validated (for error messages)
+  * @returns {string} The sanitized category string with non-alphabetic characters removed
+  * @throws {BadRequestError} If newCategory is not a string or is empty
+  * @throws {BadRequestError} If newCategory exceeds 20 characters
+  */
   static #validateCategoryString(str, field = "category") {
     if (typeof str !== "string" || /^\d+$/.test(str)) {
       throw new BadRequestError(`${field} must be a string`);
@@ -81,8 +89,6 @@ class Categories {
   * Retrieves a category by its search term.
   * @param {string} searchTerm - The search term to filter categories
   * @returns {array} Array of categories matching the search term or empty array if no categories found
-  * @throws {BadRequestError} If searchTerm is not a string or is empty
-  * @throws {BadRequestError} If searchTerm exceeds 20 characters
   * @throws {BadRequestError} If an error occurs while querying the database
   */
   static async searchCategory(searchTerm) {
@@ -94,7 +100,6 @@ class Categories {
       return result.rows;
       
     } catch (err) {
-      if (err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -102,8 +107,6 @@ class Categories {
   /** 
   * @param {string} newCategory - The category to be added
   * @returns {object} The newly added category with id and category
-  * @throws {BadRequestError} If newCategory is not a string or is empty
-  * @throws {BadRequestError} If newCategory exceeds 20 characters
   * @throws {BadRequestError} If an error occurs while querying the database
   * @throws {ConflictError} If newCategory already exists in the database
   */
@@ -127,10 +130,8 @@ class Categories {
   * @param {number} catId - The id of the category to be updated
   * @param {string} updatedCategory - The new category name
   * @returns {object} The updated category with id and category
-  * @throws {BadRequestError} If updatedCategory is not a string or is empty
-  * @throws {BadRequestError} If updatedCategory exceeds 20 characters
   * @throws {BadRequestError} If updatedCategory doesn't exist in the database
-  * @throws {BadRequestError} If updatedCategory already exists in the database
+  * @throws {BadRequestError} If updatedCategory is none
   * @throws {BadRequestError} If an error occurs while querying the database
   * @throws {BadRequestError} If category with catId is 'none'
   */
@@ -152,17 +153,17 @@ class Categories {
 
       const { category } = existing.rows[0];
 
+      // Return existing category if the name is the same to avoid unnecessary database query
       if (category === updatedCategory) {
-        throw new ConflictError(`${updatedCategory} already exists`);
+        return existing.rows[0]; 
       }
 ;
       const result = await db.query(Queries.updateCategory(), [updatedCategory, catId]);
-
+      
       return result.rows[0];
       
     } catch (err) {
       if (err.code === '23505') throw new ConflictError("Category already exists");
-      if (err instanceof NotFoundError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -171,28 +172,18 @@ class Categories {
   * Retrieves all products in a category by its id.
   * @param {number} catId - The id of the category
   * @returns {array} Array of products in the category or empty array if no products found
-  * @throws {BadRequestError} If catId is not a number
-  * @throws {BadRequestError} If catId has falsy value
   * @throws {BadRequestError} If an error occurs while querying the database
-  * @throws {NotFoundError} If the category with catId does not exist
   */
   static async getAllCategoryProducts(catId) {
     try {
       this.#validateId(catId, "category Id");
-
-      const exist = await db.query(Queries.getCategory(), [catId]);
-
-      if (exist.rows.length === 0) {
-        throw new NotFoundError(`Category with id ${catId} not found`);
-      }
 
       const result = await db.query(Queries.getAllCategoryProducts(), [catId]);
 
       return result.rows;
 
     } catch (err) {
-      if (err instanceof BadRequestError || err instanceof NotFoundError ) throw err;
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   }
   
@@ -200,8 +191,6 @@ class Categories {
   * Deletes a category by its id.
   * @param {number} catId - The id of the category to be deleted
   * @returns {object} The deleted category and success status
-  * @throws {BadRequestError} If catId is not a number
-  * @throws {BadRequestError} If catId has falsy value
   * @throws {BadRequestError} If an error occurs while querying the database
   * @throws {NotFoundError} If the category with catId does not exist
   * @throws {BadRequestError} If the category with catId is 'none'
@@ -210,37 +199,16 @@ class Categories {
     try {
       this.#validateId(catId, "category Id");
 
-      const check = await db.query(
-        `SELECT id, category 
-        FROM categories 
-        WHERE id = $1`, 
-        [catId]
-      );
-
-      if (check.rows.length === 0) {
-        throw new NotFoundError(`Category with id ${catId} not found`);
+      if(catId === 1) {
+        throw new BadRequestError(`Category cannot be deleted`);
       }
 
-      if (check.rows[0].category === 'none') {
-        throw new BadRequestError(`Category with id ${catId} cannot be deleted`);
-      }
-
-      const result = await db.query(
-        `DELETE 
-        FROM categories 
-        WHERE id = $1
-        RETURNING category`, 
-        [catId]
-      );
+      const result = await db.query(Queries.deleteCategory(), [catId]);
       
-      return {
-        category: result.rows[0] || `Category with id ${catId} not found`,
-        success: !!result.rows.length,
-      };
+      return result.rows;
       
     } catch (err) {
-      if (err instanceof BadRequestError ||err instanceof NotFoundError) throw err;
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -259,38 +227,13 @@ class Categories {
       }
 
       idArray.forEach(id => this.#validateId(id, "category Id"));
-      
-      const queryStatement = `WITH all_product_id AS (
-                                  SELECT p.product_id 
-                                  FROM products p 
-                                  JOIN products_categories pc ON pc.product_id = p.product_id 
-                                  JOIN categories c ON c.id = pc.category_id 
-                                  WHERE c.id = ANY($1::int[])  -- Accepts multiple category IDs
-                              ) 
-                              SELECT 
-                                  prod.product_id AS id,
-                                  prod.sku,
-                                  prod.product_name AS "productName",
-                                  prod.product_description AS "productDescription",
-                                  prod.price,
-                                  prod.stock,
-                                  prod.image_url AS "imageURL",
-                                  prod.created_at AS "createdAt",
-                                  prod.updated_at AS "updatedAt",
-                                  ARRAY_AGG(cat.category) AS categories 
-                              FROM products prod 
-                              JOIN products_categories p_c ON p_c.product_id = prod.product_id 
-                              JOIN categories cat ON cat.id = p_c.category_id 
-                              WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
-                              GROUP BY prod.product_id;`;
 
-      const result = await db.query(queryStatement, [idArray]);
+      const result = await db.query(Queries.getAllCategoryProductsMultipleIds(), [idArray]);
 
       return result.rows;
 
     } catch (err) {
-      if (err instanceof BadRequestError || err instanceof NotFoundError) throw err;
-      throw new BadRequestError();
+      throw new BadRequestError(err.message);
     }
   }
 }
