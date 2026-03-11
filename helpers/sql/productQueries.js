@@ -20,7 +20,8 @@ function getInsertProductQuery() {
           stock,
           image_url AS "imageURL",
           created_at AS "createdAt"
-    )`;
+    )
+  `;
 }
 
 function getDefaultCategoryQuery() {
@@ -30,7 +31,8 @@ function getDefaultCategoryQuery() {
       FROM categories
       WHERE category = 'none'
       LIMIT 1
-    )`;
+    )
+  `;
 }
 
 function getLinkCategoryQuery() {
@@ -40,7 +42,8 @@ function getLinkCategoryQuery() {
       SELECT p.id, c.category_id
       FROM inserted_product p
       CROSS JOIN default_category c
-    )`;
+    )
+  `;
 }
 
 function getAddProductQuery() {
@@ -50,12 +53,9 @@ function getAddProductQuery() {
       ${getDefaultCategoryQuery()},
       ${getLinkCategoryQuery()}
     SELECT * FROM inserted_product
-    `;
+  `;
 }
 
-/* --------------------------------------------
- * UPDATE PRODUCT QUERIES
- * -------------------------------------------- */
 function getProductById() {
   return `
     SELECT
@@ -68,7 +68,7 @@ function getProductById() {
       updated_at AS "updatedAt"
     FROM products 
     WHERE product_id = $1
-    `;
+  `;
 }
 
 function updateProduct() {
@@ -90,11 +90,8 @@ function updateProduct() {
       image_url AS "imageURL",
       created_at AS "createdAt",
       updated_at AS "updatedAt"
-    `;
+  `;
 } 
-/* --------------------------------------------
- * UPDATE PRODUCT QUERIES END
- * -------------------------------------------- */
 
 function getProductsPagination() {
   return `
@@ -102,7 +99,7 @@ function getProductsPagination() {
     FROM get_product_list()
     ORDER BY id DESC
     LIMIT $1 OFFSET $2
-    `;
+  `;
 }
 
 
@@ -114,7 +111,7 @@ function updateProductStock() {
     RETURNING 
     product_id AS id, 
     stock
-    `;
+  `;
 }
 function getSingleProduct() {
   return `
@@ -122,14 +119,14 @@ function getSingleProduct() {
     FROM get_product_list()
     WHERE id = $1
     LIMIT 1
-    `;
+  `;
 }
 
 function getProductListCount() {
   return `
     SELECT COUNT(*) as total 
     FROM get_product_list()
-    `;
+  `;
 }
 
 
@@ -140,14 +137,14 @@ function insertToProductCategories() {
     RETURNING 
     product_id AS "productId", 
     category_id AS "categoryId"
-    `;
+  `;
 }
 
 function deleteCategoryNone() {
   return `
     DELETE FROM products_categories 
     WHERE product_id = $1 AND category_id = 1
-    `;
+  `;
 }
 
 function deleteProductCategory() {
@@ -155,7 +152,7 @@ function deleteProductCategory() {
     DELETE FROM products_categories
     WHERE product_id = $1 AND category_id = $2
     RETURNING product_id AS "productId", category_id AS "categoryId"
-    `;
+  `;
 }
 
 function insertIntoProductCategories() {
@@ -170,7 +167,7 @@ function deleteFromProduct() {
     DELETE FROM products 
     WHERE product_id = $1
     RETURNING product_name AS "productName"
-    `;
+  `;
 }
 
 module.exports = {

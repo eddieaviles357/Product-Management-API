@@ -1,32 +1,32 @@
 function getPrice() {
   return `
-  SELECT price 
-  FROM products 
-  WHERE product_id = $1
-`
+    SELECT price 
+    FROM products 
+    WHERE product_id = $1
+  `;
 }
 
 function getCartItems() {
   return `
-  SELECT 
-    id, 
-    user_id AS "userId", 
-    product_id AS "productId", 
-    quantity,
-    price,
-    added_at AS "addedAt", 
-    updated_at AS "updatedAt"
-  FROM cart
-  WHERE user_id = $1
-`
+    SELECT 
+      id, 
+      user_id AS "userId", 
+      product_id AS "productId", 
+      quantity,
+      price,
+      added_at AS "addedAt", 
+      updated_at AS "updatedAt"
+    FROM cart
+    WHERE user_id = $1
+  `;
 }
 
 function clearCart() {
   return `
-  DELETE FROM cart 
-  WHERE user_id = $1
-  RETURNING *
-`
+    DELETE FROM cart 
+    WHERE user_id = $1
+    RETURNING *
+  `;
 }
 
 function getCartItem() {
@@ -34,7 +34,7 @@ function getCartItem() {
     SELECT quantity 
     FROM cart 
     WHERE user_id = $1 AND product_id = $2
-  `
+  `;
 }
 
 function getExistingCartItem() {
@@ -46,7 +46,7 @@ function getExistingCartItem() {
       price 
     FROM cart 
     WHERE user_id = $1 AND product_id = $2
-  `
+  `;
 }
 
 function insertCartItem() {
@@ -58,7 +58,7 @@ function insertCartItem() {
       product_id AS "productId", 
       quantity, 
       price
-  `
+  `;
 }
 
 function updateCartItem() {
@@ -71,7 +71,7 @@ function updateCartItem() {
       product_id AS "productId", 
       quantity, 
       price
-  `
+  `;
 }
 
 function deleteCartItem() {
@@ -79,7 +79,7 @@ function deleteCartItem() {
     DELETE FROM cart 
     WHERE user_id = $1 AND product_id = $2
     RETURNING product_id AS "productId"
-  `
+  `;
 }
 
 module.exports = {

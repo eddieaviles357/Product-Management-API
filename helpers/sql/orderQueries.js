@@ -5,7 +5,7 @@ function insertIntoOrderProducts() {
     INSERT INTO order_products(order_id, product_id, quantity, total_amount)
     VALUES($1, $2, $3, $4)
     RETURNING id
-    `;
+  `;
 }
 
 function getTotalAmount() {
@@ -24,7 +24,7 @@ function getOrderById() {
     FROM orders O 
     JOIN order_products OP ON O.id = OP.order_id
     WHERE O.id = $1
-    `;
+  `;
 }
 
 function insertIntoOrders() {
@@ -32,7 +32,7 @@ function insertIntoOrders() {
     INSERT INTO orders(user_id, total_amount) 
     VALUES($1, $2) 
     RETURNING id
-    `;
+  `;
 }
 
 module.exports = {

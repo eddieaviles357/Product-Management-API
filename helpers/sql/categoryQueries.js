@@ -5,7 +5,7 @@ function getCategoriesPagination() {
     FROM categories
     ORDER BY id DESC
     LIMIT $1 OFFSET $2
-    `;
+  `;
 }
 
 function getCount() {
@@ -20,7 +20,8 @@ function searchCategoryByName() {
     SELECT id, category 
     FROM categories 
     WHERE category 
-    ILIKE $1`;
+    ILIKE $1
+  `;
 }
 
 function insertIntoCategory() {
@@ -36,7 +37,7 @@ function doesCategoryExist() {
     SELECT id, category
     FROM categories 
     WHERE id = $1
-    `;
+  `;
 }
 
 function updateCategory() {
@@ -45,7 +46,7 @@ function updateCategory() {
     SET category = LOWER($1)
     WHERE id = $2
     RETURNING id, category
-    `;
+  `;
 }
 
 function getCategory() {
@@ -53,7 +54,7 @@ function getCategory() {
     SELECT category 
     FROM categories 
     WHERE id = $1
-    `;
+  `;
 }
 
 function getAllCategoryProducts() {
@@ -108,7 +109,8 @@ function getAllCategoryProductsMultipleIds() {
     JOIN products_categories p_c ON p_c.product_id = prod.product_id 
     JOIN categories cat ON cat.id = p_c.category_id 
     WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
-    GROUP BY prod.product_id;`;
+    GROUP BY prod.product_id;
+  `;
 }
 
 function deleteCategory() {
