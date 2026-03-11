@@ -1,5 +1,7 @@
 "use strict";
 
+const { BadRequestError } = require("../../AppError");
+
 const validateParamId = (paramName) => (req, res, next) => {
   const value = Number(req.params[paramName]);
 
