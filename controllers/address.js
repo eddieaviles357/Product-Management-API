@@ -9,8 +9,7 @@ const Address = require("../models/Address");
  */
 exports.getAddress = async (req, res, next) => {
   try {
-    const { username } = req.params;
-    const address = await Address.getAddress(username);
+    const address = await Address.getAddress(req.params.username);
 
     return res.status(200).json({ success: true, address });
   } catch (err) {
@@ -25,9 +24,7 @@ exports.getAddress = async (req, res, next) => {
  */
 exports.upsertAddress = async (req, res, next) => {
   try {
-    const { username } = req.params;
-    const addressData = req.body;
-    const address = await Address.upsertAddress(username, addressData);
+    const address = await Address.upsertAddress(req.params.username, req.body);
 
     return res.status(200).json({ success: true, address });
   } catch (err) {
@@ -42,8 +39,7 @@ exports.upsertAddress = async (req, res, next) => {
  */
 exports.deleteAddress = async (req, res, next) => {
   try {
-    const { username } = req.params;
-    const result = await Address.deleteAddress(username);
+    const result = await Address.deleteAddress(req.params.username);
 
     return res.status(200).json(result);
   } catch (err) {
