@@ -10,8 +10,7 @@ const Cart = require("../models/Cart");
   */
 exports.getCart = async (req, res, next) => {
   try {
-    const {username} = req.params;
-    const result = await Cart.get(username);
+    const result = await Cart.get(req.params.username);
 
     return res.status(200).json({success: true, result});
   } catch (err) {
@@ -27,8 +26,7 @@ exports.getCart = async (req, res, next) => {
  */
 exports.clearCart = async (req, res, next) => {
   try {
-    const {username} = req.params;
-    const success = await Cart.clear(username);
+    const success = await Cart.clear(req.params.username);
 
     const message = success ? "Cart cleared" : "Nothing to remove";
 
@@ -48,9 +46,8 @@ exports.clearCart = async (req, res, next) => {
  */
 exports.addToCart = async (req, res, next) => {
   try {
-    const {username, productId} = req.params;
     const {quantity} = req?.body;
-    const result = await Cart.addToCart(username, productId, quantity);
+    const result = await Cart.addToCart(req.params.username, req.params.productId, quantity);
 
     return res.status(201).json({success: true, result})
   } catch (err) {
@@ -68,10 +65,8 @@ exports.addToCart = async (req, res, next) => {
  */
 exports.updateCartItemQty = async (req, res, next) => {
   try {
-    const {username, productId} = req.params;
     const {quantity} = req?.body;
-
-    const result = await Cart.updateCartItemQty(username, productId, quantity);
+    const result = await Cart.updateCartItemQty(req.params.username, req.params.productId, quantity);
 
     return res.status(200).json({success: true, result})
   } catch (err) {
@@ -82,9 +77,7 @@ exports.updateCartItemQty = async (req, res, next) => {
 
 exports.deleteCartItem = async (req, res, next) => {
   try {
-    const {username, productId} = req.params;
-    
-    const result = await Cart.removeCartItem(username, productId);
+    const result = await Cart.removeCartItem(req.params.username, req.params.productId);
 
     return res.status(200).json({success: true, result})
   } catch (err) {
