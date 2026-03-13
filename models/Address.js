@@ -7,6 +7,15 @@ const Queries = require("../helpers/sql/addressQueries");
 
 class Address {
 
+  /**
+   * @typedef {object} addressData
+   * @property {string} address1
+   * @property {string} [address2]
+   * @property {string} city
+   * @property {string} state
+   * @property {string} zipcode
+   */
+
   /** Validates address data
    * @param {Object} addressData - The address data to validate
    * @throws {BadRequestError} If any validation fails
@@ -53,6 +62,15 @@ class Address {
     }
   }
 
+  /**
+   * @typedef {object} addressData
+   * @property {string} address1
+   * @property {string} [address2]
+   * @property {string} city
+   * @property {string} state
+   * @property {string} zipcode
+   */
+  
   /**
    * Create or update address for a user
    * @param {string} username
