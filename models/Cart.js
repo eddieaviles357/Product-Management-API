@@ -3,16 +3,7 @@
 const db = require("../db");
 const {BadRequestError} = require("../AppError");
 const getUserId = require("../helpers/getUserId");
-const {
-  getPrice,
-  getCartItems,
-  clearCart,
-  getCartItem,
-  getExistingCartItem,
-  insertCartItem,
-  updateCartItem,
-  deleteCartItem
-} = require("../helpers/sql/cartQueries");
+const Queries = require("../helpers/sql/cartQueries");
 // const Product = require("./Products");
 
 class Cart {
@@ -23,20 +14,14 @@ class Cart {
    */
   static async _getPrice(productId) {
     try {
-      // get product price
-      if(productId === null) {
-        throw new BadRequestError(`Invalid productId provided`); // ensure productId is valid
-      }
-
-      const result = await db.query(getPrice(), [productId]);
+      const result = await db.query(Queries.getPrice(), [productId]);
       if (result.rows.length === 0) return null;
       
       // price from db is returned as a string we have to cast to Int
       return Number(result.rows[0].price);
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -50,19 +35,14 @@ class Cart {
      or [] 
     */
     try {
-      if(!username) {
-        throw new BadRequestError(`Invalid username provided`);
-      }
-
       const userId = await getUserId(username);
 
-      const result = await db.query(getCartItems(), [userId]);
+      const result = await db.query(Queries.getCartItems(), [userId]);
 
-      return result.rows.length ? result.rows : [];
+      return result.rows;
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -73,19 +53,14 @@ class Cart {
    */
   static async clear (username) {
     try {
-      if(!username) {
-        throw new BadRequestError(`Invalid username provided`);
-      }
-
       const userId = await getUserId(username);
 
-      const removedResult = await db.query(clearCart(), [userId]);
+      const removedResult = await db.query(Queries.clearCart(), [userId]);
       
-      return (removedResult.rows.length > 0) ? true : false; 
+      return removedResult.rows.length > 0; 
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -98,10 +73,6 @@ class Cart {
    */
   static async addToCart(username, productId, quantity = 1) {
     try {
-      if(!username) {
-        throw new BadRequestError(`Invalid username provided`);
-      }
-
       const userId = await getUserId(username);
 
       const price = await Cart._getPrice(productId);
@@ -110,20 +81,24 @@ class Cart {
         throw new BadRequestError(`Product ${productId} does not exist`); // ensure the product exists in db
       }
 
-      const totalPrice = price * quantity; // multiply the price by the quantity to get the total price for the cart item
+      // const totalPrice = price * quantity; // multiply the price by the quantity to get the total price for the cart item
 
       // If item already exists, return it
-      const cartItemResult = await db.query(getExistingCartItem(), [userId, productId]);
-      if(cartItemResult.rows.length > 0) return cartItemResult.rows[0];
+      const cartItemResult = await db.query(Queries.getExistingCartItem(), [userId, productId]);
 
-      // insert new item
-      const cartResult = await db.query(insertCartItem(), [userId, productId, quantity, price]);
+      if (cartItemResult.rows.length > 0) {
+        return cartItemResult.rows[0];
 
-      return cartResult.rows[0];
+      } else {
+        // insert new item
+        const cartResult = await db.query(Queries.insertCartItem(), [userId, productId, quantity, price]);
+  
+        return cartResult.rows[0];
+      }
+
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -137,10 +112,6 @@ class Cart {
    */
   static async updateCartItemQty(username, productId, quantity = 0) {
     try {
-      if(!username) {
-        throw new BadRequestError(`Invalid username provided`);
-      }
-
       const userId = await getUserId(username);
 
       const price = await Cart._getPrice(productId);
@@ -150,7 +121,7 @@ class Cart {
       }
       
       // get cart item details, if no data exist throw error
-      const existing = await db.query(getCartItem(), [userId, productId]);
+      const existing = await db.query(Queries.getCartItem(), [userId, productId]);
 
       if (existing.rows.length === 0) {
         throw new BadRequestError(`Nothing to update`);
@@ -161,19 +132,18 @@ class Cart {
 
       if (newQty <= 0) {
         // delete the cart item if quantity is less than or equal to zero
-        await db.query(deleteCartItem(), [userId, productId]);
+        await db.query(Queries.deleteCartItem(), [userId, productId]);
         return {};
       }
 
       const newPrice = price * newQty;
 
-      const update = await db.query(updateCartItem(), [userId, productId, newQty, newPrice]);
+      const update = await db.query(Queries.updateCartItem(), [userId, productId, newQty, newPrice]);
 
       return update.rows[0] || {}; // return empty object if nothing was updated
       
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -185,21 +155,20 @@ class Cart {
    */
   static async removeCartItem (username, productId) {
     try {
-      if(!username) {
-        throw new BadRequestError(`Invalid username provided`);
-      }
-
       const userId = await getUserId(username);
 
-      const result = await db.query(deleteCartItem(), [userId, productId]);
+      const result = await db.query(Queries.deleteCartItem(), [userId, productId]);
 
-      if (result.rows.length === 0) return 'Nothing to delete';
-      
-      return result.rows[0].productId;
+      if (result.rows.length === 0) {
+        return 'Nothing to delete';
+
+      } else {
+        return result.rows[0].productId;
+
+      }
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
-      throw new BadRequestError("Something went wrong");
+      throw new BadRequestError(err.message);
     }
   }
 }
