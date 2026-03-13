@@ -50,7 +50,6 @@ class Users {
       
     } catch (err) {
         if(err.code === '23505' || err instanceof ConflictError) throw new ConflictError("User already exists");
-        if(err instanceof BadRequestError) throw err;
         throw new BadRequestError(err.message);
     }
   }
@@ -90,7 +89,6 @@ class Users {
       
     } catch (err) {
       if(err instanceof UnauthorizedError) throw err;
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
 

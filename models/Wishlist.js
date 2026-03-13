@@ -8,8 +8,6 @@ const {
 } = require("../AppError");
 
 const getUserId = require("../helpers/getUserId");
-const validateUsername = require("../helpers/validateUsername");
-const validateProductId = require("../helpers/validateProductId");
 const ensureProductExistInDB = require("../helpers/isProductInDB");
 const Queries = require("../helpers/sql/wishListQueries");
 
@@ -22,8 +20,6 @@ class Wishlist {
    */
   static async getWishlist(username) {
     try {
-      validateUsername(username);
-
       const userId = await getUserId(username);
 
       // Get wishlist using user id
@@ -31,7 +27,6 @@ class Wishlist {
       
       return wishlistValues.rows;
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -61,10 +56,6 @@ class Wishlist {
    */
   static async addProduct(username, productId) {
     try {
-      validateUsername(username);
-
-      productId = validateProductId(productId);
-
       const userId = await getUserId(username);
 
       // Verify product exists in products table
@@ -76,7 +67,6 @@ class Wishlist {
       return wishlistValues.rows[0];
     } catch (err) {
       if(err.code === '23505') throw new ConflictError("Product already exists in wishlist");
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -91,10 +81,6 @@ class Wishlist {
    */
   static async removeProductFromWishlist(username, productId) {
     try {
-      validateUsername(username);
-
-      productId = validateProductId(productId);
-
       const userId = await getUserId(username);
 
       // Delete product from wishlist using user id and product id
@@ -103,7 +89,6 @@ class Wishlist {
       // if no rows were removed then we will return false
       return (removedResult.rowCount > 0);
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -116,8 +101,6 @@ class Wishlist {
    */
   static async removeAll(username) {
     try {
-      validateUsername(username);
-
       const userId = await getUserId(username);
       
       // Clear entire wishlist using user id
@@ -128,7 +111,6 @@ class Wishlist {
       return rowsRemoved > 0;
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }

@@ -16,6 +16,7 @@ class Products {
     try {
       const result = await db.query(Queries.getProductListCount());
       return parseInt(result.rows[0].total, 10);
+
     } catch (err) {
       throw new BadRequestError(err.message);
     }
@@ -53,7 +54,6 @@ class Products {
       };
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -66,16 +66,11 @@ class Products {
    */
   static async findProductById(id) {
     try {
-      if (!id || id <= 0) {
-        throw new BadRequestError("Product id must be a positive number");
-      }
-
       const result = await db.query(Queries.getSingleProduct(), [id]);
       
       return result.rows.length > 0 ? result.rows[0] : {};
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -126,21 +121,19 @@ class Products {
    */
   static async updateProductStock(id, stock) {
     try {
-      if ( 
-        (!id && id !== 0) || 
-        stock === undefined || 
-        stock === null
-      ) {
-        throw new BadRequestError("Invalid id or stock");
+      if ( stock === undefined || stock === null) {
+        throw new BadRequestError("Invalid stock");
       }
 
       const result = await db.query(Queries.updateProductStock(), [stock, id]);
   
       if(result.rows.length === 0) {
         throw new BadRequestError("Something went wrong updating stock");
-      }
 
-      return result.rows[0];
+      } else {
+        return result.rows[0];
+        
+      }
 
     } catch (err) {
       if(err.code === '23514') throw new BadRequestError(`Product ${id} is out of stock`);
@@ -157,10 +150,6 @@ class Products {
    */
   static async updateProduct(id, productBody) {
     try {  
-      if(!id || id <= 0) {
-        throw new BadRequestError("Product id must be a positive number");
-      }
-
       const existingProductQueryResults = await db.query(Queries.getProductById(), [id]);
   
       if(existingProductQueryResults.rows.length === 0) {
@@ -234,10 +223,6 @@ class Products {
    */
   static async addCategoryToProduct(productId, categoryId) {
     try {
-      if(!productId || !categoryId || productId <= 0 || categoryId <= 0) {
-        throw new BadRequestError("Product id and category id must be positive numbers");
-      }
-
       // confirm product exists in db
       const product = await this.findProductById(productId);
 
@@ -273,11 +258,8 @@ class Products {
    */
   static async removeCategoryFromProduct(productId, categoryId) {
     try {
-      if (!productId || !categoryId || productId <= 0 || categoryId <= 0) {
-        throw new BadRequestError("Product id and category id must be positive numbers");
-      }
-
       const product = await this.findProductById(productId);
+      
       if (!product || !product.categories) {
         return false;
       }
@@ -286,16 +268,20 @@ class Products {
 
       const deleteResult = await db.query(Queries.deleteProductCategory(), [productId, categoryId]);
 
-      if (deleteResult.rows.length === 0) return false;
+      if (deleteResult.rows.length === 0) {
+        return false;
 
-      const remainingCount = initialCount - 1;
+      } else {
+        const remainingCount = initialCount - 1;
+  
+        // If no categories remain, add the default "none" category back to the product
+        if (remainingCount === 0) {
+          await db.query(Queries.insertIntoProductCategories(), [productId]);
+        }
+  
+        return true;
 
-      // If no categories remain, add the default "none" category back to the product
-      if (remainingCount === 0) {
-        await db.query(Queries.insertIntoProductCategories(), [productId]);
       }
-
-      return true;
 
     } catch (err) {
       throw new BadRequestError(err.message);
@@ -310,10 +296,6 @@ class Products {
    */
   static async removeProduct(id) {
     try {
-      if (!id || id <= 0) {
-        throw new BadRequestError("Product id must be a positive number");
-      }
-
       // Delete product
       const result = await db.query(Queries.deleteFromProduct(), [id]);
 

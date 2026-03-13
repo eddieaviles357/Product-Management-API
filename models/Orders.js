@@ -28,7 +28,6 @@ class Orders {
       return result.rows[0].id;
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   };
@@ -48,7 +47,6 @@ class Orders {
       return result.rows[0].totalAmount;
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -70,7 +68,6 @@ class Orders {
       return {totalAmount, orderItems: result.rows };
       
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }
@@ -124,7 +121,6 @@ class Orders {
       return orderProductIds;
 
     } catch (err) {
-      if(err instanceof BadRequestError) throw err;
       throw new BadRequestError(err.message);
     }
   }

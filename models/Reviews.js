@@ -3,9 +3,6 @@
 const db = require("../db.js");
 const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
-const validateProductId = require("../helpers/validateProductId");
-const validateUsername = require("../helpers/validateUsername");
-const ensureProductExistInDB = require("../helpers/isProductInDB");
 const Queries = require("../helpers/sql/reviewsQueries");
 const sanitizePagination = require("../helpers/sanitizePagination");
 
@@ -22,8 +19,6 @@ class Reviews {
    */
   static async getReviewsForOneProduct(prodId, page = 1, limit = 10) {
     try {
-      validateProductId(prodId);
-
       const { 
         page: currentPage, 
         limit: pageSize, 
@@ -67,13 +62,9 @@ class Reviews {
    */
   static async getSingleReview(productId, username) {
     try{
-      const pId = validateProductId(productId);
-
-      validateUsername(username);
-
       const uId = await getUserId(username);
       
-      const { rows } = await db.query(Queries.getSingleReview(), [pId, uId]);
+      const { rows } = await db.query(Queries.getSingleReview(), [productId, uId]);
 
       return (rows.length === 0) ? {} : rows[0];
     } catch(err) {
@@ -95,7 +86,7 @@ class Reviews {
    */
   static async addReview(prodId, username, review, rating) { 
     try {
-      if(!prodId || !username || !review || !rating) throw new BadRequestError("Missing data");
+      if(!review || !rating) throw new BadRequestError("Missing data");
 
       const userId = await getUserId(username);
 
@@ -128,7 +119,6 @@ class Reviews {
    */
   static async updateReview(prodId, username, review, rating) { 
     try {
-      if(!prodId || !username) throw new BadRequestError("Missing data");
       if(!review && !rating) throw new BadRequestError("Missing data");
 
       const userId = await getUserId(username);
@@ -155,6 +145,7 @@ class Reviews {
 
       if(rows.length === 0) throw new BadRequestError("Something went wrong");
       return rows[0];
+
     } catch (err) {
       throw new BadRequestError(err.message);
     }
@@ -171,8 +162,6 @@ class Reviews {
    */
   static async deleteReview(prodId, username) {
     try {
-      if(!prodId || !username) throw new BadRequestError("Missing data");
-
       const uId = await getUserId(username);
       
       
@@ -182,6 +171,7 @@ class Reviews {
       // if(reviewExistRows.length === 0) throw new BadRequestError("No review to delete");
   
       const result = await db.query(Queries.deleteReview(), [prodId, uId]);
+      
       return (result.rows.length > 0);
     } catch (err) {
       throw new BadRequestError(err.message);
