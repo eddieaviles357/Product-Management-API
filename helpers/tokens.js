@@ -7,7 +7,6 @@ const crypto = require("crypto");
 const { promisify } = require("util");
 
 const jwtSign = promisify(jwt.sign);
-const validateUsername = require("./validateUsername");
 
 // return signed JWT token from user data
 const createToken = async (user) => {
@@ -19,7 +18,7 @@ const createToken = async (user) => {
 
   const { username, isAdmin } = user;
 
-  validateUsername(username);
+  if (!username) throw new BadRequestError("Username is required to create a token");
 
   if (isAdmin === undefined) {
     throw new BadRequestError("isAdmin property is required");
