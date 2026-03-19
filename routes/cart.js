@@ -22,14 +22,14 @@ router.param("username", validateUsername("username"));
 
 router
   .route("/:username")
-  .get(ensureLoggedIn, ensureAdmin, getCart)
-  .delete(ensureLoggedIn, ensureAdmin, clearCart)
+  .get(ensureUser,ensureLoggedIn, getCart)
+  .delete(ensureUser, ensureLoggedIn, clearCart)
   
 router
   .route("/:username/:productId")
-  .post(ensureLoggedIn, ensureAdmin, addToCart)
-  .put(ensureLoggedIn, ensureAdmin, updateCartItemQty)
-  .delete(ensureLoggedIn, ensureAdmin, deleteCartItem)
+  .post(ensureUser, ensureLoggedIn, addToCart)
+  .put(ensureUser, ensureLoggedIn, updateCartItemQty)
+  .delete(ensureUser, ensureLoggedIn, deleteCartItem)
 
 
 module.exports = router;
