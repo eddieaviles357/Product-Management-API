@@ -78,7 +78,7 @@ describe("Wishlist Model", function () {
 
 
     test("no products in wishlist", async function () {
-      addTestUser();
+      await addTestUser();
       const currentUser = await User.authenticate(testuser, "password");
       const token = await createToken(currentUser);
 
@@ -132,7 +132,7 @@ describe("Wishlist Model", function () {
 
   describe("addToWishlist", function () {
     test("works", async function () {
-      addTestUser();
+      await addTestUser();
       const currentUser = await User.authenticate(testuser, "password");
       const token = await createToken(currentUser);
 
@@ -288,7 +288,7 @@ describe("Wishlist Model", function () {
     });
 
     test("product not found in wishlist", async function () {
-      addTestUser();
+      await addTestUser();
       const currentUser = await User.authenticate(testuser, "password");
       const token = await createToken(currentUser);
 
@@ -372,7 +372,7 @@ describe("Wishlist Model", function () {
     });
 
     test("nothing to remove", async function () {
-      addTestUser();
+      await addTestUser();
       const currentUser = await User.authenticate(testuser, "password");
       const token = await createToken(currentUser);
 

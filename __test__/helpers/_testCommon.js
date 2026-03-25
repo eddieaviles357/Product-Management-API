@@ -17,6 +17,7 @@ async function commonBeforeAll() {
   await db.query("DELETE FROM categories");
   await db.query("DELETE FROM products_categories");
   await db.query("DELETE FROM users");
+  await db.query("DELETE FROM email_verification_tokens")
   await db.query("DELETE FROM addresses");
   await db.query("DELETE FROM reviews");
   await db.query("DELETE FROM wishlist");
