@@ -107,6 +107,8 @@ CREATE TABLE orders (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded')),
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
