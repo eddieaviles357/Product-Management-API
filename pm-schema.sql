@@ -80,13 +80,6 @@ CREATE TABLE reviews (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-
-
-
-
-
-
-
 CREATE TABLE wishlist (
   PRIMARY KEY (user_id, product_id),
   user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
@@ -109,14 +102,21 @@ CREATE TABLE orders (
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded')),
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+/* =========================================================
+   Provider key fields are left out for now, in a real life app 
+   we would use these fields to keep track of payment provider 
+   details for refunds, etc.
+   ========================================================= */
 CREATE TABLE order_products (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
-  product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
+  product_id INTEGER NOT NULL REFERENCES products (id),
   quantity INTEGER NOT NULL,
+  -- provider TEXT NOT NULL, -- paypal, etc.
   total_amount NUMERIC(7,2) NOT NULL CHECK(total_amount > 0.00),
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -125,10 +125,31 @@ CREATE TABLE payment_details (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
   amount NUMERIC(7,2) NOT NULL CHECK(amount > 0.00),
-  status BOOLEAN NOT NULL DEFAULT false,
+  status TEXT NOT NULL
+    CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+/* =========================================================
+   Shipment table is left out for now, in a real life app we 
+   would use this table to keep track of shipments.
+   ========================================================= */
+
+-- CREATE TABLE shipments (
+--   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+--   order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+
+--   carrier TEXT, -- UPS, FedEx, etc.
+--   tracking_number TEXT,
+
+--   status TEXT
+--     CHECK (status IN ('pending', 'shipped', 'in_transit', 'delivered')),
+
+--   shipped_at TIMESTAMP,
+--   delivered_at TIMESTAMP
+-- );
+
 /* =========================================================
    UPDATED_AT TRIGGERS
    ========================================================= */
@@ -149,11 +170,15 @@ CREATE TRIGGER update_reviews_updated_at
 BEFORE UPDATE ON reviews
 FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 
-CREATE TRIGGER update_reviews_updated_at
+CREATE TRIGGER update_cart_updated_at
 BEFORE UPDATE ON cart
 FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 
-CREATE TRIGGER update_reviews_updated_at
+CREATE TRIGGER update_orders_updated_at
+BEFORE UPDATE ON orders
+FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+
+CREATE TRIGGER update_payment_details_updated_at
 BEFORE UPDATE ON payment_details
 FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 
