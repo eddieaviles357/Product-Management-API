@@ -95,6 +95,7 @@ CREATE TABLE cart (
   added_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+-- users → orders → order_items → payments ( omitted ) → shipments
 
 CREATE TABLE orders (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -106,17 +107,11 @@ CREATE TABLE orders (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-/* =========================================================
-   Provider key fields are left out for now, in a real life app 
-   we would use these fields to keep track of payment provider 
-   details for refunds, etc.
-   ========================================================= */
 CREATE TABLE order_products (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
   product_id INTEGER NOT NULL REFERENCES products (id),
   quantity INTEGER NOT NULL,
-  -- provider TEXT NOT NULL, -- paypal, etc.
   total_amount NUMERIC(7,2) NOT NULL CHECK(total_amount > 0.00),
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -124,7 +119,8 @@ CREATE TABLE order_products (
 CREATE TABLE payment_details (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
-  amount NUMERIC(7,2) NOT NULL CHECK(amount > 0.00),
+  amount NUMERIC(10,2) NOT NULL CHECK(amount > 0.00),
+  provider TEXT NOT NULL, -- paypal, stripe, etc.
   status TEXT NOT NULL
     CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -148,6 +144,18 @@ CREATE TABLE payment_details (
 
 --   shipped_at TIMESTAMP,
 --   delivered_at TIMESTAMP
+-- );
+
+/* =========================================================
+   order_status_history table is left out for now, in a real
+   life app we would use this table for auditing.
+   ========================================================= */
+
+-- CREATE TABLE order_status_history (
+--   id SERIAL PRIMARY KEY,
+--   order_id INTEGER REFERENCES orders(id),
+--   status TEXT,
+--   changed_at TIMESTAMP DEFAULT NOW()
 -- );
 
 /* =========================================================
