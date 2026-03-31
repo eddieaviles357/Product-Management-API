@@ -35,9 +35,18 @@ function insertIntoOrders() {
   `;
 }
 
+function updateOrders() {
+  return `
+    UPDATE orders
+    SET status = 'paid'
+    WHERE id = $1
+  `;
+}
+
 module.exports = {
   insertIntoOrderProducts,
   insertIntoOrders,
   getTotalAmount,
-  getOrderById
+  getOrderById,
+  updateOrders
 }
