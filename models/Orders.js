@@ -8,47 +8,51 @@ const Queries = require("../helpers/sql/orderQueries");
 class Orders {
   /**
    * Inserts a product into the order_products table
-   * @param {number} orderId
-   * @param {object} queryValues - contains productId, quantity, and price
-   * @return {number} - returns the id of the inserted order_product
-   * @throws {BadRequestError} - if there is an error in the query
+   * @param {number} orderId - the ID of the order to which the product belongs
+   * @param {CartItem[]} cart - array of cart items - contains an array of products with productId, quantity, and price
+   * @returns {void}
    */
-  static async #insertOrderProducts(orderId, queryValues) {
-    try {
-      const {
-        productId, 
-        quantity, 
-        price
-      } = queryValues;
+  static async #insertOrderProducts(orderId, cart) {
+    const values = [];
+    const placeholders = [];
 
-      const values = [orderId, productId, quantity, price];
-      
-      const {result} = await db.query(Queries.insertIntoOrderProducts(), values);
+    cart.forEach( (item, i) => {
+      const idx = i * 4; // 4 values per item
+      placeholders.push(
+        `($${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4})`
+      );
+      values.push(orderId, item.productId, item.quantity, item.price);
+    });
 
-      return result.rows[0].id;
-
-    } catch (err) {
-      throw new BadRequestError(err.message);
-    }
+    await db.query(
+      `INSERT INTO order_products(order_id, product_id, quantity, total_amount) 
+        VALUES ${placeholders.join(", ")}`,
+        values
+    ); 
   };
 
   /**
    * Retrieves an order by its ID
    * @param {number} orderId - the ID of the order to retrieve
    * @returns {number} - returns the total amount of the order
-   * @throws {BadRequestError} - if the order is not found or if there is an error in the query
    */
   static async #getOrderTotalAmount(orderId) {
-    try {
-      const result = await db.query(Queries.getTotalAmount(), [orderId]);
+    const result = await db.query(Queries.getTotalAmount(), [orderId]);
+    if (result.rows.length === 0) throw new BadRequestError("Order not found");
 
-      if (result.rows.length === 0) throw new BadRequestError("Order not found");
+    return result.rows[0].totalAmount;
+  }
 
-      return result.rows[0].totalAmount;
-
-    } catch (err) {
-      throw new BadRequestError(err.message);
-    }
+  /**
+   * Deletes cart items for a user
+   * @param {number} userId - the ID of the user whose cart items should be deleted
+   * @returns {void}
+   */
+  static async #deleteCartItems(userId) {
+    await db.query(
+      `DELETE FROM cart WHERE user_id = $1`,
+      [userId]
+    );
   }
 
   /**
@@ -73,52 +77,46 @@ class Orders {
   }
 
   /**
+   * @typedef {object} CartItem
+   * @property {number} id
+   * @property {number} userId
+   * @property {number} productId
+   * @property {number} quantity
+   * @property {string} price
+   * @property {string} addedAt - ISO date string
+   * @property {string} updatedAt - ISO date string
+   */
+  /**
    * Creates a new order in the database
    * @param {string} username - the username of the user creating the order
-   * @param {array} cart - contains an array of products with productId, quantity, and price
+   * @param {CartItem[]} cart - array of cart items - contains an array of products with productId, quantity, and price
    * @returns {array} - returns an array of objects containing the inserted order and order_products
    */
   static async create(username, {cart}) {
     try {
       const userId = await getUserId(username);
 
-      // returns an array of objects containing productId, quantity, and price
-      // the first value of the array will always be the price ( total amount int )
-      /* eg. [ 
-              10.99, 
-              { productId: 1, quantity: 2, price: 10.00 }, 
-              { productId: 2, quantity: 1, price: 20.00} 
-               ]
-      */
-      let products = cart.reduce( (accum, next) => {
-        // extract important values from cart
-        const { productId, quantity, price } = next;
-        
-        const reducedBody = { productId, quantity, price };
+      // 1. Calculate total
+      const totalAmount = cart.reduce((sum, item) => {
+        return sum + Number(item.price) * item.quantity;
+      }, 0);
 
-        accum[0] += Number(price);
-        
-        accum.push(reducedBody);
-        return accum;
-      }, [0.00]);
-      
-      // remove first value from products which is the price and store in variable
-      let totalPrice = products.shift(); // price total
-      
-      const orderResult = await db.query(Queries.insertIntoOrders(), [userId, totalPrice]);
+      // 2. Insert into orders table
+      const orderResult = await db.query(Queries.insertIntoOrders(), [userId, totalAmount]);
+      const orderId = orderResult.rows[0].id;
 
-      let orderId = orderResult.rows[0].id;
+      // 3. Insert into order_products table
+      await this.#insertOrderProducts(orderId, cart);
 
-      // Insert into order_products table
-      // Multiple async queries
-      const orderProductIds = await Promise.all( 
-        products.map( 
-          (prodValues) => Orders.#insertOrderProducts(orderId, prodValues) 
-        )
-      )
-      .then( (id) => id);
+      // 4. clear cart
+      await this.#deleteCartItems(userId);
+
       
-      return orderProductIds;
+      return {
+        id: orderId,
+        totalAmount,
+        products: cart
+      };
 
     } catch (err) {
       throw new BadRequestError(err.message);
