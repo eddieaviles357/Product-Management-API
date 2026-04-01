@@ -5,7 +5,8 @@
 // controllers
 const {
   createOrder,
-  getOrdersById
+  getOrdersById,
+  getAllOrders
 } = require("../controllers/checkout");
 // const router = require("express").Router({mergeParams: true});
 const router = require("express").Router({mergeParams: true});
@@ -20,12 +21,15 @@ router.param("orderId", validateParamId("orderId"));
 router.param("username", validateUsername("username"));
 
 router
-  .route('/:username')
+  .route('/createorder/:username')
   .post(ensureLoggedIn, ensureUser, createOrder)
 
 router
-  .route('/:username/:orderId')
+  .route('/getorder/:username/:orderId')
   .get(ensureLoggedIn, ensureUserOrAdmin, getOrdersById);
 
-module.exports = router;
+router
+  .route('/getallorders/:username')
+  .get(ensureLoggedIn, ensureUserOrAdmin, getAllOrders);
 
+module.exports = router;
