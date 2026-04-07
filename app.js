@@ -10,7 +10,7 @@ const reviewsRoutes = require("./routes/reviews");
 const authRoutes = require("./routes/auth");
 const wishlistRoutes = require("./routes/wishlist");
 const cartRoutes = require("./routes/cart");
-const orderRoutes = require("./routes/checkout");
+const orderRoutes = require("./routes/orders");
 const addressRoutes = require("./routes/address");
 const { NotFoundError } = require("./AppError");
 const {globalLimiter} = require("./middleware/limiter");
@@ -30,7 +30,7 @@ app.use("/api/v1/reviews", reviewsRoutes); // Reviews routes
 app.use("/api/v1/auth", authRoutes); // Authentication routes
 app.use("/api/v1/wishlist", wishlistRoutes); // Wishlist routes
 app.use("/api/v1/cart", cartRoutes); // Cart routes
-app.use("/api/v1/checkout", orderRoutes); // Checkout routes
+app.use("/api/v1/orders", orderRoutes); // Orders routes
 app.use("/api/v1/address", addressRoutes); // Address routes
 
 
