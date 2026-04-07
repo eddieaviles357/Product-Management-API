@@ -7,7 +7,8 @@ let productIds = [],
     categoryIds = [],
     userIdUsername = [],
     orderIds = []
-    addressIds = [];
+    addressIds = [],
+    rawProducts = [];
 const username1 = 'west123';
 const username2 = 'north123';
 
@@ -29,6 +30,7 @@ async function commonBeforeAll() {
   const p1 = {sku: 'MC10SSMM', item: 'shirt', description: 'white short', price: '10.99', qty: '3', imgURL: 'https://image.product-management.com/1283859'};
   const p2 = {sku: 'MC10LSLL', item: 'pants', description: 'black pants', price: '19.99', qty: '5', imgURL: 'https://image.product-management.com/1283859'};
   const p3 = {sku: 'XKDFQKEL', item: 'hat', description: 'sports cap', price: '5.99', qty: '2', imgURL: 'https://image.product-management.com/1283859'};
+  rawProducts.push(p1, p2, p3);
   // seeds
   const productsResult = await db.query(`
     INSERT INTO products (sku, product_name, product_description, price, stock, image_url)
@@ -133,6 +135,7 @@ module.exports = {
   username1,
   username2,
   orderIds,
+  rawProducts,
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
