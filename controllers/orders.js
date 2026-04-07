@@ -12,7 +12,7 @@ exports.createOrder = async (req, res, next) => {
     const cartOrder = req.body || {};
     const order = await Orders.create(req.params.username, cartOrder);
 
-    return res.status(200).json({success: order});
+    return res.status(200).json({success: true, data: order});
   } catch (err) {
     return next(err);
   }
@@ -31,7 +31,7 @@ exports.getOrdersById = async (req, res, next) => {
       throw new BadRequestError("Order not found");
     }
 
-    return res.status(200).json({success: order});
+    return res.status(200).json({success: true, data: order});
   } catch (err) {
     return next(err);
   }
@@ -45,7 +45,7 @@ exports.getAllOrders = async (req, res, next) => {
     const { username } = req.params;
     const orders = await Orders.getAllOrdersByUsername(username);
 
-    return res.status(200).json({success: orders});
+    return res.status(200).json({success: true, data: orders});
   } catch (err) {
     return next(err);
   }
