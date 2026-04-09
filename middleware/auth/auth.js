@@ -88,6 +88,7 @@ function ensureUser(req, res, next) {
     if(!req.params || !req.params.username) throw new UnauthorizedError();
     // console.log("\n**********ENSURE_USER**********\n")
     if( req.params.username === res.locals.user.username ) return next();
+    // console.log("is it user?", req.params.username === res.locals.user.username);
 
     throw new UnauthorizedError();
   } catch (err) {
@@ -104,10 +105,10 @@ function ensureUserOrAdmin(req, res, next) {
     // console.log("\n**********ENSURE_USER_OR_ADMIN**********\n");
     const user = res.locals.user;
     
-    if( !(user && (user.isAdmin || user.username === req.params.username) ) ) {
+    if( !user || !user.isAdmin || !(req.params.username === res.locals.user.username) ) {
       throw new UnauthorizedError();
     }
-    
+
     return next();
   } catch (err) {
     return next(err);
