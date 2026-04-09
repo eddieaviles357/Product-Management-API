@@ -5,7 +5,7 @@ const { BadRequestError } = require("../AppError");
 
 
 // @desc      Create a new Order
-// @route     POST /api/v1/checkout/createorder/:username/
+// @route     POST /api/v1/orders/:username/createorder
 // @access    Private/Admin ?????????
 exports.createOrder = async (req, res, next) => {
   try {
@@ -19,7 +19,7 @@ exports.createOrder = async (req, res, next) => {
 };
 
 // @desc      Get Order by ID
-// @route     GET /api/v1/checkout/getorder/:username/:orderId
+// @route     GET /api/v1/orders/:username/getorder/:orderId
 // @access    Private/Admin ?????????
 exports.getOrdersById = async (req, res, next) => {
   try {
@@ -38,7 +38,7 @@ exports.getOrdersById = async (req, res, next) => {
 };
 
 // @desc      Get Orders by Username
-// @route     GET /api/v1/checkout/getallorders/:username
+// @route     GET /api/v1/orders/:username
 // @access    Private/Admin ?????????
 exports.getAllOrders = async (req, res, next) => {
   try {
