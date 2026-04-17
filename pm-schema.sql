@@ -21,8 +21,8 @@ CREATE TABLE categories (
 
 CREATE TABLE products_categories (
   PRIMARY KEY (product_id, category_id),
-  product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
-  category_id INTEGER NOT NULL REFERENCES categories ON DELETE CASCADE
+  product_id INTEGER NOT NULL REFERENCES products (product_id) ON DELETE CASCADE,
+  category_id INTEGER NOT NULL REFERENCES categories (id) ON DELETE CASCADE
 );
 
 CREATE EXTENSION IF NOT EXISTS citext;
@@ -72,8 +72,8 @@ CREATE TABLE addresses (
 
 CREATE TABLE reviews (
   PRIMARY KEY (product_id, user_id),
-  product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
-  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
+  product_id INTEGER NOT NULL REFERENCES products (product_id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   review VARCHAR(500) NOT NULL,
   rating SMALLINT NOT NULL CHECK ( rating >= 0 AND rating <= 5),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -82,14 +82,14 @@ CREATE TABLE reviews (
 
 CREATE TABLE wishlist (
   PRIMARY KEY (user_id, product_id),
-  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
-  product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE
+  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  product_id INTEGER NOT NULL REFERENCES products (product_id) ON DELETE CASCADE
 );
 
 CREATE TABLE cart (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
-  product_id INTEGER NOT NULL REFERENCES products ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  product_id INTEGER NOT NULL REFERENCES products (product_id) ON DELETE CASCADE,
   quantity INTEGER NOT NULL CHECK (quantity > -1),
   price NUMERIC(10, 2) NOT NULL CHECK(price > 0.00),
   added_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -98,8 +98,8 @@ CREATE TABLE cart (
 -- users → orders → order_items → payments ( omitted ) → shipments
 
 CREATE TABLE orders (
-  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users ON DELETE CASCADE,
+  id INTEGER GENERATED ALWAYS AS IDENTITsY PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded')),
@@ -109,8 +109,8 @@ CREATE TABLE orders (
 
 CREATE TABLE order_products (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
-  product_id INTEGER NOT NULL REFERENCES products (id),
+  order_id INTEGER NOT NULL REFERENCES orders (id) ON DELETE CASCADE,
+  product_id INTEGER NOT NULL REFERENCES products (product_id),
   quantity INTEGER NOT NULL,
   total_amount NUMERIC(7,2) NOT NULL CHECK(total_amount > 0.00),
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -118,7 +118,7 @@ CREATE TABLE order_products (
 
 CREATE TABLE payment_details (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  order_id INTEGER NOT NULL REFERENCES orders ON DELETE CASCADE,
+  order_id INTEGER NOT NULL REFERENCES orders (id) ON DELETE CASCADE,
   amount NUMERIC(10,2) NOT NULL CHECK(amount > 0.00),
   provider TEXT NOT NULL, -- paypal, stripe, etc.
   status TEXT NOT NULL
