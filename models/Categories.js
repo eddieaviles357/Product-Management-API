@@ -8,13 +8,26 @@ const Queries = require("../helpers/sql/categoryQueries.js");
 
 class Categories {
 
-    /** 
-    * VALIDATION HELPERS 
-    */
+  /** 
+   * @param {string} id - The id to validate
+   * @param {string} field - The name of the field being validated (for error messages)
+   * @throws {BadRequestError} If id is not a valid number
+  */
   static #validateId(id, field = "id") {
     if (!/^\d+$/.test(id)) {
       throw new BadRequestError(`${field} must be a valid number`);
     }
+  }
+
+  /**
+   * 
+   * @param {string} category - The category name to validate
+   * @throws {BadRequestError} If the category is 'none'
+   */
+
+  static async #validateIfNoneCategory(catId) {
+    const isNoneCategory = await db.query(Queries.getCategory(), [catId]);
+    return isNoneCategory.rows[0]?.category?.toLowerCase() === "none";
   }
 
 /**
@@ -140,9 +153,10 @@ class Categories {
       this.#validateId(catId, "category Id");
       updatedCategory = this.#validateCategoryString(updatedCategory, "updatedCategory");
 
-      // throw error if trying to update 'none' category
-      if(catId === 1) {
-        throw new BadRequestError(`Category with id ${catId} cannot be updated`);
+      const isNoneCategory = await this.#validateIfNoneCategory(catId);
+
+      if (isNoneCategory) {
+        throw new BadRequestError(`"None" category cannot be updated`);
       }
 
       const existing = await db.query(Queries.doesCategoryExist(),[catId]);
@@ -199,8 +213,10 @@ class Categories {
     try {
       this.#validateId(catId, "category Id");
 
-      if(catId === 1) {
-        throw new BadRequestError(`Category cannot be deleted`);
+      const isNoneCategory = await this.#validateIfNoneCategory(catId);
+
+      if (isNoneCategory) {
+        throw new BadRequestError(`"None" category cannot be deleted`);
       }
 
       const result = await db.query(Queries.deleteCategory(), [catId]);
