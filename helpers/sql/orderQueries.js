@@ -10,10 +10,10 @@ function getTotalAmount() {
 
 function getOrderById() {
   return `
-    SELECT O.id AS "orderId",  
+    SELECT O.id AS "orderId",
+          O.status AS "orderStatus",
           OP.product_id, 
-          OP.quantity, 
-          OP.total_amount::float AS "productTotalAmount",
+          OP.quantity,
           P.id,
           P."productName",
           P."productDescription",
@@ -34,10 +34,10 @@ function insertIntoOrders() {
   `;
 }
 
-function updateOrders() {
+function updateOrders(status) {
   return `
     UPDATE orders
-    SET status = 'paid'
+    SET status = ${status}
     WHERE id = $1
   `;
 }
@@ -54,6 +54,7 @@ function getAllOrdersByUsername() {
   return `
     SELECT O.id AS "orderId", 
           O.total_amount::float AS "totalAmount", 
+          O.status AS "orderStatus",
           O.created_at AS "createdAt",
           OP.product_id, 
           OP.quantity, 
