@@ -4,6 +4,7 @@ const db = require("../db");
 const { BadRequestError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
 const Queries = require("../helpers/sql/orderQueries");
+const { clearCart } = require("../helpers/sql/cartQueries");
 
 class Orders {
   /**
@@ -24,11 +25,10 @@ class Orders {
       values.push(orderId, item.productId, item.quantity, item.price);
     });
 
-    await db.query(
-      `INSERT INTO order_products(order_id, product_id, quantity, total_amount) 
-        VALUES ${placeholders.join(", ")}`,
-        values
-    ); 
+    const result = 
+      await db.query(Queries.insertIntoOrderProducts(placeholders.join(",")), values);
+
+    return result.rows;
   };
 
   /**
@@ -38,22 +38,11 @@ class Orders {
    */
   static async #getOrderTotalAmount(orderId) {
     const result = await db.query(Queries.getTotalAmount(), [orderId]);
+
     if (result.rows.length === 0) throw new BadRequestError("Order not found");
 
     return result.rows[0].totalAmount;
-  }
-
-  /**
-   * Deletes cart items for a user
-   * @param {number} userId - the ID of the user whose cart items should be deleted
-   * @returns {void}
-   */
-  static async #deleteCartItems(userId) {
-    await db.query(
-      `DELETE FROM cart WHERE user_id = $1`,
-      [userId]
-    );
-  }
+  };
 
   /**
    * Retrieves an order by its ID, including the total amount and order items
@@ -74,7 +63,27 @@ class Orders {
     } catch (err) {
       throw new BadRequestError(err.message);
     }
-  }
+  };
+
+  /**
+   * Retrieves all orders for a given username, including the total amount and order items for each order
+   * @param {string} username - the username of the user whose orders to retrieve
+   * @returns {array} - returns an array of objects, each containing the total amount and an array of order items for each order
+   * @throws {BadRequestError} - if there is an error in the query or if the user is not found
+   */
+  static async getAllOrdersByUsername(username) {
+    try {
+      const userId = await getUserId(username);
+
+      const result = await db.query(Queries.getAllOrdersByUsername(), [userId]);
+
+
+      return result.rows;
+      
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  };
 
   /**
    * @typedef {object} CartItem
@@ -109,9 +118,8 @@ class Orders {
       await this.#insertOrderProducts(orderId, cart);
 
       // 4. clear cart
-      await this.#deleteCartItems(userId);
+      await db.query(clearCart(), [userId]);
 
-      
       return {
         id: orderId,
         totalAmount,
@@ -121,7 +129,7 @@ class Orders {
     } catch (err) {
       throw new BadRequestError(err.message);
     }
-  }
+  };
 };
 
 module.exports = Orders;
