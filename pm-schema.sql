@@ -99,7 +99,8 @@ CREATE TABLE cart (
 
 CREATE TABLE orders (
   id INTEGER GENERATED ALWAYS AS IDENTITsY PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,  
+  address_id INTEGER REFERENCES addresses (id) ON DELETE SET NULL,  
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded')),
