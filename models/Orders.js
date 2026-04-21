@@ -5,8 +5,24 @@ const { BadRequestError } = require("../AppError");
 const getUserId = require("../helpers/getUserId");
 const Queries = require("../helpers/sql/orderQueries");
 const { clearCart } = require("../helpers/sql/cartQueries");
+const Address = require("./Address");
 
 class Orders {
+  /**
+   * Gets the address_id for a user, or throws an error if no address exists
+   * @param {string} username - the username of the user
+   * @returns {number} - the address_id
+   * @throws {BadRequestError} - if user has no address
+   */
+  static async #getUserAddressId(username) {
+    try {
+      const address = await Address.getAddress(username);
+      return address.id;
+    } catch (err) {
+      throw new BadRequestError("User must have an address to place an order");
+    }
+  }
+
   /**
    * Inserts a product into the order_products table
    * @param {number} orderId - the ID of the order to which the product belongs
@@ -45,20 +61,33 @@ class Orders {
   };
 
   /**
-   * Retrieves an order by its ID, including the total amount and order items
+   * Retrieves an order by its ID, including the total amount, address, and order items
    * @param {number} orderId - the ID of the order to retrieve
-   * @returns {object} - returns an object containing the total amount and an array of order items
+   * @returns {object} - returns an object containing order details, address, and order items
    * @throws {BadRequestError} - if the order is not found or if there is an error in the query
    */
   static async getOrderById(orderId) {
     try {
-      const totalAmount = await this.#getOrderTotalAmount(orderId);
-
       const result = await db.query(Queries.getOrderById(), [orderId]);
       
       if (result.rows.length === 0) throw new BadRequestError("Order not found");
 
-      return {totalAmount, orderItems: result.rows };
+      const orderData = result.rows[0];
+      const orderItems = result.rows;
+
+      return {
+        orderId: orderData.orderId,
+        orderStatus: orderData.orderStatus,
+        totalAmount: orderData.totalAmount,
+        address: {
+          address1: orderData.address1,
+          address2: orderData.address2,
+          city: orderData.city,
+          state: orderData.state,
+          zipcode: orderData.zipcode
+        },
+        orderItems: orderItems
+      };
       
     } catch (err) {
       throw new BadRequestError(err.message);
@@ -104,6 +133,7 @@ class Orders {
   static async create(username, {cart}) {
     try {
       const userId = await getUserId(username);
+      const addressId = await this.#getUserAddressId(username);
 
       // 1. Calculate total
       const totalAmount = cart.reduce((sum, item) => {
@@ -111,7 +141,7 @@ class Orders {
       }, 0);
 
       // 2. Insert into orders table
-      const orderResult = await db.query(Queries.insertIntoOrders(), [userId, totalAmount]);
+      const orderResult = await db.query(Queries.insertIntoOrders(), [userId, totalAmount, addressId]);
       const orderId = orderResult.rows[0].id;
 
       // 3. Insert into order_products table
@@ -123,6 +153,7 @@ class Orders {
       return {
         id: orderId,
         totalAmount,
+        addressId,
         products: cart
       };
 
