@@ -98,7 +98,7 @@ CREATE TABLE cart (
 -- users → orders → order_items → payments ( omitted ) → shipments
 
 CREATE TABLE orders (
-  id INTEGER GENERATED ALWAYS AS IDENTITsY PRIMARY KEY,
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,  
   address_id INTEGER REFERENCES addresses (id) ON DELETE SET NULL,  
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
