@@ -12,6 +12,12 @@ function getOrderById() {
   return `
     SELECT O.id AS "orderId",
           O.status AS "orderStatus",
+          O.total_amount::float AS "totalAmount",
+          A.address_1 AS "address1",
+          A.address_2 AS "address2", 
+          A.city,
+          A.state,
+          A.zipcode,
           OP.product_id, 
           OP.quantity,
           P.id,
@@ -20,6 +26,7 @@ function getOrderById() {
           P.price AS "productPrice",
           P."imageURL"
     FROM orders O 
+    LEFT JOIN addresses A ON O.address_id = A.id
     JOIN order_products OP ON O.id = OP.order_id
     JOIN mv_product_list P ON OP.product_id = P.id
     WHERE O.id = $1
@@ -28,8 +35,8 @@ function getOrderById() {
 
 function insertIntoOrders() {
   return `
-    INSERT INTO orders(user_id, total_amount) 
-    VALUES($1, $2) 
+    INSERT INTO orders(user_id, total_amount, address_id) 
+    VALUES($1, $2, $3) 
     RETURNING id
   `;
 }
@@ -56,6 +63,11 @@ function getAllOrdersByUsername() {
           O.total_amount::float AS "totalAmount", 
           O.status AS "orderStatus",
           O.created_at AS "createdAt",
+          A.address_1 AS "address1",
+          A.address_2 AS "address2", 
+          A.city,
+          A.state,
+          A.zipcode,
           OP.product_id, 
           OP.quantity, 
           OP.total_amount::float AS "productTotalAmount",
@@ -65,6 +77,7 @@ function getAllOrdersByUsername() {
           P.price AS "productPrice",
           P."imageURL"
     FROM orders O
+    LEFT JOIN addresses A ON O.address_id = A.id
     JOIN order_products OP ON O.id = OP.order_id
     JOIN mv_product_list P ON OP.product_id = P.id
     WHERE O.user_id = $1
