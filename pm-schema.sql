@@ -51,13 +51,36 @@ CREATE TABLE email_verification_tokens (
   expires_at TIMESTAMP NOT NULL
 );
 
-
+-- old table
+-- CREATE TABLE addresses (
+--   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+--   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+--   address_1 VARCHAR(95) NOT NULL,
+--   address_2 VARCHAR(95),
+--   city VARCHAR(35) NOT NULL,
+--   state CHAR(2) NOT NULL,
+--   CHECK (state IN (
+--     'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
+--     'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+--     'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+--     'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+--     'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
+--     )),
+--   zipcode VARCHAR(10) NOT NULL,
+--   CHECK ( zipcode ~ '^\d{5}(-\d{4})?$' )
+-- );
+-- New table with support for multiple addresses per user + default address flag. 
+-- We will use the address snapshot in the orders table for history accuracy, 
+-- so address updates won't break past orders.
+-- example that is useful for fetching default address for a user:
+-- SELECT * FROM addresses
+-- WHERE user_id = $1 AND is_default = true;
 CREATE TABLE addresses (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
-  address_1 VARCHAR(95) NOT NULL,
-  address_2 VARCHAR(95),
-  city VARCHAR(35) NOT NULL,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  address_1 TEXT NOT NULL,
+  address_2 TEXT,
+  city TEXT NOT NULL,
   state CHAR(2) NOT NULL,
   CHECK (state IN (
     'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
@@ -67,7 +90,10 @@ CREATE TABLE addresses (
     'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
     )),
   zipcode VARCHAR(10) NOT NULL,
-  CHECK ( zipcode ~ '^\d{5}(-\d{4})?$' )
+  CHECK ( zipcode ~ '^\d{5}(-\d{4})?$' ),
+  is_default BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE reviews (
@@ -100,7 +126,13 @@ CREATE TABLE cart (
 CREATE TABLE orders (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,  
-  address_id INTEGER REFERENCES addresses (id) ON DELETE SET NULL,  
+  -- address_id INTEGER REFERENCES addresses (id) ON DELETE SET NULL,
+  address_1 TEXT NOT NULL,
+  address_2 TEXT,
+  city TEXT NOT NULL,
+  state TEXT NOT NULL,
+  zipcode TEXT NOT NULL, 
+  -- address snapshot for history accuracy.
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'paid', 'shipped', 'delivered', 'cancelled', 'refunded')),
@@ -187,9 +219,33 @@ CREATE TRIGGER update_orders_updated_at
 BEFORE UPDATE ON orders
 FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
 
+CREATE TRIGGER update_addresses_updated_at
+BEFORE UPDATE ON addresses
+FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+
 CREATE TRIGGER update_payment_details_updated_at
 BEFORE UPDATE ON payment_details
 FOR EACH ROW EXECUTE PROCEDURE set_updated_at();
+
+/* =========================================================
+   ADDRESS NORMALIZATION TRIGGER
+   ========================================================= */
+CREATE OR REPLACE FUNCTION normalize_address()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.address_1 = trim(NEW.address_1);
+  NEW.address_2 = trim(NEW.address_2);
+  NEW.city = trim(NEW.city);
+  NEW.state = upper(trim(NEW.state));
+  NEW.zipcode = trim(NEW.zipcode);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER normalize_address_trigger
+BEFORE INSERT OR UPDATE ON addresses
+FOR EACH ROW
+EXECUTE FUNCTION normalize_address();
 
 
 /* =========================================================
