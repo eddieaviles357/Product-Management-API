@@ -11,13 +11,14 @@ class Orders {
   /**
    * Gets the address_id for a user, or throws an error if no address exists
    * @param {string} username - the username of the user
-   * @returns {number} - the address_id
+   * @return {number} the address_id of the user's address
    * @throws {BadRequestError} - if user has no address
    */
   static async #getUserAddressId(username) {
     try {
       const address = await Address.getAddress(username);
-      return address.id;
+      
+      return address.length > 0 ? address.rows[0].id : 0;
     } catch (err) {
       throw new BadRequestError("User must have an address to place an order");
     }
@@ -59,46 +60,64 @@ class Orders {
 
     return result.rows[0].totalAmount;
   };
-
+  /**
+   * @typedef {object} Data
+   * @property {number} orderId
+   * @property {string} orderStatus
+   * @property {number} totalAmount
+   * @property {object} address
+     * @property {string} address.address1
+     * @property {string} [address.address2]
+     * @property {string} address.city
+     * @property {string} address.state
+     * @property {string} address.zipcode
+   * @property {Array} orderItems
+     * @property {number} orderItems.productId
+     * @property {number} orderItems.quantity
+     * @property {string} orderItems.productName
+     * @property {string} orderItems.productDescription
+     * @property {number} orderItems.productPrice
+     * @property {string} orderItems.imageURL
+   */
   /**
    * Retrieves an order by its ID, including the total amount, address, and order items
    * @param {number} orderId - the ID of the order to retrieve
-   * @returns {object} - returns an object containing order details, address, and order items
-   * @throws {BadRequestError} - if the order is not found or if there is an error in the query
+   * @returns {Data} - returns an object containing order details, address, and order items
    */
   static async getOrderById(orderId) {
     try {
       const result = await db.query(Queries.getOrderById(), [orderId]);
-      
-      if (result.rows.length === 0) throw new BadRequestError("Order not found");
 
-      const orderData = result.rows[0];
-      const orderItems = result.rows;
-
-      return {
-        orderId: orderData.orderId,
-        orderStatus: orderData.orderStatus,
-        totalAmount: orderData.totalAmount,
-        address: {
-          address1: orderData.address1,
-          address2: orderData.address2,
-          city: orderData.city,
-          state: orderData.state,
-          zipcode: orderData.zipcode
-        },
-        orderItems: orderItems
-      };
+      return result.rows[0] || {};
       
     } catch (err) {
       throw new BadRequestError(err.message);
     }
   };
-
+  /**
+   * @typedef {object} Data
+   * @property {number} orderId
+   * @property {string} orderStatus
+   * @property {number} totalAmount
+   * @property {object} address
+     * @property {string} address.address1
+     * @property {string} [address.address2]
+     * @property {string} address.city
+     * @property {string} address.state
+     * @property {string} address.zipcode
+   * @property {Array} orderItems
+     * @property {number} orderItems.productId
+     * @property {number} orderItems.quantity
+     * @property {string} orderItems.productName
+     * @property {string} orderItems.productDescription
+     * @property {number} orderItems.productPrice
+     * @property {string} orderItems.imageURL
+   */
   /**
    * Retrieves all orders for a given username, including the total amount and order items for each order
    * @param {string} username - the username of the user whose orders to retrieve
-   * @returns {array} - returns an array of objects, each containing the total amount and an array of order items for each order
-   * @throws {BadRequestError} - if there is an error in the query or if the user is not found
+   * @return {Array<Data>} - returns an array of objects containing order details, address, and order items for each order
+   * 
    */
   static async getAllOrdersByUsername(username) {
     try {
@@ -106,8 +125,7 @@ class Orders {
 
       const result = await db.query(Queries.getAllOrdersByUsername(), [userId]);
 
-
-      return result.rows;
+      return result.rows || [];
       
     } catch (err) {
       throw new BadRequestError(err.message);
@@ -116,51 +134,154 @@ class Orders {
 
   /**
    * @typedef {object} CartItem
-   * @property {number} id
-   * @property {number} userId
    * @property {number} productId
    * @property {number} quantity
-   * @property {string} price
-   * @property {string} addedAt - ISO date string
-   * @property {string} updatedAt - ISO date string
    */
   /**
    * Creates a new order in the database
    * @param {string} username - the username of the user creating the order
    * @param {CartItem[]} cart - array of cart items - contains an array of products with productId, quantity, and price
-   * @returns {array} - returns an array of objects containing the inserted order and order_products
+   * @param {object} address - the address to use for the order, if user does not have an address on file
+   * @returns {object} - returns an object containing the order ID, total amount, address, and order items
+   * @throws {BadRequestError} - if there is an error in the query or if the user is not found  
    */
-  static async create(username, {cart}) {
+  static async create(username, {cart, address}) {
     try {
+      if (!cart || cart.length === 0) {
+        throw new BadRequestError("Cart cannot be empty");
+      }
+      // 1. Get userId and addressId (or throw error if no address)
       const userId = await getUserId(username);
       const addressId = await this.#getUserAddressId(username);
 
-      // 1. Calculate total
-      const totalAmount = cart.reduce((sum, item) => {
-        return sum + Number(item.price) * item.quantity;
-      }, 0);
+      // 2. Resolve address
+      let finalAddress;
 
-      // 2. Insert into orders table
-      const orderResult = await db.query(Queries.insertIntoOrders(), [userId, totalAmount, addressId]);
+      if (addressId) {
+        finalAddress = await Address.getAddressById(addressId);
+        if (!finalAddress) {
+          throw new BadRequestError("Invalid addressId");
+        }
+      } else if (address) {
+        if (
+          !address.address1 ||
+          !address.city ||
+          !address.state ||
+          !address.zipcode
+          ) {
+            throw new BadRequestError("Missing required address fields");
+          }
+
+        finalAddress = address;
+      } else {
+        throw new BadRequestError("Address or addressId is required");
+      }
+
+      // 3. Extract productIds
+      const productIds = cart.map(item => item.productId);
+
+      // 4. Fetch trusted prices from DB
+      const productRes = await db.query(Queries.getProductPrice(), [productIds] );
+
+      const productMap = new Map();
+      productRes.rows.forEach(p => {
+        productMap.set(p.product_id, Number(p.price));
+      });
+
+      // 5. Validate cart + calculate total
+      let totalAmount = 0;
+      const validatedCart = [];
+
+      for (const item of cart) {
+        const quantity = Number(item.quantity);
+
+        if (!productMap.has(item.productId)) {
+          throw new BadRequestError(`Invalid productId: ${item.productId}`);
+        }
+
+        if (!quantity || quantity <= 0) {
+          throw new BadRequestError("Invalid quantity");
+        }
+
+        const price = productMap.get(item.productId);
+
+        totalAmount += price * quantity;
+
+        validatedCart.push({
+          productId: item.productId,
+          quantity,
+          price // ✅ trusted price from DB
+        });
+      }
+
+      // 6. Insert order
+      const orderResult = await db.query(
+        Queries.insertIntoOrders(),
+        [
+          userId,
+          finalAddress.address1,
+          finalAddress.address2 || null,
+          finalAddress.city,
+          finalAddress.state,
+          finalAddress.zipcode,
+          totalAmount
+        ]
+      );
+
       const orderId = orderResult.rows[0].id;
 
-      // 3. Insert into order_products table
-      await this.#insertOrderProducts(orderId, cart);
 
-      // 4. clear cart
+      // 7. Insert order_products (using trusted prices)
+      const values = [];
+      const placeholders = [];
+
+      validatedCart.forEach((item, i) => {
+        const idx = i * 4;
+        placeholders.push(
+          `($${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4})`
+        );
+        values.push(orderId, item.productId, item.quantity, item.price);
+      });
+
+      await db.query( Queries.insertIntoOrderProducts(placeholders.join(",")), values );
+
+      // 8. Clear cart
       await db.query(clearCart(), [userId]);
 
       return {
         id: orderId,
         totalAmount,
-        addressId,
-        products: cart
+        address: finalAddress,
+        products: validatedCart
       };
 
     } catch (err) {
       throw new BadRequestError(err.message);
     }
-  };
+  }
 };
+      // // 1. Calculate total
+      // const totalAmount = cart.reduce((sum, item) => {
+      //   return sum + Number(item.price) * item.quantity;
+      // }, 0);
+
+      // // 2. Insert into orders table
+      // const orderResult = await db.query(Queries.insertIntoOrders(), [userId, totalAmount, addressId]);
+      // const orderId = orderResult.rows[0].id;
+
+      // // 3. Insert into order_products table
+      // await this.#insertOrderProducts(orderId, cart);
+
+      // // 4. clear cart
+      // await db.query(clearCart(), [userId]);
+
+      // return {
+      //   id: orderId,
+      //   totalAmount,
+      //   addressId,
+      //   products: cart
+      // };
+
+
 
 module.exports = Orders;
