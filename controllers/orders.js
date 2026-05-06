@@ -9,8 +9,8 @@ const { BadRequestError } = require("../AppError");
 // @access    Private/Admin ?????????
 exports.createOrder = async (req, res, next) => {
   try {
-    const cartOrder = req.body || {};
-    const order = await Orders.create(req.params.username, cartOrder);
+    const userData = req.body || {};
+    const order = await Orders.create(req.params.username, userData);
 
     return res.status(200).json({success: true, data: order});
   } catch (err) {
@@ -37,6 +37,8 @@ exports.getOrdersById = async (req, res, next) => {
   }
 };
 
+/******************** NEEDS PAGINATION **************** */
+
 // @desc      Get Orders by Username
 // @route     GET /api/v1/orders/:username
 // @access    Private/Admin ?????????
@@ -45,7 +47,7 @@ exports.getAllOrders = async (req, res, next) => {
     const { username } = req.params;
     const orders = await Orders.getAllOrdersByUsername(username);
 
-    return res.status(200).json({success: true, data: orders});
+    return res.status(200).json({success: true, countdata: orders});
   } catch (err) {
     return next(err);
   }
