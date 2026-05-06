@@ -104,8 +104,11 @@ function ensureUserOrAdmin(req, res, next) {
   try {
     // console.log("\n**********ENSURE_USER_OR_ADMIN**********\n");
     const user = res.locals.user;
-    
-    if( !user || !user.isAdmin || !(req.params.username === res.locals.user.username) ) {
+    // console.log("!(user) = ", !user);
+    // console.log("!user.isAdmin = ", !user.isAdmin);
+    // console.log("!(req.params.username === res.locals.user.username) = ", !(req.params.username === res.locals.user.username));
+
+    if( !user || !(req.params.username === res.locals.user.username) ) {
       throw new UnauthorizedError();
     }
 
