@@ -264,13 +264,20 @@ SELECT
   p.created_at AS "createdAt",
   p.updated_at AS "updatedAt",
   COALESCE(
-    ARRAY_AGG(DISTINCT c.category)
-      FILTER (WHERE c.category IS NOT NULL),
-    '{}'
-  ) AS categories
+    JSON_AGG(
+      JSON_BUILD_OBJECT(
+        'id', c.id,
+        'name', c.category
+      )
+    ) FILTER (WHERE c.id IS NOT NULL),
+    '[]'::json
+  ) AS categories,
+  COALESCE(ROUND(AVG(r.rating)::numeric, 2), 0) AS "averageRating",
+  COUNT(DISTINCT r.product_id) FILTER (WHERE r.product_id IS NOT NULL) AS "reviewCount"
 FROM products p
 LEFT JOIN products_categories pc ON pc.product_id = p.product_id
 LEFT JOIN categories c ON c.id = pc.category_id
+LEFT JOIN reviews r ON p.product_id = r.product_id
 GROUP BY
   p.product_id,
   p.sku,
