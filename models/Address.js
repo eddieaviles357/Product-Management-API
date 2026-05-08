@@ -40,22 +40,18 @@ class Address {
   /**
    * Get address for a user
    * @param {string} username
-   * @returns {object} address object
+   * @return {Array<object>} address object
    * @throws {BadRequestError} if username is not provided
-   * @throws {NotFoundError} if address not found for user
    */
   static async getAddress(username) {
     try {
       const userId = await getUserId(username);
+      
       if (!userId) throw new BadRequestError("User does not exist");
 
       const result = await db.query(Queries.getAddressInfo(), [userId]);
-      
-      if (result.rows.length === 0) {
-        throw new NotFoundError("Address not found for this user");
-      }
-
-      return result.rows[0];
+    
+      return result.rows;
 
     } catch (err) {
       throw new BadRequestError(err.message);
