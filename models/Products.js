@@ -96,7 +96,7 @@ class Products {
       sku = removeNonAlphaNumericChars(sku);
       
       const queryValues = [sku, name, description, price, stock, imageURL]
-      const result = await db.query(Queries.getAddProductQuery(), queryValues);
+      const result = await db.query(Queries.insertIntoProduct(), queryValues);
   
       if(!result.rows || result.rows.length === 0) {
         throw new BadRequestError("Failed to create product");

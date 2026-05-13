@@ -1,5 +1,5 @@
 
-function getInsertProductQuery() {
+function insertProduct() {
   return `
     inserted_product AS (
       INSERT INTO products (
@@ -16,7 +16,7 @@ function getInsertProductQuery() {
           sku,
           product_name AS "productName",
           product_description AS "productDescription",
-          price,
+          price::float,
           stock,
           image_url AS "imageURL",
           created_at AS "createdAt"
@@ -24,7 +24,7 @@ function getInsertProductQuery() {
   `;
 }
 
-function getDefaultCategoryQuery() {
+function getDefaultCategory() {
   return `
     default_category AS (
       SELECT id AS category_id
@@ -35,7 +35,7 @@ function getDefaultCategoryQuery() {
   `;
 }
 
-function getLinkCategoryQuery() {
+function getLinkCategory() {
   return `
     linked_category AS (
       INSERT INTO products_categories (product_id, category_id)
@@ -46,12 +46,12 @@ function getLinkCategoryQuery() {
   `;
 }
 
-function getAddProductQuery() {
+function insertIntoProduct() {
   return `
     WITH
-      ${getInsertProductQuery()},
-      ${getDefaultCategoryQuery()},
-      ${getLinkCategoryQuery()}
+      ${insertProduct()},
+      ${getDefaultCategory()},
+      ${getLinkCategory()}
     SELECT * FROM inserted_product
   `;
 }
@@ -86,7 +86,7 @@ function updateProduct() {
       sku, 
       product_name AS "productName",
       product_description AS "productDescription",
-      price,
+      price::float,
       image_url AS "imageURL",
       created_at AS "createdAt",
       updated_at AS "updatedAt"
@@ -171,7 +171,7 @@ function deleteFromProduct() {
 }
 
 module.exports = {
-  getAddProductQuery,
+  insertIntoProduct,
   getProductsPagination,
   getProductById,
   getSingleProduct,
