@@ -258,7 +258,7 @@ SELECT
   p.sku,
   p.product_name AS "productName",
   p.product_description AS "productDescription",
-  p.price,
+  p.price::float,
   p.stock,
   p.image_url AS "imageURL",
   p.created_at AS "createdAt",
