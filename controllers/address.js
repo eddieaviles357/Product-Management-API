@@ -39,9 +39,9 @@ exports.upsertAddress = async (req, res, next) => {
  */
 exports.deleteAddress = async (req, res, next) => {
   try {
-    const result = await Address.deleteAddress(req.params.username);
+    const isAddressDeleted = await Address.deleteAddress(req.params.username);
 
-    return res.status(200).json(result);
+    return res.status(200).json({ success: isAddressDeleted });
   } catch (err) {
     return next(err);
   }
