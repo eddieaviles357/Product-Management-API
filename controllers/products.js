@@ -98,9 +98,7 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
   try {
     const success = await Products.removeCategoryFromProduct(req.params.productId, req.params.categoryId);
 
-    const statusCode = success ? 200 : 204;
-
-    return res.status(statusCode).json({ 
+    return res.status(200).json({ 
       success
     });
   } catch (err) {
@@ -115,14 +113,9 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
 exports.deleteProductById = async (req, res, next) => {
   try {
     const isDeleted = await Products.removeProduct(req.params.id);
-
-    const statusCode = isDeleted ? 200 : 204;
-
-    return res.status(statusCode).json({ 
-      success: isDeleted,
-      message: isDeleted 
-        ? `Product with id ${req.params.id} deleted successfully` 
-        : `Product with id ${req.params.id} not found`,
+    
+    return res.status(200).json({ 
+      success: isDeleted
     });
   } catch (err) {
     return next(err);

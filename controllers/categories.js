@@ -111,14 +111,10 @@ exports.getMultipleCategoryProducts = async (req, res, next) => {
 // @access    Admin
 exports.deleteCategory = async (req, res, next) => {
   try {
-    const removedCategory = await Categories.removeCategory(req.params.categoryId);
-    
-    const statusCode = removedCategory[0] ? 200 : 204;
-    const success = removedCategory[0] ? true : false;
+    const isCategoryRemoved = await Categories.removeCategory(req.params.categoryId);
 
-    return res.status(statusCode).json({ 
-      success,
-      result: removedCategory[0]
+    return res.status(200).json({ 
+      success: isCategoryRemoved
     });
   } catch (err) {
     return next(err);
