@@ -87,6 +87,27 @@ async function createAndSendVerification(user) {
   return { ok: false, token, url };
 }
 
+async function resendVerificationEmail(email) {
+  if (!email) {
+    throw new BadRequestError("Email is required");
+  }
+
+  // Check if user exists and is not already verified
+  const res = await db.query(`SELECT email_verified_at AS "emailVerifiedAt" FROM users WHERE email = $1`, [email]);
+  
+  if (res.rows.length === 0) {
+    throw new NotFoundError("User with this email not found");
+  }
+
+  const { emailVerifiedAt } = res.rows[0];
+  
+  if (emailVerifiedAt) {
+    throw new BadRequestError("Email is already verified");
+  }
+
+  return await createAndSendVerification({ email });
+}
+
 /**
  * Verify a token, mark user's email_verified_at, and remove token record.
  * @param {string} token
@@ -149,4 +170,5 @@ async function verifyTokenAndActivate(token) {
 module.exports = {
   createAndSendVerification,
   verifyTokenAndActivate,
+  resendVerificationEmail
 };

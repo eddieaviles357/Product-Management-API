@@ -5,6 +5,7 @@ const {
   registerUser,
   authenticateUser,
   verifyEmail,
+  resendVerificationEmail
 } = require("../controllers/auth");
 
 const router = require("express").Router();
@@ -16,6 +17,7 @@ const validateSchema = require("../middleware/validation/validateSchema");
 const userAuthSchema = require("../schemas/userAuthSchema.json");
 const newUserSchema = require("../schemas/newUserSchema.json");
 const { authLimiter } = require("../middleware/limiter");
+const {ensureLoggedIn, ensureUser, ensureUserOrAdmin} = require("../middleware/auth/auth");
 
 router
   .route("/register")
@@ -28,4 +30,8 @@ router
 router
   .route("/verify-email")
   .post(authLimiter, verifyEmail)
+
+router
+  .route("/resend-verification")
+  .post(authLimiter, ensureLoggedIn, ensureUser, ensureUserOrAdmin, resendVerificationEmail)
 module.exports = router;

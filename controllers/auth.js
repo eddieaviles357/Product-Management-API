@@ -48,3 +48,81 @@ exports.verifyEmail = async (req, res, next) => {
     return next(err);
   }
 };
+
+
+// @desc      Resends email verification token
+// @route     POST /api/v1/auth/resend-verification
+// @access    Private/Admin ?????????
+exports.resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    await emailVerification.resendVerificationEmail(email);
+    
+    return res.json({ success: true, message: "Verification email resent" });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+/********************* NEEDS UPDATING ****************** */
+// @desc      Deletes a user from the database
+// @route     DELETE /api/v1/auth/:username
+// @access    Private/Admin ?????????
+// exports.deleteUser = async (req, res, next) => {
+//   try {
+//     const success = await Users.deleteUser(req.params.username);
+
+//     return res.status(200).json({ 
+//       success
+//      });
+//   } catch (err) {
+//     return next(err);
+//   }
+// };
+
+// @desc      Deletes all users from the database
+// @route     DELETE /api/v1/auth
+// @access    Private/Admin ?????????
+// exports.deleteAllUsers = async (req, res, next) => {
+//   try {
+//     const success = await Users.deleteAllUsers();
+
+//     return res.status(200).json({ 
+//       success
+//      });
+//   } catch (err) {
+//     return next(err);
+//   }
+// };
+
+// @desc      Get all users from the database
+// @route     GET /api/v1/auth
+// @access    Private/Admin ?????????
+// exports.getAllUsers = async (req, res, next) => {
+//   try {
+//     const users = await Users.getAllUsers();
+
+//     return res.status(200).json({
+//       success: true,
+//       users
+//     });
+//   } catch (err) {
+//     return next(err);
+//   }
+// };
+
+// @desc      Get a user by username from the database
+// @route     GET /api/v1/auth/:username
+// @access    Private/Admin ????????? 
+// exports.getUser = async (req, res, next) => {
+//   try {
+//     const user = await Users.getUser(req.params.username);
+
+//     return res.status(200).json({
+//       success: true,
+//       user
+//     });
+//   } catch (err) {
+//     return next(err);
+//   }
+// };
