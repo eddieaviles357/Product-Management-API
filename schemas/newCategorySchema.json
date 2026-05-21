@@ -6,10 +6,11 @@
   "type": "object",
   "properties": {
     "category": {
-      "description": "category",
+      "description": "category name",
       "type": "string",
       "minLength": 1,
-      "maxLength": 20
+      "maxLength": 20,
+      "pattern": "^[a-zA-Z0-9 &-]+$"
     }
   },
   "additionalProperties": false,
