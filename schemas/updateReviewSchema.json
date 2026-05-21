@@ -12,10 +12,10 @@
       "maxLength": 500
     },
     "rating": {
-      "description": "rating",
-      "type": "number",
+      "description": "rating from 1 to 5",
+      "type": "integer",
       "multipleOf" : 1,
-      "minimum": 0,
+      "minimum": 1,
       "maximum": 5
     }
   },
