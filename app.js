@@ -12,6 +12,7 @@ const wishlistRoutes = require("./routes/wishlist");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/orders");
 const addressRoutes = require("./routes/address");
+const usersRoutes = require("./routes/users");
 const { NotFoundError } = require("./AppError");
 const {globalLimiter} = require("./middleware/limiter");
 const helmet = require('helmet');
@@ -32,6 +33,7 @@ app.use("/api/v1/wishlist", wishlistRoutes); // Wishlist routes
 app.use("/api/v1/cart", cartRoutes); // Cart routes
 app.use("/api/v1/orders", orderRoutes); // Orders routes
 app.use("/api/v1/address", addressRoutes); // Address routes
+app.use("/api/v1/users", usersRoutes); // User routes
 
 
 /** Handle 404 errors -- this matches everything */
@@ -41,18 +43,6 @@ app.use(function (req, res, next) {
 
 /** Generic error handler. Anything unhandled goes here. */
 app.use(function (err, req, res, next) {
-    // switch (err.code) {
-    //     case '23505': 
-    //         err.message = 'already exist';
-    //         break;
-    //     case '22001': 
-    //         err.message = 'Value too long';
-    //         break;
-    //     case '22003': 
-    //         err.message = 'Price needs to be a Number no greater than 5 digits';
-    //         break;
-    // }
-    // if (process.env.NODE_ENV !== "test") console.error(err.stack);
     const status = err.status || 500;
     const message = err.message;
     console.log(`STATUS:::::${status}\nMESSAGE:::::${message}`);
