@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://api.productmanagement.com/v1/resendEmailVerification.schema.json",
-  "title": "resendEmail",
+  "title": "resendEmailVerification",
   "description": "Resend Email Verification",
   "type": "object",
   "properties": {
