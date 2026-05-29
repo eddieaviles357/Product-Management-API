@@ -18,3 +18,19 @@ exports.registerUser = async (req, res, next) => {
       return next(err);
     }
   };
+
+// @desc      Removes a user from the database.
+// @route     DELETE /api/v1/users/:username
+// @access    Private (but requires valid authentication and authorization)
+exports.removeUser = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const success = await Users.remove(username);
+
+    return res.status(200).json({ 
+      success
+     });
+  } catch (err) {
+    return next(err);
+  }
+};

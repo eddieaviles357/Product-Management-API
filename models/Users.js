@@ -8,8 +8,8 @@ const {
   UnauthorizedError,
   ConflictError
 } = require("../AppError.js");
-const { createAndSendVerification } = require("../helpers/emailVerification.js");
-const Queries = require("../helpers/sql/userQueries.js");
+const { createAndSendVerification } = require("../services/emailVerification.js");
+const Queries = require("../queries/userQueries.js");
 
 class Users {
   /**
@@ -55,21 +55,35 @@ class Users {
   }
 
 
-/** get user id by username
-* @param {string} username
-* @returns {number} user id or 0 if user does not exist
-* @throws {BadRequestError} if there is a problem with the database query
-*/
- static async getUserId(username) {
-  try {
-    const userResult = await db.query(Queries.getUserId(), [username]);
-  
-    // return 0 is no user exist
-    return (userResult.rows.length === 0) ? 0 : userResult.rows[0].id
-  } catch (err) {
-    throw new BadRequestError(err.message);
+  /** get user id by username
+  * @param {string} username
+  * @returns {number} user id or 0 if user does not exist
+  * @throws {BadRequestError} if there is a problem with the database query
+  */
+  static async getUserId(username) {
+    try {
+      const userResult = await db.query(Queries.getUserId(), [username]);
+    
+      // return 0 is no user exist
+      return (userResult.rows.length === 0) ? 0 : userResult.rows[0].id
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
   }
-}
+
+  /** remove user by username
+   * @param {string} username
+   * @returns {boolean} true if user was removed, false otherwise
+   * @throws {BadRequestError} if there is a problem with the database query
+   */
+  static async removeUser(username) {
+    try {
+      const result = await db.query(Queries.removeUser(), [username]);
+      return result.rowCount > 0;
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
 
 };
 
