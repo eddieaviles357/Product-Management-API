@@ -2,9 +2,9 @@
 
 const db = require("../db");
 const { BadRequestError } = require("../AppError");
-const getUserId = require("../helpers/getUserId");
-const Queries = require("../helpers/sql/orderQueries");
-const { clearCart } = require("../helpers/sql/cartQueries");
+const Users = require("./Users");
+const Queries = require("../queries/orderQueries");
+const { clearCart } = require("../queries/cartQueries");
 const Address = require("./Address");
 
 class Orders {
@@ -121,7 +121,7 @@ class Orders {
    */
   static async getAllOrdersByUsername(username) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       const result = await db.query(Queries.getAllOrdersByUsername(), [userId]);
 
@@ -151,7 +151,7 @@ class Orders {
         throw new BadRequestError("Cart cannot be empty");
       }
       // 1. Get userId and addressId (or throw error if no address)
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
       const addressId = await this.#getUserAddressId(username);
 
       // 2. Resolve address
@@ -260,28 +260,6 @@ class Orders {
     }
   }
 };
-      // // 1. Calculate total
-      // const totalAmount = cart.reduce((sum, item) => {
-      //   return sum + Number(item.price) * item.quantity;
-      // }, 0);
-
-      // // 2. Insert into orders table
-      // const orderResult = await db.query(Queries.insertIntoOrders(), [userId, totalAmount, addressId]);
-      // const orderId = orderResult.rows[0].id;
-
-      // // 3. Insert into order_products table
-      // await this.#insertOrderProducts(orderId, cart);
-
-      // // 4. clear cart
-      // await db.query(clearCart(), [userId]);
-
-      // return {
-      //   id: orderId,
-      //   totalAmount,
-      //   addressId,
-      //   products: cart
-      // };
-
 
 
 module.exports = Orders;

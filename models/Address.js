@@ -2,8 +2,8 @@
 
 const db = require("../db");
 const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
-const getUserId = require("../helpers/getUserId");
-const Queries = require("../helpers/sql/addressQueries");
+const Users = require("./Users");
+const Queries = require("../queries/addressQueries");
 
 class Address {
 
@@ -45,7 +45,7 @@ class Address {
    */
   static async getAddress(username) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
       
       if (!userId) throw new BadRequestError("User does not exist");
 
@@ -80,7 +80,7 @@ class Address {
 
       const { address1, address2, city, state, zipcode } = addressData;
 
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
       if (!userId) throw new BadRequestError("User does not exist");
 
       // Check if address exists for this user
@@ -115,22 +115,18 @@ class Address {
   /**
    * Delete address for a user
    * @param {string} username
-   * @returns {object} {success, message}
+   * @returns {boolean} True if the address was deleted, false if the address was not found
    * @throws {BadRequestError} if username is not provided
    * @throws {NotFoundError} if address not found
    */
   static async deleteAddress(username) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
       if (!userId) throw new BadRequestError("User does not exist");
 
       const result = await db.query(Queries.deleteAddress(), [userId]);
 
-      if (result.rows.length === 0) {
-        throw new NotFoundError("Address not found for this user");
-      }
-
-      return { success: true, message: "Address deleted successfully" };
+      return (result.rows.length > 0)
     } catch (err) {
       if (err instanceof NotFoundError) throw err;
       throw new BadRequestError(err.message);

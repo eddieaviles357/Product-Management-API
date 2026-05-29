@@ -4,7 +4,7 @@ const db = require("../db.js");
 const { BadRequestError, ConflictError } = require("../AppError");
 const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars");
 const sanitizePagination = require("../helpers/sanitizePagination");
-const Queries = require("../helpers/sql/productQueries");
+const Queries = require("../queries/productQueries");
 
 class Products {
   /**
@@ -291,7 +291,7 @@ class Products {
   /**
    * Removes a product from the database.
    * @param {number} id
-   * @returns {object} - { message, success }
+   * @returns {boolean} - True if the product was deleted, false if the product was not found
    * @throws {BadRequestError} - if database error occurs
    */
   static async removeProduct(id) {

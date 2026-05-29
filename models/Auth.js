@@ -8,8 +8,8 @@ const {
   UnauthorizedError,
   ConflictError
 } = require("../AppError.js");
-const { createAndSendVerification } = require("../helpers/emailVerification.js");
-const Queries = require("../helpers/sql/userQueries.js");
+const { createAndSendVerification } = require("../services/emailVerification.js");
+const Queries = require("../queries/userQueries.js");
 
 class Auth {
   /** authenticate user

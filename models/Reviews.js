@@ -2,8 +2,8 @@
 
 const db = require("../db.js");
 const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
-const getUserId = require("../helpers/getUserId");
-const Queries = require("../helpers/sql/reviewsQueries");
+const Users = require("./Users");
+const Queries = require("../queries/reviewsQueries");
 const sanitizePagination = require("../helpers/sanitizePagination");
 
 class Reviews {
@@ -62,7 +62,7 @@ class Reviews {
    */
   static async getSingleReview(productId, username) {
     try{
-      const uId = await getUserId(username);
+      const uId = await Users.getUserId(username);
       
       const { rows } = await db.query(Queries.getSingleReview(), [productId, uId]);
 
@@ -88,7 +88,7 @@ class Reviews {
     try {
       if(!review || !rating) throw new BadRequestError("Missing data");
 
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       if(!userId) throw new BadRequestError("User does not exist");
       
@@ -121,7 +121,7 @@ class Reviews {
     try {
       if(!review && !rating) throw new BadRequestError("Missing data");
 
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
       
       // check if there is already a review in the database to update
       const { rows: reviewExistRows } = await db.query(Queries.doesReviewExist(), [prodId, userId]);
@@ -155,20 +155,14 @@ class Reviews {
   /**
    * @param {number} prodId
    * @param {string} username
-   * @returns {Object} review object
+   * @returns {Boolean} true if review was deleted, false if no review was found to delete
    * @throws {BadRequestError} if prodId or username is missing
    * @throws {BadRequestError} if there is an error in the database query
    * @throws {BadRequestError} if review does not exist for product
    */
   static async deleteReview(prodId, username) {
     try {
-      const uId = await getUserId(username);
-      
-      
-      // check if there is already a review in the database to delete
-      // const {rows: reviewExistRows} = await db.query(Queries.doesReviewExist(), [prodId, uId]);
-
-      // if(reviewExistRows.length === 0) throw new BadRequestError("No review to delete");
+      const uId = await Users.getUserId(username);
   
       const result = await db.query(Queries.deleteReview(), [prodId, uId]);
       

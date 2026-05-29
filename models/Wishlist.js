@@ -7,9 +7,9 @@ const {
   NotFoundError 
 } = require("../AppError");
 
-const getUserId = require("../helpers/getUserId");
+const Users = require("./Users");
 const ensureProductExistInDB = require("../helpers/isProductInDB");
-const Queries = require("../helpers/sql/wishListQueries");
+const Queries = require("../queries/wishListQueries");
 
 class Wishlist {
   /**
@@ -20,7 +20,7 @@ class Wishlist {
    */
   static async getWishlist(username) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       // Get wishlist using user id
       const wishlistValues = await db.query(Queries.getWishList(), [userId]);
@@ -30,21 +30,6 @@ class Wishlist {
       throw new BadRequestError(err.message);
     }
   }
-  // static async getWishlistCount(username) {
-  //   try {
-  //     const userId = await getUserId(username);
-
-  //     // Get count of products in wishlist using user id
-  //     const queryStatement = `SELECT COUNT(*) AS "count" FROM wishlist WHERE user_id = $1`;
-  //     const values = [userId];
-  //     const countResult = await db.query(queryStatement, values);
-  //     const count = countResult.rows[0].count;
-
-  //     return count;
-  //   } catch (err) {
-  //     throw new BadRequestError(err.message);
-  //   }
-  // }
 
   /**
    * @param {string} username
@@ -56,7 +41,7 @@ class Wishlist {
    */
   static async addProduct(username, productId) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       // Verify product exists in products table
       await ensureProductExistInDB(productId);
@@ -81,7 +66,7 @@ class Wishlist {
    */
   static async removeProductFromWishlist(username, productId) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       // Delete product from wishlist using user id and product id
       const removedResult = await db.query(Queries.deleteSingleItem(), [userId, productId]);
@@ -101,14 +86,13 @@ class Wishlist {
    */
   static async removeAll(username) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
       
       // Clear entire wishlist using user id
-      const removedResult = await db.query(Queries.deleteWishList(), [userId]);
-      const rowsRemoved = removedResult.rowCount;
+      const result = await db.query(Queries.deleteWishList(), [userId]);
 
       // if no rows were removed then we will return false
-      return rowsRemoved > 0;
+      return (result.rows.length > 0);
 
     } catch (err) {
       throw new BadRequestError(err.message);

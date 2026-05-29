@@ -4,7 +4,7 @@ const db = require("../db.js");
 const removeNonAlphabeticChars = require("../helpers/removeNonAlphabeticChars.js");
 const { BadRequestError, ConflictError, NotFoundError } = require("../AppError");
 const sanitizePagination = require("../helpers/sanitizePagination.js");
-const Queries = require("../helpers/sql/categoryQueries.js");
+const Queries = require("../queries/categoryQueries.js");
 
 class Categories {
 
@@ -204,7 +204,7 @@ class Categories {
   /**
   * Deletes a category by its id.
   * @param {number} catId - The id of the category to be deleted
-  * @returns {object} The deleted category and success status
+  * @returns {boolean} True if the category was deleted, false if the category was not found
   * @throws {BadRequestError} If an error occurs while querying the database
   * @throws {NotFoundError} If the category with catId does not exist
   * @throws {BadRequestError} If the category with catId is 'none'
@@ -221,7 +221,7 @@ class Categories {
 
       const result = await db.query(Queries.deleteCategory(), [catId]);
       
-      return result.rows;
+      return (result.rows.length > 0);
       
     } catch (err) {
       throw new BadRequestError(err.message);

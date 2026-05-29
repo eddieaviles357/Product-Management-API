@@ -2,8 +2,8 @@
 
 const db = require("../db");
 const {BadRequestError} = require("../AppError");
-const getUserId = require("../helpers/getUserId");
-const Queries = require("../helpers/sql/cartQueries");
+const Users = require("./Users");
+const Queries = require("../queries/cartQueries");
 // const Product = require("./Products");
 
 class Cart {
@@ -35,7 +35,7 @@ class Cart {
      or [] 
     */
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       const result = await db.query(Queries.getCartItems(), [userId]);
 
@@ -53,7 +53,7 @@ class Cart {
    */
   static async clear (username) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       const removedResult = await db.query(Queries.clearCart(), [userId]);
       
@@ -73,7 +73,7 @@ class Cart {
    */
   static async addToCart(username, productId, quantity = 1) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       const price = await Cart._getPrice(productId);
 
@@ -112,7 +112,7 @@ class Cart {
    */
   static async updateCartItemQty(username, productId, quantity = 0) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       const price = await Cart._getPrice(productId);
 
@@ -151,21 +151,15 @@ class Cart {
    * Remove a cart item for a given username and productId
    * @param {string} username 
    * @param {number} productId 
-   * @returns {string|number} the id of the deleted cart item or 'Nothing to delete' if no such item exists
+   * @returns {boolean} true if the cart item was removed, false if no such item exists
    */
   static async removeCartItem (username, productId) {
     try {
-      const userId = await getUserId(username);
+      const userId = await Users.getUserId(username);
 
       const result = await db.query(Queries.deleteCartItem(), [userId, productId]);
 
-      if (result.rows.length === 0) {
-        return 'Nothing to delete';
-
-      } else {
-        return result.rows[0].productId;
-
-      }
+      return (result.rows.length > 0);
 
     } catch (err) {
       throw new BadRequestError(err.message);
