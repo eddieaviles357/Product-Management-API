@@ -5,7 +5,7 @@ const { BadRequestError } = require("../AppError");
 const createToken = require("../helpers/tokens");
 
 // @desc      Registers a new user to the database, create a verification token, and sends verification email.
-// @route     POST /api/v1/auth/register
+// @route     POST /api/v1/users/register
 // @access    Public (but requires valid email/username/password)
 exports.registerUser = async (req, res, next) => {
   try {
