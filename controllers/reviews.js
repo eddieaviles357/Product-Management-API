@@ -87,13 +87,10 @@ exports.updateReviewToProduct = async (req, res, next) => {
 // // @access    Private/Admin ?????????
 exports.deleteReviewFromProduct = async (req, res, next) => {
   try {
-    const {success, review} = await Reviews.deleteReview(req.params.productId, req.params.username);
+    const success = await Reviews.deleteReview(req.params.productId, req.params.username);
 
-    const statusCode = success ? 200 : 204;
-
-    return res.status(statusCode).json({ 
-      success,
-      result: review
+    return res.status(200).json({ 
+      success
     });
   } catch (err) {
     return next(err);

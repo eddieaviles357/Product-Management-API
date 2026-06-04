@@ -77,9 +77,11 @@ exports.updateCartItemQty = async (req, res, next) => {
 
 exports.deleteCartItem = async (req, res, next) => {
   try {
-    const result = await Cart.removeCartItem(req.params.username, req.params.productId);
+    const success = await Cart.removeCartItem(req.params.username, req.params.productId);
 
-    return res.status(200).json({success: true, result})
+    return res.status(200).json({
+      success
+    })
   } catch (err) {
     return next(err);  
   }

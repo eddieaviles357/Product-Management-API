@@ -112,10 +112,10 @@ exports.deleteCategoryFromProduct = async (req, res, next) => {
 // @access    Private/Admin
 exports.deleteProductById = async (req, res, next) => {
   try {
-    const isDeleted = await Products.removeProduct(req.params.id);
+    const success = await Products.removeProduct(req.params.id);
     
     return res.status(200).json({ 
-      success: isDeleted
+      success
     });
   } catch (err) {
     return next(err);
