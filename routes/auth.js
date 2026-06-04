@@ -2,7 +2,6 @@
 
 // controllers
 const {
-  registerUser,
   authenticateUser,
   verifyEmail,
   resendVerificationEmail
@@ -17,10 +16,6 @@ const validateSchema = require("../middleware/validation/validateSchema");
 const userAuthSchema = require("../schemas/userAuthSchema.json");
 const newUserSchema = require("../schemas/newUserSchema.json");
 const { authLimiter } = require("../middleware/limiter");
-
-router
-  .route("/register")
-  .post(authLimiter, validateSchema(newUserSchema),registerUser)
 
 router
   .route("/authenticate")
