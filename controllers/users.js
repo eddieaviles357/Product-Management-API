@@ -24,8 +24,8 @@ exports.registerUser = async (req, res, next) => {
 // @access    Private (but requires valid authentication and authorization)
 exports.removeUser = async (req, res, next) => {
   try {
-    const { username } = req.params;
-    const success = await Users.remove(username);
+    const { username } = res.locals.user;
+    const success = await Users.removeUser(username);
 
     return res.status(200).json({ 
       success
