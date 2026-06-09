@@ -17,15 +17,12 @@ const validateUsername = require("../middleware/validation/validateUsername");
 const newUserSchema = require("../schemas/newUserSchema.json");
 const { authLimiter } = require("../middleware/limiter");
 
-// Register param validators
-router.param("username", validateUsername("username"));
-
 router
   .route("/register")
   .post(authLimiter, validateSchema(newUserSchema), registerUser)
 
 router
-  .route("/:username")
-  .delete(authLimiter, ensureLoggedIn, ensureUserOrAdmin, removeUser);
+  .route("/me")
+  .delete(authLimiter, ensureLoggedIn, removeUser);
 
 module.exports = router;
