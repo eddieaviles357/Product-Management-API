@@ -99,11 +99,11 @@ async function commonBeforeAll() {
     , [ userIdUsername[0].id, productIds[0], 1, 2.00 ]);
 
   const orderIdsResult = await db.query(`
-    INSERT INTO orders (user_id, total_amount)
+    INSERT INTO orders (user_id, address_1, city, state, zipcode,total_amount)
     VALUES
-    ($1, $2)
+    ($1, $2, $3, $4, $5, $6)
     RETURNING id`
-    , [ userIdUsername[0].id, 100.00 ]);
+    , [ userIdUsername[0].id, "421 Hampton st", "Hampton", "MI", "01234", 100.00 ]);
   orderIds.splice(0, 0, ...orderIdsResult.rows.map(({id}) => id));
 
   await db.query(`
