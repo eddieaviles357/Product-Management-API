@@ -32,5 +32,84 @@ describe("Address Model", () => {
         zipcode: expect.any(String)
       });
     });
+
+    test("throws BadRequestError if user does not exist", async () => {
+      try {
+        await Address.getAddress("nonexistentuser");
+        fail();
+      } catch (err) {
+        expect(err).toBeInstanceOf(BadRequestError);
+      }
+    });
+  });
+
+  describe("insert or update address", () => {
+    test("works for new address", async () => {
+      const newAddressData = {
+        address1: "123 New St",
+        address2: "Apt 4",
+        city: "New City",
+        state: "NC",
+        zipcode: "12345"
+      };
+
+      const newAddress = await Address.upsertAddress(username2, newAddressData);
+
+      expect(newAddress).toEqual({
+        id: expect.any(Number),
+        userId: userIdUsername[1].id,
+        ...newAddressData
+      });
+    })
+
+    test("works for updating existing address", async () => {
+      const updatedAddressData = {
+        address1: "456 Updated St",
+        address2: "Suite 8",
+        city: "Updated City",
+        state: "CA",
+        zipcode: "54321"
+      };
+
+      const updatedAddress = await Address.upsertAddress(username1, updatedAddressData);
+
+      expect(updatedAddress).toEqual({
+        id: expect.any(Number),
+        userId: userIdUsername[0].id,
+        ...updatedAddressData
+      });
+    });
+
+    test("throws BadRequestError if user does not exist", async () => {
+      const addressData = {
+        address1: "789 Fake St",
+        city: "Fake City",
+        state: "FK",
+        zipcode: "00000"
+      };
+
+      try {
+        await Address.upsertAddress("nonexistentuser", addressData);
+        fail();
+      } catch (err) {
+        expect(err).toBeInstanceOf(BadRequestError);
+      }
+    });
+
+    // test("throws BadRequestError if address is invalid", async () => {
+    //   const addressData = {
+    //     address1: "789 Fake St",
+    //     city: "Fake City",
+    //     state: "FK",
+    //     zipcode: "00000"
+    //   };
+
+    //   try {
+    //     const newAddress = await Address.upsertAddress(username1, addressData);
+    //     fail();
+    //   } catch (err) {
+    //     expect(err).toBeInstanceOf(BadRequestError);
+    //   }
+    // });
   });
 });
