@@ -14,6 +14,8 @@ const username2 = 'north123';
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
+  await db.query("DELETE FROM order_products");
+  await db.query("DELETE FROM orders");
   await db.query("DELETE FROM products");
   await db.query("DELETE FROM categories");
   await db.query("DELETE FROM products_categories");
@@ -23,8 +25,6 @@ async function commonBeforeAll() {
   await db.query("DELETE FROM reviews");
   await db.query("DELETE FROM wishlist");
   await db.query("DELETE FROM cart");
-  await db.query("DELETE FROM orders");
-  await db.query("DELETE FROM order_products");
   await db.query("DELETE FROM payment_details");
 
   const p1 = {sku: 'MC10SSMM', item: 'shirt', description: 'white short', price: '10.99', qty: '3', imgURL: 'https://image.product-management.com/1283859'};
@@ -64,10 +64,9 @@ async function commonBeforeAll() {
   const addressResult = await db.query(`
     INSERT INTO addresses (user_id, address_1, address_2, city, state, zipcode)
     VALUES
-    ($1, '101 dolly', '', 'Dalmation', 'MI', '01234'),
-    ($2, '201 disney st', '', 'Santa Ana', 'CA', '92626')
+    ($1, '101 dolly', '', 'Dalmation', 'MI', '01234')
     RETURNING id`
-    , [ userIdUsername[0].id, userIdUsername[1].id ] );
+    , [ userIdUsername[0].id ] );
   // contains id
   addressIds.splice(0, 0, ...addressResult.rows.map(({id}) => id));
 
