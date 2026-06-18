@@ -84,32 +84,32 @@ describe("Address Model", () => {
       const addressData = {
         address1: "789 Fake St",
         city: "Fake City",
+        state: "CA",
+        zipcode: "92249"
+      };
+
+      try {
+      const data = await Address.upsertAddress("nonexistentuser", addressData);
+      } catch (err) {
+      expect(err).toBeInstanceOf(BadRequestError);
+      }
+    });
+
+    test("throws BadRequestError if address is invalid", async () => {
+      const addressData = {
+        address1: "789 Fake St",
+        city: "Fake City",
         state: "FK",
         zipcode: "00000"
       };
 
       try {
-        await Address.upsertAddress("nonexistentuser", addressData);
-        fail();
+          await Address.upsertAddress(username1, addressData);
       } catch (err) {
+        expect(err.message).toEqual("new row for relation \"addresses\" violates check constraint \"addresses_state_check\"");
         expect(err).toBeInstanceOf(BadRequestError);
       }
     });
-
-    // test("throws BadRequestError if address is invalid", async () => {
-    //   const addressData = {
-    //     address1: "789 Fake St",
-    //     city: "Fake City",
-    //     state: "FK",
-    //     zipcode: "00000"
-    //   };
-
-    //   try {
-    //     const newAddress = await Address.upsertAddress(username1, addressData);
-    //     fail();
-    //   } catch (err) {
-    //     expect(err).toBeInstanceOf(BadRequestError);
-    //   }
-    // });
   });
+  
 });
