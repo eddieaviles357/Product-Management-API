@@ -111,5 +111,24 @@ describe("Address Model", () => {
       }
     });
   });
+
+  describe("delete address", () => {
+    test("works", async () => {
+      // Verify that there's an address for the user before deletion
+      const addressBeforeDeletion = await Address.getAddress(username1);
+      expect(addressBeforeDeletion.length).toBe(1);
+
+      const isAddressDeleted = await Address.deleteAddress(username1);
+      expect(isAddressDeleted).toBe(true);
+    });
+
+    test("throws BadRequestError if user does not exist", async () => {
+      try {
+        await Address.deleteAddress("nonexistentuser");
+      } catch (err) {
+        expect(err).toBeInstanceOf(BadRequestError);
+      }
+    });
+  });
   
 });
