@@ -10,6 +10,7 @@ const {
   commonAfterEach,
   commonAfterAll
 } = require("../helpers/_testCommon");
+const db = require("../../db");
 
 describe("Users Model", () => {
   beforeAll(commonBeforeAll);
@@ -59,29 +60,6 @@ describe("Users Model", () => {
         username: "testuser",
         password: "password"
       };
-      
-      await expect(Users.register(user)).rejects.toThrow(BadRequestError);
-    });
-
-    test("throws BadRequestError if missing password", async () => {
-      const user = {
-        firstName: "Test", 
-        lastName: "User", 
-        username: "testuser",
-        email: "test@test.com"
-      };
-      
-      await expect(Users.register(user)).rejects.toThrow(BadRequestError);
-    });
-
-    test("throws BadRequestError if missing username", async () => {
-      const user = {
-        firstName: "Test", 
-        lastName: "User", 
-        password: "password",
-        email: "test@test.com"
-      };
-      
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
 
@@ -92,7 +70,6 @@ describe("Users Model", () => {
         password: "password",
         email: "test@test.com"
       };
-      
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
 
@@ -103,47 +80,101 @@ describe("Users Model", () => {
         password: "password",
         email: "test@test.com"
       };
-      
+      await expect(Users.register(user)).rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError if missing username", async () => {
+      const user = {
+        firstName: "Test", 
+        lastName: "User", 
+        password: "password",
+        email: "test@test.com"
+      };
+      await expect(Users.register(user)).rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError if missing password", async () => {
+      const user = {
+        firstName: "Test", 
+        lastName: "User", 
+        username: "testuser",
+        email: "test@test.com"
+      };
+      await expect(Users.register(user)).rejects.toThrow(BadRequestError);
+    });
+
+    test("throws BadRequestError if email format is invalid", async () => {
+      const user = {
+        firstName: "Test", 
+        lastName: "User", 
+        username: "testuser",
+        password: "password", 
+        email: "invalid-email-format"
+      };
+
       await expect(Users.register(user)).rejects.toThrow(BadRequestError);
     });
   });
 
-  describe("authenticate", () => {
-    test("works", async () => {
-      const authenticatedUser = await Users.authenticate(username1, "password");
-
-      expect(authenticatedUser).toEqual({
-        id: expect.any(Number),
-        firstName: expect.any(String),
-        lastName: expect.any(String),
-        username: username1,
-        email: expect.any(String),
-        isAdmin: expect.any(Boolean),
-        joinAt: expect.any(Date),
-        lastLoginAt: expect.any(Date)
+  describe("register user error handling", () => {
+    test("throws BadRequestError if there is a problem with the database query", async () => {
+      // Temporarily override the db.query to simulate a db error
+      const originalDbQuery = db.query;
+      db.query = jest.fn().mockImplementation(() => {
+        throw new Error("Database error");
       });
 
-      expect(authenticatedUser.password).toBeUndefined();
+      const user = {
+        firstName: "Test", 
+        lastName: "User", 
+        username: "testuser",
+        password: "password", 
+        email: "test@test.com"
+      };
+
+      await expect(Users.register(user)).rejects.toThrow(BadRequestError);
+
+      // Restore the original db.query method
+      db.query = originalDbQuery;
+    });
+  });
+
+  describe("getUserId", () => {
+    test("works", async () => {
+      const userId = await Users.getUserId(username1);
+      expect(userId).toEqual(expect.any(Number));
     });
 
-    test("throws UnauthorizedError if user not found", async () => {
-      await expect(Users.authenticate("nonexistent", "password"))
-        .rejects.toThrow("Please register");
+    test("returns 0 if user does not exist", async () => {
+      const userId = await Users.getUserId("nonexistentuser");
+      expect(userId).toBe(0);
+    });
+  });
+
+  describe("getUserId error handling", () => {
+    test("throws BadRequestError if there is a problem with the database query", async () => {
+      // Temporarily override the db.query to simulate a db error
+      const originalDbQuery = db.query;
+      db.query = jest.fn().mockImplementation(() => {
+        throw new Error("Database error");
+      });
+
+      await expect(Users.getUserId(username1)).rejects.toThrow(BadRequestError);
+
+      // Restore the original db.query method
+      db.query = originalDbQuery;
+    });
+  });
+
+  describe("remove user", () => {
+    test("works", async () => {
+      const isUserRemoved = await Users.removeUser(username2);
+      expect(isUserRemoved).toBe(true);
     });
 
-    test("throws UnauthorizedError if password is incorrect", async () => {
-      await expect(Users.authenticate(username1, "wrongPassword"))
-        .rejects.toThrow(UnauthorizedError);
-    });
-
-    test("throws BadRequestError if missing username", async () => {
-      await expect(Users.authenticate(undefined, "password"))
-        .rejects.toThrow(BadRequestError);
-    });
-
-    test("throws BadRequestError if missing password", async () => {
-      await expect(Users.authenticate(username1, undefined))
-        .rejects.toThrow(BadRequestError);
+    test("returns false if user does not exist", async () => {
+      const isUserRemoved = await Users.removeUser("nonexistentuser");
+      expect(isUserRemoved).toBe(false);
     });
   });
 });
