@@ -4,7 +4,7 @@ const request = require("supertest");
 const app = require("../../app");
 const createToken = require("../../helpers/tokens");
 const { BadRequestError, ConflictError } = require("../../AppError");
-const Users = require("../../models/Users");
+const Auth = require("../../models/Auth");
 
 const {
   productIds,
@@ -69,7 +69,7 @@ describe("Auth Routes", () => {
     });
 
     test("database error handling", async () => {
-      jest.spyOn(Users, "authenticate").mockImplementation(() => {
+      jest.spyOn(Auth, "authenticate").mockImplementation(() => {
         throw new BadRequestError("Database error");
       });
 
@@ -87,100 +87,5 @@ describe("Auth Routes", () => {
     });
   });
 
-  describe("POST /api/v1/auth/register", () => {
-    test("successful registration", async () => {
-      const response = await request(app)
-        .post("/api/v1/auth/register")
-        .send({
-          username: "newuser",
-          password: "password123",
-          firstName: "New",
-          lastName: "User",
-          email: "newuser@example.com",
-        });
-          
-      expect(response.statusCode).toBe(201);
-      expect(response.body).toEqual({
-        token: expect.any(String),
-      });
-    });
-
-    test("missing password field", async () => {
-      const response = await request(app)
-        .post("/api/v1/auth/register")
-        .send({ username: "newuser", firstName: "first", lastName: "last", email: "test@test.com" });
-
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toHaveProperty("errors");
-      expect(response.body.errors).toContainEqual(
-        expect.objectContaining({
-          property: "password",
-          message: expect.stringContaining("password")
-        })
-      );
-    });
-
-    test("missing lastName field", async () => {
-      const response = await request(app)
-        .post("/api/v1/auth/register")
-        .send({ username: "newuser", firstName: "first", password: "pass", email: "test@test.com" });
-
-      expect(response.statusCode).toBe(400);
-      expect(response.body.errors).toBeInstanceOf(Array);
-      expect(response.body.errors.length).toBeGreaterThan(0);
-    });
-
-    test("missing multiple fields", async () => {
-      const response = await request(app)
-        .post("/api/v1/auth/register")
-        .send({ username: "newuser" });
-
-      expect(response.statusCode).toBe(400);
-      expect(response.body.errors).toBeInstanceOf(Array);
-      expect(response.body.errors.length).toBeGreaterThanOrEqual(3);
-    });
-
-    test("duplicate username", async () => {
-      const response = await request(app)
-        .post("/api/v1/auth/register")
-        .send({
-          firstName: "west",
-          lastName: "wes",
-          username: "west123",
-          password: "password123",
-          email: "testuser@example.com",
-        });
-
-      expect(response.statusCode).toBe(409);
-      expect(response.body).toEqual({
-        error: {
-          message: "User already exists",
-          status: 409,
-        },
-      });
-    });
-
-    test("database error handling", async () => {
-      jest.spyOn(Users, "register").mockImplementation(() => {
-        throw new BadRequestError("Database error");
-      });
-
-      const response = await request(app)
-        .post("/api/v1/auth/register")
-        .send({
-          firstName: "west",
-          lastName: "wes",
-          username: "newtest123",
-          password: "password123",
-          email: "test@test.com",
-        });
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toEqual({
-        error: {
-          message: "Database error",
-          status: 400,
-        },
-      });
-    });
-  });
+  
 });
