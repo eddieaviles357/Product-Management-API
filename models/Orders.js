@@ -17,8 +17,7 @@ class Orders {
   static async #getUserAddressId(username) {
     try {
       const address = await Address.getAddress(username);
-      
-      return address.length > 0 ? address.rows[0].id : 0;
+      return address.length > 0 ? address[0].id : 0;
     } catch (err) {
       throw new BadRequestError("User must have an address to place an order");
     }
@@ -153,12 +152,13 @@ class Orders {
       // 1. Get userId and addressId (or throw error if no address)
       const userId = await Users.getUserId(username);
       const addressId = await this.#getUserAddressId(username);
-
+      const addressData = await Address.getAddress(username);
+      console.log("addressData:", addressData);
       // 2. Resolve address
       let finalAddress;
 
       if (addressId) {
-        finalAddress = await Address.getAddressById(addressId);
+        finalAddress = await Address.getAddress(username);
         if (!finalAddress) {
           throw new BadRequestError("Invalid addressId");
         }
