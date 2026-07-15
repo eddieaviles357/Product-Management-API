@@ -390,9 +390,6 @@ describe("Categories Routes", () => {
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
         success: true,
-        result: {
-          category: expect.any(String),
-        }
       });
     });
 
@@ -401,8 +398,10 @@ describe("Categories Routes", () => {
         .delete("/api/v1/categories/99999")
         .set("Authorization", `Bearer ${await createToken({ username: username1, isAdmin: true })}`);
 
-      expect(response.statusCode).toBe(204);
-      expect(response.body).toEqual({});
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: false,
+      });
     });
 
     test("throws BadRequestError when categoryId is not a number", async () => {
