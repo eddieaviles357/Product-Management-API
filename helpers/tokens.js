@@ -11,7 +11,7 @@ const jwtSign = promisify(jwt.sign);
 // return signed JWT token from user data
 const createToken = async (user) => {
   console.assert(user?.isAdmin !== undefined, "create token passed without isAdmin property");
-  console.log("createToken called with user:", user); // Debugging log
+  // console.log("createToken called with user:", user); // Debugging log
   if (!user || typeof user !== "object") {
     throw new BadRequestError("User data is required to create a token");
   }
