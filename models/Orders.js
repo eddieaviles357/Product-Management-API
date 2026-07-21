@@ -151,18 +151,11 @@ class Orders {
       }
       // 1. Get userId and addressId (or throw error if no address)
       const userId = await Users.getUserId(username);
-      const addressId = await this.#getUserAddressId(username);
-      const addressData = await Address.getAddress(username);
-      console.log("addressData:", addressData);
+      
       // 2. Resolve address
       let finalAddress;
 
-      if (addressId) {
-        finalAddress = await Address.getAddress(username);
-        if (!finalAddress) {
-          throw new BadRequestError("Invalid addressId");
-        }
-      } else if (address) {
+      if (address) {
         if (
           !address.address1 ||
           !address.city ||
@@ -171,10 +164,13 @@ class Orders {
           ) {
             throw new BadRequestError("Missing required address fields");
           }
-
-        finalAddress = address;
+          finalAddress = address;
       } else {
-        throw new BadRequestError("Address or addressId is required");
+        finalAddress = await Address.getAddress(username);
+
+        if (!finalAddress) {
+          throw new BadRequestError("No address provided and no address on file");
+        }
       }
 
       // 3. Extract productIds
@@ -184,6 +180,7 @@ class Orders {
       const productRes = await db.query(Queries.getProductPrice(), [productIds] );
 
       const productMap = new Map();
+
       productRes.rows.forEach(p => {
         productMap.set(p.product_id, Number(p.price));
       });
