@@ -16,7 +16,8 @@ const {
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
-  commonAfterAll
+  commonAfterAll,
+  defaultAddress
 } = require("../helpers/_testCommon.js");
 
 describe("Orders model tests", () => {
@@ -27,7 +28,7 @@ describe("Orders model tests", () => {
 
   describe("create Order", () => {
     test("works: create a new order with a cart and address given", async () => {
-        const defaultAddress = {
+        const dAddress = {
           "address1": "100 ham st",
           "address2": "null",
           "city": "san diego",
@@ -40,7 +41,7 @@ describe("Orders model tests", () => {
         .post(`/api/v1/orders/${currentUser.username}/createorder`)
         .set("authorization", `Bearer ${token}`)
         .send({
-          "address": defaultAddress,
+          "address": dAddress,
           "cart": [{
               "productId": productIds[0],
               "quantity": 1,
@@ -51,7 +52,7 @@ describe("Orders model tests", () => {
       expect(response.body.data).toEqual({
         id: expect.any(Number),
         totalAmount: expect.any(Number),
-        address: defaultAddress,
+        address: dAddress,
         products: [
           {
             productId: productIds[0],
@@ -62,43 +63,61 @@ describe("Orders model tests", () => {
       });
     });
 
-    // test("fails: with invalid username", async () => {
-    //   const currentUser = await Auth.authenticate(username1, "password");
-    //   const token = await createToken(currentUser);
-    //   const response = await request(app)
-    //     .post(`/api/v1/orders/fakeuser/createorder`)
-    //     .set("authorization", `Bearer ${token}`)
-    //     .send({
-    //         "cart": [
-    //             {
-    //                 "id": 11,
-    //                 "userId": currentUser.id,
-    //                 "productId": productIds[0],
-    //                 "quantity": 1,
-    //                 "price": rawProducts[0].price,
-    //             }
-    //         ]
-    //     });
+    test("fails: with invalid username", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .post(`/api/v1/orders/fakeuser/createorder`)
+        .set("authorization", `Bearer ${token}`)
+        .send({
+            "cart": [
+                {
+                    "id": 11,
+                    "userId": currentUser.id,
+                    "productId": productIds[0],
+                    "quantity": 1,
+                    "price": rawProducts[0].price,
+                }
+            ]
+        });
       
-    //     expect(response.statusCode).toBe(401);
-    //     expect(response.body.error.message).toBe("Unauthorized");
-    // });
+        expect(response.statusCode).toBe(401);
+        expect(response.body.error.message).toBe("Unauthorized");
+    });
   });
 
-  // describe("getOrderById", () => {
-  //   test("works: retrieves order by id successfully", async () => {
-  //     const currentUser = await Auth.authenticate(username1, "password");
-  //     const token = await createToken(currentUser);
-  //     const response = await request(app)
-  //       .get(`/api/v1/orders/${currentUser.username}/getorder/${orderIds[0]}`)
-  //       .set("authorization", `Bearer ${token}`)
+  describe("getOrderById", () => {
+    test("works: retrieves order by id successfully", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .get(`/api/v1/orders/${currentUser.username}/getorder/${orderIds[0]}`)
+        .set("authorization", `Bearer ${token}`)
 
-  //     expect(response.statusCode).toBe(200);
-  //     expect(response.body.data).toEqual({
-  //       totalAmount: expect.any(Number),
-  //       orderItems: expect.any(Array)
-  //     });
-  //   });
+      expect(response.statusCode).toBe(200);
+      expect(response.body.data).toEqual({
+        orderId: expect.any(Number),
+        orderStatus: "pending",
+        totalAmount: expect.any(Number),
+        address1: defaultAddress.address1,
+        address2: defaultAddress.address2,
+        city: defaultAddress.city,
+        state: defaultAddress.state,
+        zipcode: defaultAddress.zipcode,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+        orderItems: [
+          {
+            productId: productIds[0],
+            quantity: 1,
+            productName: rawProducts[0].item,
+            productDescription: rawProducts[0].description,
+            productPrice: Number(rawProducts[0].price),
+            imageURL: rawProducts[0].imgURL,
+          },
+        ]
+      });
+  });
     
   //   test("fails: with invalid order id", async () => {
   //     const currentUser = await Auth.authenticate(username1, "password");
@@ -119,7 +138,7 @@ describe("Orders model tests", () => {
 
   //     expect(response.statusCode).toBe(400);
   //   });
-  // });
+  });
   
   // describe("getAllOrders", () => {
   //   test("works: retrieves all orders for a user successfully", async () => {

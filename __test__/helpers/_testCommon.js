@@ -11,6 +11,13 @@ let productIds = [],
     rawProducts = [];
 const username1 = 'west123';
 const username2 = 'north123';
+const defaultAddress = {
+  "address1": "100 ham st",
+  "address2": null,
+  "city": "san diego",
+  "state": "CA",
+  "zipcode": "92929"
+};
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
@@ -30,6 +37,7 @@ async function commonBeforeAll() {
   const p1 = {sku: 'MC10SSMM', item: 'shirt', description: 'white short', price: '10.99', qty: '3', imgURL: 'https://image.product-management.com/1283859'};
   const p2 = {sku: 'MC10LSLL', item: 'pants', description: 'black pants', price: '19.99', qty: '5', imgURL: 'https://image.product-management.com/1283859'};
   const p3 = {sku: 'XKDFQKEL', item: 'hat', description: 'sports cap', price: '5.99', qty: '2', imgURL: 'https://image.product-management.com/1283859'};
+
   rawProducts.push(p1, p2, p3);
   // seeds
   const productsResult = await db.query(`
@@ -64,9 +72,9 @@ async function commonBeforeAll() {
   const addressResult = await db.query(`
     INSERT INTO addresses (user_id, address_1, address_2, city, state, zipcode)
     VALUES
-    ($1, '101 dolly', '', 'Dalmation', 'MI', '01234')
+    ($1, $2, $3, $4, $5, $6)
     RETURNING id`
-    , [ userIdUsername[0].id ] );
+    , [ userIdUsername[0].id, defaultAddress.address1, defaultAddress.address2, defaultAddress.city, defaultAddress.state, defaultAddress.zipcode ] );
   // contains id
   addressIds.splice(0, 0, ...addressResult.rows.map(({id}) => id));
 
@@ -102,7 +110,7 @@ async function commonBeforeAll() {
     VALUES
     ($1, $2, $3, $4, $5, $6)
     RETURNING id`
-    , [ userIdUsername[0].id, "421 Hampton st", "Hampton", "MI", "01234", 100.00 ]);
+    , [ userIdUsername[0].id, defaultAddress.address1, defaultAddress.city, defaultAddress.state, defaultAddress.zipcode, 100.00 ]);
   orderIds.splice(0, 0, ...orderIdsResult.rows.map(({id}) => id));
 
   await db.query(`
@@ -111,6 +119,8 @@ async function commonBeforeAll() {
     ($1, $2, $3, $4)`
     , [ orderIds[0], productIds[0], 1, 2.00 ]);
     
+  // since we have a materialized view, we need to refresh it after seeding the products table
+  await db.query("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_product_list");
 };
 
 async function commonBeforeEach() {
@@ -135,6 +145,7 @@ module.exports = {
   username2,
   orderIds,
   rawProducts,
+  defaultAddress,
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
