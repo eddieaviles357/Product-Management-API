@@ -119,47 +119,73 @@ describe("Orders model tests", () => {
       });
   });
     
-  //   test("fails: with invalid order id", async () => {
-  //     const currentUser = await Auth.authenticate(username1, "password");
-  //     const token = await createToken(currentUser);
-  //     const response = await request(app)
-  //       .get(`/api/v1/orders/${currentUser.username}/getorder/${orderIds[999]}`) // non-existing order id
-  //       .set("authorization", `Bearer ${token}`)
+    test("fails: with invalid order id", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .get(`/api/v1/orders/${currentUser.username}/getorder/${orderIds[999]}`) // non-existing order id
+        .set("authorization", `Bearer ${token}`)
 
-  //     expect(response.statusCode).toBe(400);
-  //   });
+      expect(response.statusCode).toBe(400);
+    });
 
-  //   test("fails: with non-numeric order id", async () => {
-  //     const currentUser = await Auth.authenticate(username1, "password");
-  //     const token = await createToken(currentUser);
-  //     const response = await request(app)
-  //       .get(`/api/v1/orders/${currentUser.username}/getorder/abc`)
-  //       .set("authorization", `Bearer ${token}`)
+    test("fails: with non-numeric order id", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .get(`/api/v1/orders/${currentUser.username}/getorder/abc`)
+        .set("authorization", `Bearer ${token}`)
 
-  //     expect(response.statusCode).toBe(400);
-  //   });
+      expect(response.statusCode).toBe(400);
+    });
   });
   
-  // describe("getAllOrders", () => {
-  //   test("works: retrieves all orders for a user successfully", async () => {
-  //     const currentUser = await Auth.authenticate(username1, "password");
-  //     const token = await createToken(currentUser);
-  //     const response = await request(app)
-  //       .get(`/api/v1/orders/${currentUser.username}`)
-  //       .set("authorization", `Bearer ${token}`)
+  describe("getAllOrders", () => {
+    test("works: retrieves all orders for a user successfully", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .get(`/api/v1/orders/${currentUser.username}`)
+        .set("authorization", `Bearer ${token}`)
 
-  //     expect(response.statusCode).toBe(200);
-  //     expect(response.body.data).toEqual(expect.any(Array));
-  //   });
-
-  //   test("fails: with invalid username", async () => {
-  //     const currentUser = await Auth.authenticate(username1, "password");
-  //     const token = await createToken(currentUser);
-  //     const response = await request(app)
-  //       .get(`/api/v1/orders/fakeuser`)
-  //       .set("authorization", `Bearer ${token}`)
+        expect(response.statusCode).toBe(200);
+        expect(response.body.countdata).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            orderId: expect.any(Number),
+            orderStatus: "pending",
+            totalAmount: expect.any(Number),
+            address1: defaultAddress.address1,
+            address2: defaultAddress.address2,
+            city: defaultAddress.city,
+            state: defaultAddress.state,
+            zipcode: defaultAddress.zipcode,
+            createdAt: expect.any(String),
+            updatedAt: expect.any(String),
+            orderItems: expect.any(Array)
+          }),
+        ]));
       
-  //     expect(response.statusCode).toBe(401);
-  //   });
-  // });
+      const orderItems = response.body.countdata.flatMap(order => order.orderItems);
+      expect(orderItems).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          productId: expect.any(Number),
+          quantity: expect.any(Number),
+          productName: expect.any(String),
+          productDescription: expect.any(String),
+          productPrice: expect.any(Number),
+          imageURL: expect.any(String)
+        }),
+      ]));
+    });
+
+    test("fails: with invalid username", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .get(`/api/v1/orders/fakeuser`)
+        .set("authorization", `Bearer ${token}`)
+      
+      expect(response.statusCode).toBe(401);
+    });
+  });
 });
