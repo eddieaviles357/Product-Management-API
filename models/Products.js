@@ -296,6 +296,13 @@ class Products {
    */
   static async removeProduct(id) {
     try {
+      const exists = await db.query(Queries.checkProductOrdered(), [id]);
+
+      if (exists.rows.length > 0) {
+        throw new BadRequestError(
+          "Cannot delete a product that has been ordered."
+        );
+      }
       // Delete product
       const result = await db.query(Queries.deleteFromProduct(), [id]);
 
