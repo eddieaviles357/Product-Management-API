@@ -20,19 +20,20 @@ const defaultAddress = {
 };
 
 async function commonBeforeAll() {
-  // noinspection SqlWithoutWhere
   await db.query("DELETE FROM order_products");
   await db.query("DELETE FROM orders");
+
+  await db.query("DELETE FROM cart");
+  await db.query("DELETE FROM wishlist");
+  await db.query("DELETE FROM reviews");
+  await db.query("DELETE FROM products_categories");
+
+  await db.query("DELETE FROM payment_details");
+  await db.query("DELETE FROM addresses");
   await db.query("DELETE FROM products");
   await db.query("DELETE FROM categories");
-  await db.query("DELETE FROM products_categories");
   await db.query("DELETE FROM users");
-  await db.query("DELETE FROM email_verification_tokens")
-  await db.query("DELETE FROM addresses");
-  await db.query("DELETE FROM reviews");
-  await db.query("DELETE FROM wishlist");
-  await db.query("DELETE FROM cart");
-  await db.query("DELETE FROM payment_details");
+  await db.query("DELETE FROM email_verification_tokens");
 
   const p1 = {sku: 'MC10SSMM', item: 'shirt', description: 'white short', price: '10.99', qty: '3', imgURL: 'https://image.product-management.com/1283859'};
   const p2 = {sku: 'MC10LSLL', item: 'pants', description: 'black pants', price: '19.99', qty: '5', imgURL: 'https://image.product-management.com/1283859'};
