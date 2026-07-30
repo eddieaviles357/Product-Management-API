@@ -2,7 +2,7 @@
 const request = require("supertest");
 const app = require("../../app");
 const Reviews = require("../../models/Reviews");
-const User = require("../../models/Users");
+const Auth = require("../../models/Auth");
 const createToken = require("../../helpers/tokens");
 const { BadRequestError } = require("../../AppError");
 const db = require("../../db.js");
@@ -29,23 +29,25 @@ describe("Reviews Controller", () => {
         .get(`/api/v1/reviews/product/${productIds[0]}`);
 
       const body = response.body;
-      const { success, reviews, pagination, averageRating } = body;
+
       expect(response.statusCode).toBe(200);
-      expect(success).toBe(true);
-      expect(pagination.totalReviews).toBeGreaterThan(0);
-      expect(averageRating).toBeGreaterThanOrEqual(1);
-      expect(averageRating).toBeLessThanOrEqual(5);
-      expect(response.body.reviews).toBeInstanceOf(Array);
-      expect(reviews[0]).toStrictEqual(expect.objectContaining({
-          productId: expect.any(Number),
-          userId: expect.any(Number),
-          firstName: expect.any(String),
-          review: expect.any(String),
-          rating: expect.any(Number),
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String)
-        })
-      );
+      expect(body.success).toBe(true);
+      expect(body.averageRating).toBe(3);
+      expect(response.body.pagination).toEqual({
+        currentPage: 1,
+        pageSize: 10,
+        totalReviews: expect.any(Number),
+        totalPages: expect.any(Number)
+      });
+      expect(body.data).toBeInstanceOf(Array);
+      expect(body.data[0]).toEqual({
+        userId: expect.any(Number),
+        firstName: expect.any(String),
+        review: expect.any(String),
+        rating: expect.any(Number),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String)
+      });
     });
 
     test("should return 400 if id is not a number", async () => {
@@ -53,14 +55,15 @@ describe("Reviews Controller", () => {
         .get("/api/v1/reviews/product/invalidId");
 
       expect(response.statusCode).toBe(400);
-      expect(response.body.error.message).toContain("Id must be a number");
+      expect(response.body.error.message).toContain("id must be a positive integer");
     });
 
-    test("should return 404 if product does not exist", async () => {
+    test("should return 200, and an empty object when product does not exist", async () => {
       const response = await request(app)
-        .get("/api/v1/reviews/product/999999");
+        .get(`/api/v1/reviews/product/999999/${username1}`);
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
+      expect(response.body.review).toEqual({});
     });
   });
 
@@ -79,13 +82,13 @@ describe("Reviews Controller", () => {
         .get("/api/v1/reviews/product/invalidId/username");
 
       expect(response.statusCode).toBe(400);
-      expect(response.body.error.message).toContain("Id must be a number");
+      expect(response.body.error.message).toContain("productId must be a positive integer");
     });
   });
 
   describe("POST /api/v1/reviews/product/:productId/:username", () => {
     test("should add a review to a product", async () => {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       
       const newReview = {
@@ -104,7 +107,7 @@ describe("Reviews Controller", () => {
     });
 
     test("should return 400 if productId is not a number", async () => {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const response = await request(app)
@@ -113,7 +116,7 @@ describe("Reviews Controller", () => {
         .set("Authorization", `Bearer ${token}`);
 
       expect(response.statusCode).toBe(400);
-      expect(response.body.error.message).toContain("Id must be a number");
+      expect(response.body.error.message).toContain("productId must be a positive integer");
     });
 
     test("should return 401 if user is not logged in", async () => {
@@ -127,7 +130,7 @@ describe("Reviews Controller", () => {
 
   describe("PUT /api/v1/reviews/product/:productId/:username", () => {
     test("should update a review for a product", async () => {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       
       const updatedReview = {
@@ -156,7 +159,7 @@ describe("Reviews Controller", () => {
 
   describe("DELETE /api/v1/reviews/product/:productId/:username", () => {
     test("should delete a review for a product", async () => {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const response = await request(app)
