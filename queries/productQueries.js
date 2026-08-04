@@ -169,6 +169,14 @@ function deleteFromProduct() {
     RETURNING product_name AS "productName"
   `;
 }
+function checkProductOrdered() {
+  return `
+    SELECT 1
+    FROM order_products
+    WHERE product_id = $1
+    LIMIT 1
+  `;
+}
 
 module.exports = {
   insertIntoProduct,
@@ -182,5 +190,6 @@ module.exports = {
   insertIntoProductCategories,
   deleteCategoryNone,
   deleteProductCategory,
-  deleteFromProduct
+  deleteFromProduct,
+  checkProductOrdered
 };
