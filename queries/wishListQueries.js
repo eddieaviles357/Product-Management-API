@@ -23,6 +23,7 @@ function insertIntoWishlist() {
 function deleteWishList() {
   return `
     DELETE FROM wishlist WHERE user_id = $1
+    RETURNING product_id AS "productId"
   `;
 }
 
