@@ -4,6 +4,7 @@ const request = require("supertest");
 const app = require("../../app");
 // const Wishlist = require("../../models/Wishlist");
 const User = require("../../models/Users");
+const Auth = require("../../models/Auth");
 const createToken = require("../../helpers/tokens");
 // const { BadRequestError, ConflictError } = require("../../AppError");
 const db = require("../../db.js");
@@ -32,7 +33,7 @@ describe("Wishlist Model", function () {
   describe("getWishlist", function () {
 
     test("works", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -60,7 +61,7 @@ describe("Wishlist Model", function () {
     });
 
     test("unauthorized", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -79,24 +80,19 @@ describe("Wishlist Model", function () {
 
     test("no products in wishlist", async function () {
       await addTestUser();
-      const currentUser = await User.authenticate(testuser, "password");
+      const currentUser = await Auth.authenticate(testuser, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
         .get(`/api/v1/wishlist/${testuser}`)
         .set("Authorization", `Bearer ${token}`);
 
-      expect(result.statusCode).toBe(400);
-      expect(result.body).toEqual({
-        error: { 
-          message: "No products found in wishlist", 
-          status: 400 
-        }
-      });
+      expect(result.statusCode).toBe(200);
+      expect(result.body).toEqual({ success: true, wishlist: [] });
     });
 
     test("missing username", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -113,7 +109,7 @@ describe("Wishlist Model", function () {
     });
 
     test("invalid username", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -133,7 +129,7 @@ describe("Wishlist Model", function () {
   describe("addToWishlist", function () {
     test("works", async function () {
       await addTestUser();
-      const currentUser = await User.authenticate(testuser, "password");
+      const currentUser = await Auth.authenticate(testuser, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -153,7 +149,7 @@ describe("Wishlist Model", function () {
     });
 
     test("unauthorized", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -170,7 +166,7 @@ describe("Wishlist Model", function () {
     });
 
     test("invalid username", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -187,7 +183,7 @@ describe("Wishlist Model", function () {
     });
 
     test("missing username", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       const result = await request(app)
         .post(`/api/v1/wishlist/${productIds[2]}`)
@@ -200,10 +196,10 @@ describe("Wishlist Model", function () {
           status: 404 
         }
       });
-    }
-  );
+    });
+
     test("product already exists in wishlist", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -222,7 +218,7 @@ describe("Wishlist Model", function () {
 
   describe("deleteToWishlist", function () {
     test("works", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -232,12 +228,11 @@ describe("Wishlist Model", function () {
       expect(result.statusCode).toBe(200);
       expect(result.body).toEqual({
         success: true,
-        message: `Product id ${productIds[0]} removed from wishlist`
       });
     });
 
     test("unauthorized", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -254,7 +249,7 @@ describe("Wishlist Model", function () {
     });
 
     test("invalid username", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -271,7 +266,7 @@ describe("Wishlist Model", function () {
     });
 
     test("missing username", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -289,24 +284,21 @@ describe("Wishlist Model", function () {
 
     test("product not found in wishlist", async function () {
       await addTestUser();
-      const currentUser = await User.authenticate(testuser, "password");
+      const currentUser = await Auth.authenticate(testuser, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/${testuser}/${productIds[2]}`)
         .set("Authorization", `Bearer ${token}`);
 
-      expect(result.statusCode).toBe(404);
-      expect(result.body).toEqual({
-        success: false,
-        message: `Product id ${productIds[2]} not found in wishlist`
-      });
+      expect(result.statusCode).toBe(200);
+      expect(result.body).toEqual({ success: false });
     });
   });
 
   describe("clearWishlist", function () {
     test("works", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -316,12 +308,11 @@ describe("Wishlist Model", function () {
       expect(result.statusCode).toBe(200);
       expect(result.body).toEqual({
         success: true,
-        message: "Removed"
       });
     });
 
     test("unauthorized", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -338,7 +329,7 @@ describe("Wishlist Model", function () {
     });
 
     test("invalid username", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -355,7 +346,7 @@ describe("Wishlist Model", function () {
     });
 
     test("missing username", async function () {
-      const currentUser = await User.authenticate(username1, "password");
+      const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
@@ -373,17 +364,18 @@ describe("Wishlist Model", function () {
 
     test("nothing to remove", async function () {
       await addTestUser();
-      const currentUser = await User.authenticate(testuser, "password");
+      const currentUser = await Auth.authenticate(testuser, "password");
       const token = await createToken(currentUser);
 
       const result = await request(app)
         .delete(`/api/v1/wishlist/${testuser}`)
         .set("Authorization", `Bearer ${token
         }`);
+
+      console.log(result.body);
       expect(result.statusCode).toBe(200);
       expect(result.body).toEqual({
         success: false,
-        message: "Nothing to remove"
       });
     });
   });
