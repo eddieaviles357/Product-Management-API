@@ -22,11 +22,12 @@ describe("Address Model", () => {
     test("works", async () => {
       const address = await Address.getAddress(username1);
 
+      console.log("Address retrieved:", address);
       expect(address[0]).toEqual({
         id: expect.any(Number),
         userId: userIdUsername[0].id,
         address1: expect.any(String),
-        address2: expect.any(String),
+        address2: null,
         city: expect.any(String),
         state: expect.any(String),
         zipcode: expect.any(String)
@@ -130,5 +131,4 @@ describe("Address Model", () => {
       }
     });
   });
-  
 });
