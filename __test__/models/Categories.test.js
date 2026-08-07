@@ -45,12 +45,20 @@ describe("Categories model tests", () => {
 
   describe("getAllCategories", () => {
     test("works: retrieves all categories", async () => {
-      const categories = await Categories.getAllCategories();
-      expect(categories).toBeDefined();
-      expect(categories.length).toBeGreaterThan(0);
-      expect(categories[0]).toEqual(expect.objectContaining({
-        id: expect.any(Number),
-        category: expect.any(String)
+      const result = await Categories.getAllCategories();
+      
+      expect(result).toBeDefined();
+      expect(result.data).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          id: expect.any(Number),
+          category: expect.any(String)
+        })
+      ]));
+      expect(result.pagination).toEqual(expect.objectContaining({
+        currentPage: expect.any(Number),
+        pageSize: expect.any(Number),
+        total: expect.any(Number),
+        totalPages: expect.any(Number)
       }));
     });
   });
@@ -96,9 +104,10 @@ describe("Categories model tests", () => {
 
   describe("removeCategory", () => {
     test("works: removes a category", async () => {
-      const removed = await Categories.removeCategory(categoryIds[2]);
-      expect(removed).toBeDefined();
-      expect(removed.success).toBe(true);
+      const isRemoved = await Categories.removeCategory(categoryIds[2]);
+
+      expect(isRemoved).toBeDefined();
+      expect(isRemoved).toBe(true);
     });
 
     test("throws BadRequestError for invalid id", async () => {
