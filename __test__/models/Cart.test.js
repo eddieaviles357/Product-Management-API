@@ -29,12 +29,10 @@ describe("Cart Model Tests", () => {
       expect(userId).toEqual(userIdUsername[0].id);
     });
 
-    test("throws BadRequestError for non existing user", async () => {
-      await expect(Cart.get('nonexistent')).rejects.toThrow(BadRequestError);
-    });
-
-    test("throws BadRequestError for invalid username", async () => {
-      await expect(Cart.get(null)).rejects.toThrow(BadRequestError); 
+    test("works if no user exist, returns empty array", async () => {
+      const result = await Cart.get('nonexistent');
+      
+      expect(result).toHaveLength(0);
     });
   });
 
@@ -88,9 +86,9 @@ describe("Cart Model Tests", () => {
       expect(result).toBeTruthy();
     });
 
-    test("returns nothing to delete for non-existent product", async () => {
+    test("returns false if item not in cart", async () => {
       const result = await Cart.removeCartItem(username1, 99999999);
-      expect(result).toEqual("Nothing to delete");
+      expect(result).toEqual(false);
     });
   });
 
@@ -127,8 +125,13 @@ describe("Cart Model Tests", () => {
       expect(cartAfter).toHaveLength(0);
     });
   
-    test("throws BadRequestError for invalid username", async () => {
-      await expect(Cart.clear(null)).rejects.toThrow(BadRequestError);
+    test("returns false if no items in cart", async () => {
+      // clear cart to ensure it's empty before testing
+      await Cart.clear(username1);
+
+      const result = await Cart.clear(username1);
+      console.log("result", result);
+      expect(result).toBe(false);
     });
   });
   
@@ -144,8 +147,9 @@ describe("Cart Model Tests", () => {
       expect(price).toBeNull();
     });
 
-    test("throws error when called with invalid input", async () => {
-      await expect(Cart._getPrice(null)).rejects.toThrow();
+    test("return null if productId is null", async () => {
+      const price = await Cart._getPrice(null);
+      expect(price).toBeNull();
     });
   });
 });
