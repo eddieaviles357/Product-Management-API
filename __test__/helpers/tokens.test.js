@@ -34,9 +34,16 @@ describe("token creations", () => {
   });
 
   test("default no admin", async () => {
-    expect(async() => {
-      await createToken({ username: "meow" });
-    }).rejects.toThrow(); // rejects.toThrow() used now for async functions createToken
+    const result = await createToken({ username: "meow" });
+
+    const payload = jwt.verify(result, SECRET_KEY);
+    expect(payload).toEqual({
+      exp: expect.any(Number),
+      iat: expect.any(Number),
+      jti: expect.any(String),
+      username: "meow",
+      isAdmin: false 
+    });
   });
 
   test("missing username", async () => {
