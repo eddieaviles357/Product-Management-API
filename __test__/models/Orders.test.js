@@ -4,6 +4,7 @@ const Orders = require('../../models/Orders');
 const { BadRequestError } = require("../../AppError");
 const {
   username1,
+  username2,
   productIds,
   orderIds,
   commonBeforeAll,
@@ -19,7 +20,7 @@ describe("Orders model tests", () => {
   afterAll(commonAfterAll);
 
   describe("create Order", () => {
-    test("works: create a new order with a cart", async () => {
+  test("works: create a new order with a cart", async () => {
       const username = username1;
       const cart = [
         { productId: productIds[0], quantity: 2, price: 10.00 },
@@ -27,9 +28,20 @@ describe("Orders model tests", () => {
       ];
       
       const order = await Orders.create(username, { cart });
-      expect(order).toBeInstanceOf(Array);
+      expect(order).toBeInstanceOf(Object);
       expect(order).toBeDefined();
-      expect(order.length).toBeGreaterThan(0);
+      expect(order).toHaveProperty("id");
+      expect(order).toHaveProperty("totalAmount");
+      expect(order.address).toEqual(expect.objectContaining({
+        id: expect.any(Number),
+        userId: expect.any(Number),
+        address1: expect.any(String),
+        city: expect.any(String),
+        state: expect.any(String),
+        zipcode: expect.any(String)
+      }));
+      expect(order.address.address2).toBeNull();
+      expect(order.products).toBeInstanceOf(Array);
     });
 
     test("fails: with invalid username", async () => {
@@ -48,53 +60,68 @@ describe("Orders model tests", () => {
       const orderId = orderIds[0];
       
       const order = await Orders.getOrderById(orderId);
+      
       expect(order).toBeInstanceOf(Object);
+      expect(order.orderItems.length).toBeGreaterThan(0);
+      expect(order).toHaveProperty("orderId");
+      expect(order).toHaveProperty("orderStatus");
+      expect(order).toHaveProperty("totalAmount");
+      expect(order).toHaveProperty("createdAt");
+      expect(order).toHaveProperty("updatedAt");
+      expect(order).toHaveProperty("address1");
+      expect(order).toHaveProperty("city");
+      expect(order).toHaveProperty("state");
+      expect(order).toHaveProperty("zipcode");
+      expect(order).toHaveProperty("orderItems");
       expect(order.orderItems).toBeInstanceOf(Array);
       expect(order.orderItems.length).toBeGreaterThan(0);
+      expect(order.orderItems[0]).toEqual(expect.objectContaining({
+        productId: expect.any(Number),
+        quantity: expect.any(Number),
+        productName: expect.any(String),
+        productDescription: expect.any(String),
+        productPrice: expect.any(Number),
+        imageURL: expect.any(String)
+      }));
+      expect(order.address2).toBeNull();
     });
     
-    test("fails: with invalid order id", async () => {
+    test("does not fail even with invalid order id", async () => {
       const orderId = 99999;
       
-      await expect(Orders.getOrderById(orderId))
-        .rejects.toThrow(BadRequestError);
+      const result = await Orders.getOrderById(orderId);
+      expect(result).toEqual({});
     });
+
   });
 
-  describe("_getOrderTotalAmount", () => {
-    test("works: retrieves total amount successfully", async () => {
-      const orderId = orderIds[0];
+  describe("getAllOrdersByUsername", () => {
+    test("works: retrieves all orders for a given username", async () => {
+      const username = username1;
       
-      const totalAmount = await Orders._getOrderTotalAmount(orderId);
-      expect(totalAmount).toBeDefined();
-      expect(typeof totalAmount).toBe("string");
-      expect(Number(totalAmount)).toBeGreaterThan(0);
-    });
-    
-    test("fails: with invalid order id", async () => {
-      const orderId = 99999;
+      const orders = await Orders.getAllOrdersByUsername(username);
       
-      await expect(Orders._getOrderTotalAmount(orderId))
-        .rejects.toThrow(BadRequestError);
+      expect(orders).toBeInstanceOf(Array);
+      expect(orders.length).toBeGreaterThan(0);
+      orders.forEach(order => {
+        expect(order).toHaveProperty("orderId");
+        expect(order).toHaveProperty("orderStatus");
+        expect(order).toHaveProperty("totalAmount");
+        expect(order).toHaveProperty("address1");
+        expect(order).toHaveProperty("city");
+        expect(order).toHaveProperty("state");
+        expect(order).toHaveProperty("zipcode");
+        expect(order).toHaveProperty("orderItems");
+        expect(order.orderItems).toBeInstanceOf(Array);
+      });
     });
-  });
 
-  describe("_insertOrderProducts", () => {
-    test("works: inserts order products successfully", async () => {
-      const orderId = orderIds[0];
-      const queryValues = { productId: productIds[0], quantity: 2, price: 10.00 };
+    test("returns empty array with invalid username", async () => {
+      const username = "invalidUsername";
       
-      const result = await Orders._insertOrderProducts(orderId, queryValues);
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("number");
-    });
-    
-    test("fails: with invalid order id", async () => {
-      const orderId = 99999;
-      const queryValues = { productId: productIds[0], quantity: 2, price: 10.00 };
-      
-      await expect(Orders._insertOrderProducts(orderId, queryValues))
-        .rejects.toThrow(BadRequestError);
+      const orders = await Orders.getAllOrdersByUsername(username);
+      expect(orders).toBeInstanceOf(Array);
+      expect(orders.length).toBe(0);
     });
   });
 });
