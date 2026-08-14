@@ -21,7 +21,6 @@ const createToken = async (user) => {
   if (!username) throw new BadRequestError("Username is required to create a token");
 
   if (isAdmin === undefined) {
-    // throw new BadRequestError("isAdmin property is required");
     user.isAdmin = false; // Default to false if not provided
   }
   
