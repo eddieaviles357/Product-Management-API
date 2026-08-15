@@ -5,6 +5,7 @@ const { BadRequestError, ConflictError } = require("../AppError");
 const removeNonAlphaNumericChars = require("../helpers/removeNonAlphaNumericChars");
 const sanitizePagination = require("../helpers/sanitizePagination");
 const Queries = require("../queries/productQueries");
+const { doesCategoryExist } = require("../queries/categoryQueries");
 
 class Products {
   /**
@@ -235,6 +236,12 @@ class Products {
         await db.query(Queries.deleteCategoryNone(), [productId]);
       }
 
+      // check if category exists in db
+      const categoryResult = await db.query(doesCategoryExist(), [categoryId]);
+
+      if(categoryResult.rows.length === 0) {
+        throw new BadRequestError(`Category with id ${categoryId} not found`);
+      }
       // insert the new category
       const result = await db.query(Queries.insertToProductCategories(), [productId, categoryId]);
       
