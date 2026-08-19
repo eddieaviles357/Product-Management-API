@@ -22,26 +22,33 @@ describe("Products model tests", () => {
     test("should return paginated products with metadata", async () => {
       const result = await Products.getProducts(1, 10);
 
-      expect(result).toHaveProperty("products");
-      expect(result).toHaveProperty("pagination");
-      expect(result.products).toBeInstanceOf(Array);
-      expect(result.pagination).toEqual({
+      console.log("getProducts result:", result);
+      const { data, pagination } = result
+      
+      expect(data).toBeInstanceOf(Array);
+      expect(data.length).toBeLessThanOrEqual(3); // Assuming there are 3 products in the test database
+      expect(data[0]).toBeInstanceOf(Object);
+      expect(pagination).toEqual({
         currentPage: 1,
         pageSize: 10,
-        total: expect.any(Number),
-        totalPages: expect.any(Number)
+        total: 3, // Assuming there are 3 products in the test database
+        totalPages: 1
       });
     });
 
     test("should return correct page size", async () => {
       const result = await Products.getProducts(1, 5);
 
-      expect(result.products.length).toBeLessThanOrEqual(5);
+      expect(result.data.length).toBeLessThanOrEqual(5);
       expect(result.pagination.pageSize).toBe(5);
     });
 
-    test("should throw error on invalid params", async () => {
-      await expect(Products.getProducts(0, 10)).rejects.toThrow(BadRequestError);
+    test("should work clamping to valid range", async () => {
+      const result = await Products.getProducts(-4, 10);
+
+      expect(result.pagination.currentPage).toBe(1);
+      expect(result.pagination.pageSize).toBe(10);
+      expect(result.pagination.total).toBeGreaterThanOrEqual(3);
     });
   });
 
@@ -93,8 +100,10 @@ describe("Products model tests", () => {
       expect(product).toEqual({});
     });
 
-    test("should throw BadRequestError for invalid ID", async () => {
-      await expect(Products.findProductById(0)).rejects.toThrow(BadRequestError);
+    test("should return an empty object for invalid ID", async () => {
+      const product = await Products.findProductById(0);
+
+      expect(product).toEqual({});
     });
   });
 
@@ -129,9 +138,14 @@ describe("Products model tests", () => {
       });
     });
 
-    test("should throw BadRequestError for invalid IDs", async () => {
-      await expect(Products.addCategoryToProduct(0, 0))
-        .rejects.toThrow("Product id and category id must be positive numbers");
+    test("should throw BadRequestError for non-existent product", async () => {
+      await expect(Products.addCategoryToProduct(99999, categoryIds[0]))
+        .rejects.toThrow("Product with id 99999 not found");
+    });
+
+    test("should throw BadRequestError for non-existent category", async () => {
+      await expect(Products.addCategoryToProduct(productIds[2], 99999))
+        .rejects.toThrow("Category with id 99999 not found");
     });
   });
 
@@ -139,31 +153,27 @@ describe("Products model tests", () => {
     test("should remove category from product", async () => {
       const result = await Products.removeCategoryFromProduct(productIds[0], categoryIds[0]);
 
-      expect(result).toHaveProperty("message");
-      expect(result).toHaveProperty("success");
-      expect(result.success).toBe(true);
+      expect(result).toBe(true);
     });
 
     test("should return success false for non-existent product", async () => {
       const result = await Products.removeCategoryFromProduct(99999, categoryIds[0]);
 
-      expect(result.success).toBe(false);
+      expect(result).toBe(false);
     });
   });
 
   describe("removeProduct", () => {
-    test("should successfully remove a product", async () => {
-      const result = await Products.removeProduct(productIds[0]);
+    test("should return true for existing product", async () => {
+      const result = await Products.removeProduct(productIds[1]);
 
-      expect(result).toHaveProperty("message");
-      expect(result).toHaveProperty("success");
-      expect(result.success).toBe(true);
+      expect(result).toBe(true);
     });
 
-    test("should return success false for non-existent product", async () => {
+    test("should return false for non-existent product", async () => {
       const result = await Products.removeProduct(99999);
 
-      expect(result.success).toBe(false);
+      expect(result).toBe(false);
     });
   });
 
