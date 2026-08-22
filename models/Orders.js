@@ -166,7 +166,9 @@ class Orders {
           }
           finalAddress = address;
       } else {
-        finalAddress = await Address.getAddress(username);
+        // returns and array of address objects
+        let tempAddressHolder = await Address.getAddress(username);
+        finalAddress = tempAddressHolder[0]
 
         if (!finalAddress) {
           throw new BadRequestError("No address provided and no address on file");
