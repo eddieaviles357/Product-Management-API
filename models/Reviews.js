@@ -14,7 +14,7 @@ class Reviews {
    * @param {number} prodId
    * @param {number} page
    * @param {number} limit
-   * @returns {Object} { reviews, totalReviews, totalPages, currentPage }
+   * @returns {Object} { data, averageRating, pagination: { currentPage, pageSize, totalReviews, totalPages } }
    * @throws {BadRequestError}
    */
   static async getReviewsForOneProduct(prodId, page = 1, limit = 10) {
