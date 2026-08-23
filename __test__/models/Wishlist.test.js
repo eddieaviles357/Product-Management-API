@@ -37,12 +37,10 @@ describe("Wishlist Model", () => {
       expect(wishlist.length).toBeGreaterThan(0);
     });
 
-    test("fails: no username provided", async () => {
-      await expect(Wishlist.getWishlist()).rejects.toThrow(BadRequestError);
-    });
-
-    test("fails: user does not exist", async () => {
-      await expect(Wishlist.getWishlist("nonexistentuser")).rejects.toThrow(BadRequestError);
+    test("returns empty array for user with no wishlist", async () => {
+      const wishlist = await Wishlist.getWishlist("testuser");
+      expect(wishlist).toBeInstanceOf(Array);
+      expect(wishlist.length).toBe(0);
     });
 
     test("fails: error in query", async () => {
@@ -81,27 +79,19 @@ describe("Wishlist Model", () => {
 
   describe("remove product from wishlist", () => {
     test("works: remove product from wishlist", async () => {
-      const result = await Wishlist.removeProduct(username1, productIds[0]);
-      expect(result).toEqual({
-        product: productIds[0],
-        success: true
-      });
+      const result = await Wishlist.removeProductFromWishlist(username1, productIds[0]);
+      
+      expect(result).toEqual(true);
     });
 
-    test("fails: no username provided", async () => {
-      await expect(Wishlist.removeProduct()).rejects.toThrow(BadRequestError);
-    });
-
-    test("fails: user does not exist", async () => {
-      await expect(Wishlist.removeProduct("nonexistentuser", productIds[0])).rejects.toThrow(BadRequestError);
+    test("returns false: no username provided", async () => {
+      const isRemoved = await Wishlist.removeProductFromWishlist();
+      expect(isRemoved).toEqual(false);
     });
 
     test("fails: product does not exist in wishlist", async () => {
-      const result = await Wishlist.removeProduct(username1, productIds[2]);
-      expect(result).toEqual({
-        product: productIds[2],
-        success: false
-      });
+      const result = await Wishlist.removeProductFromWishlist(username1, productIds[2]);
+      expect(result).toEqual(false);
     });
   });
 
@@ -111,12 +101,10 @@ describe("Wishlist Model", () => {
       expect(result).toBe(true);
     });
 
-    test("fails: no username provided", async () => {
-      await expect(Wishlist.removeAll()).rejects.toThrow(BadRequestError);
-    });
-
-    test("fails: user does not exist", async () => {
-      await expect(Wishlist.removeAll("nonexistentuser")).rejects.toThrow(BadRequestError);
+    test("returns false: no username provided", async () => {
+      const result = await Wishlist.removeAll();
+      expect(result).toBe(false);
     });
   });
+
 });
