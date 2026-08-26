@@ -130,7 +130,6 @@ describe("Cart Model Tests", () => {
       await Cart.clear(username1);
 
       const result = await Cart.clear(username1);
-      console.log("result", result);
       expect(result).toBe(false);
     });
   });

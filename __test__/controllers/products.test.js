@@ -168,7 +168,6 @@ describe("Products Controller", () => {
         .delete(`/api/v1/products/${productIds[1]}`)
         .set("Authorization", `Bearer ${token}`);
 
-      console.log("DELETE response body:", response.body); // Log the response body for debugging
       expect(response.statusCode).toBe(200);
       expect(response.body.success).toBe(true);
     });

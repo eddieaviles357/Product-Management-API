@@ -39,7 +39,6 @@ describe("sanitize pagination", () => {
 
     const sanitizeResult = sanitizePagination(input);
 
-    console.log(sanitizeResult); 
     expect(sanitizeResult).toEqual({
       page: 1, // default page
       limit: 10, // default limit

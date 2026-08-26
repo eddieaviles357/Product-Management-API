@@ -22,7 +22,6 @@ describe("Products model tests", () => {
     test("should return paginated products with metadata", async () => {
       const result = await Products.getProducts(1, 10);
 
-      console.log("getProducts result:", result);
       const { data, pagination } = result
       
       expect(data).toBeInstanceOf(Array);

@@ -372,7 +372,6 @@ describe("Wishlist Model", function () {
         .set("Authorization", `Bearer ${token
         }`);
 
-      console.log(result.body);
       expect(result.statusCode).toBe(200);
       expect(result.body).toEqual({
         success: false,

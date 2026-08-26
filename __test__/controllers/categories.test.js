@@ -105,7 +105,6 @@ describe("Categories Routes", () => {
 
     test("throws BadRequestError when user is not an admin", async () => {
       const username2Token = await createToken({ username: username2, isAdmin: false });
-      console.log(username2Token);
       const response = await request(app)
         .post("/api/v1/categories")
         .set("Authorization", `Bearer ${username2Token}`)

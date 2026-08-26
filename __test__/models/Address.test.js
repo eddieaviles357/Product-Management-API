@@ -22,7 +22,6 @@ describe("Address Model", () => {
     test("works", async () => {
       const address = await Address.getAddress(username1);
 
-      console.log("Address retrieved:", address);
       expect(address[0]).toEqual({
         id: expect.any(Number),
         userId: userIdUsername[0].id,
