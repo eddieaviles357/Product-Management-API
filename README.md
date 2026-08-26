@@ -10,6 +10,7 @@ The **Product Management API** is a RESTful API that supports full CRUD operatio
 - **Categories**: Organize products into categories with full CRUD support.
 - **Reviews**: Users can post and manage reviews on products.
 - **Users**: User management with full CRUD operations.
+- **Addresses**: Store and manage a customer's address for checkout and order history.
 - **Cart**: Add, remove, and update items in a user's shopping cart.
 - **Checkout**: Process cart contents into orders with checkout functionality.
 
@@ -40,6 +41,9 @@ The Product Management API is a comprehensive backend solution for e-commerce an
 - **Users**:  
   Users can register, authenticate, and manage their profiles. User roles (such as admin or customer) are supported, allowing for role-based access control. Passwords are securely hashed, and authentication is handled via JWT tokens.
 
+- **Addresses**:
+  Each user can have one saved address. The address can be created or updated before checkout and is automatically associated with new orders.
+
 - **Reviews**:  
   Authenticated users can leave reviews on products, including ratings and comments. Reviews can be created, updated, retrieved, and deleted, allowing for community feedback and product quality assessment.
 
@@ -47,7 +51,7 @@ The Product Management API is a comprehensive backend solution for e-commerce an
   Each user has a shopping cart where they can add, update, or remove products before checkout. The cart maintains product quantities and calculates totals.
 
 - **Checkout & Orders**:  
-  The checkout process converts the contents of a user's cart into an order. Orders are persisted and can be retrieved for order history and tracking.
+  The checkout process converts the contents of a user's cart into an order. The user's saved address is attached to the order automatically, so the order keeps a reference to the address used at checkout. Orders are persisted and can be retrieved for order history and tracking.
 
 ### Authentication & Authorization
 
@@ -136,6 +140,19 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 - `DELETE /api/v1/users/:username`  
   Delete a user (self or admin).
 
+#### Addresses
+
+- `GET /api/v1/address/:username`
+  Get the user's saved address.
+
+- `POST /api/v1/address/:username`
+  Create or update the user's saved address.
+  **Body:** `{ address1, address2, city, state, zipcode }`
+  `address2` is optional. `state` must be a two-letter US state code, and `zipcode` must be in `12345` or `12345-6789` format.
+
+- `DELETE /api/v1/address/:username`
+  Delete the user's saved address.
+
 #### Reviews
 
 - `GET /api/v1/products/:productId/reviews`  
@@ -170,15 +187,21 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 
 #### Checkout & Orders
 
-- `POST /api/v1/checkout`  
-  Checkout the current cart and create an order.  
-  **Body:** `{ addressId, paymentInfo }`
+- `POST /api/v1/orders/:username/createorder`
+  Checkout the user's cart and create an order. The user must have a saved address before placing the order. The saved address is linked automatically; do not send `addressId` in the request body.
+  **Body:** `{ cart: [{ productId, quantity, price }] }`
 
-- `GET /api/v1/orders`  
-  List all orders for the current user.
+- `GET /api/v1/orders/:username`
+  List all orders for a user, including the saved address associated with each order.
 
-- `GET /api/v1/orders/:orderId`  
-  Get details for a specific order.
+- `GET /api/v1/orders/:username/getorder/:orderId`
+  Get details for a specific order, including its address and order items.
+
+  Order responses include an `addressId` when an order is created and address fields such as `address1`, `address2`, `city`, `state`, and `zipcode` when the order is retrieved.
+
+### Database Migration
+
+The `orders` table stores the address used for an order through an `address_id` foreign key referencing `addresses(id)`. For an existing database, run [`migration_add_address_to_orders.sql`](migration_add_address_to_orders.sql) before using the updated order model. The migration also backfills existing orders from each user's saved address.
 
 ---
 
