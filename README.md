@@ -19,7 +19,7 @@ The **Product Management API** is a RESTful API that supports full CRUD operatio
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/your-username/product-management-api.git
+git clone https://github.com/eddieaviles357/product-management-api.git
 cd product-management-api
 npm install
 ```
