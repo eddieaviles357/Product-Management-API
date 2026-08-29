@@ -80,17 +80,17 @@ Below is a detailed list of the main API endpoints, grouped by resource:
   **Body:** `{ username, password }`  
   **Returns:** `{ token }`
 
-- `POST /api/v1/auth/verify-email?token=${token}`
+- `POST /api/v1/auth/verify-email?token=${token}`  
   Verify email (defaults to 24 hours).
 
-- `POST /api/v1/auth/resend-verification`
+- `POST /api/v1/auth/resend-verification`  
   Resend verification.
 
 #### Products
 
 - `GET /api/v1/products`  
   List all products.  
-  `GET /api/v1/products?page={int}&limit={int}`
+  `GET /api/v1/products?page={int}&limit={int}`  
   **Query params:** Optional filters (page {int}, limit {int})
 
 - `GET /api/v1/products/:id`  
@@ -107,17 +107,17 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 - `DELETE /api/v1/products/:id`  
   Delete a product (admin only).
 
-- `POST /api/v1/products/:productId/category/:categoryId`
+- `POST /api/v1/products/:productId/category/:categoryId`  
   Add product category using productId and a catgoryId
 
-- `DELETE /api/v1/products/:productId/category/:categoryId`
+- `DELETE /api/v1/products/:productId/category/:categoryId`  
   Delete a product category using productId and categoryId
 
 #### Categories
 
 - `GET /api/v1/categories`  
   List all categories.
-  `GET /api/v1/categories?page={int}&limit={int}`
+  `GET /api/v1/categories?page={int}&limit={int}`  
   **Query params:** Optional filters (page {int}, limit {int}).
 
 - `POST /api/v1/categories`  
@@ -131,46 +131,46 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 - `DELETE /api/v1/categories/:id`  
   Delete a category (admin only).
 
-- `GET /api/v1/categories/:categoryId/products`
+- `GET /api/v1/categories/:categoryId/products`  
   Gets all products associated with given category
 
 - `GET /api/v1/categories/search/:searchTerm`  
   Get filtered categories using the search term.
 
-- `GET /api/v1/categories/products/filter?ids={1 ,3 ,5}`
+- `GET /api/v1/categories/products/filter?ids={1 ,3 ,5}`  
   Gets all products associated with given category id(s)
 
 #### Users
 
-- `POST /api/v1/users/register`
+- `POST /api/v1/users/register`  
   Register a new user.  
   **Body:** `{ username, password, firstName, lastName, email }`  
   **Returns:** `{ token }`
 
-- `DELETE /api/v1/users/me`
+- `DELETE /api/v1/users/me`  
   Delete a user (self or admin).
 
 #### Addresses
 
-- `GET /api/v1/address/:username`
+- `GET /api/v1/address/:username`  
   Get the user's saved address.
 
-- `POST /api/v1/address/:username`
+- `POST /api/v1/address/:username`  
   Create or update the user's saved address.
   **Body:** `{ address1, address2, city, state, zipcode }`
   `address2` is optional. `state` must be a two-letter US state code, and `zipcode` must be in `12345` or `12345-6789` format.
 
-- `DELETE /api/v1/address/:username`
+- `DELETE /api/v1/address/:username`  
   Delete the user's saved address.
 
 #### Reviews
 
-- `GET /api/v1/reviews/products/:productId`
+- `GET /api/v1/reviews/products/:productId`  
   List all reviews for a product.
-  `GET /api/v1/reviews/products?page={int}&limit={int}`
+  `GET /api/v1/reviews/products?page={int}&limit={int}`  
   **Query params:** Optional filters (page {int}, limit {int}).
 
-- `POST /api/v1/reviews/products/:productId/:username`
+- `POST /api/v1/reviews/products/:productId/:username`  
   Add a review to a product (authenticated user).  
   **Body:** `{ rating, review }`
 
@@ -178,21 +178,21 @@ Below is a detailed list of the main API endpoints, grouped by resource:
   Update a review (author or admin).  
   **Body:** Any updatable review fields.
 
-- `DELETE /api/v1/reviews/product/:productId/:username`
+- `DELETE /api/v1/reviews/product/:productId/:username`  
   Delete a review (author or admin).
 
 #### Wishlist
 
-- `GET /api/v1/wishlist/:username`
+- `GET /api/v1/wishlist/:username`  
   Gets users wishlist.
 
-- `DELETE /api/v1/wishlist/:username`
+- `DELETE /api/v1/wishlist/:username`  
   Clears users wishlist.
 
-- `POST /api/v1/wishlist/:username/:productId`
+- `POST /api/v1/wishlist/:username/:productId`  
   Adds to users wishlist.
 
-- `DELETE /api/v1/wishlist/:username/:productId`
+- `DELETE /api/v1/wishlist/:username/:productId`  
   Removed a single product from users wishlist
 
 #### Cart
@@ -200,7 +200,7 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 - `GET /api/v1/cart/:username`  
   Get the current user's cart.
 
-- `DELETE /api/v1/cart/:username`
+- `DELETE /api/v1/cart/:username`  
   Clears all items in cart
 
 - `POST /api/v1/cart/:username/:productId`  
@@ -216,14 +216,14 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 
 #### Checkout & Orders
 
-- `POST /api/v1/orders/:username/createorder`
+- `POST /api/v1/orders/:username/createorder`  
   Checkout the user's cart and create an order. The user must have a saved address before placing the order. The saved address is linked automatically; do not send `addressId` in the request body.
   **Body:** `{ address, cart: [{ productId, quantity }] }`
 
-- `GET /api/v1/orders/:username`
+- `GET /api/v1/orders/:username`  
   List all orders for a user, including the saved address associated with each order.
 
-- `GET /api/v1/orders/:username/getorder/:orderId`
+- `GET /api/v1/orders/:username/getorder/:orderId`  
   Get details for a specific order, including its address and order items.
 
   Order responses include an `addressId` when an order is created and address fields such as `address1`, `address2`, `city`, `state`, and `zipcode` when the order is retrieved.
