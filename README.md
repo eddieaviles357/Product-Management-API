@@ -32,6 +32,9 @@ The Product Management API is a comprehensive backend solution for e-commerce an
 
 ### Core Resources
 
+- **Authentication**:
+  Users can register, log in, verify their email, and manage secure JWT-based sessions. Auth endpoints handle account creation, login, token issuance, and email verification workflows.
+
 - **Products**:  
   Products are the main items available for sale. Each product has attributes such as name, description, price, category, inventory count, and optional images. Endpoints allow for listing all products, retrieving a single product, creating new products, updating existing products, and deleting products.
 
@@ -39,13 +42,16 @@ The Product Management API is a comprehensive backend solution for e-commerce an
   Categories help organize products into logical groups (e.g., Electronics, Clothing). The API supports CRUD operations for categories, enabling dynamic organization of the product catalog.
 
 - **Users**:  
-  Users can register, authenticate, and manage their profiles. User roles (such as admin or customer) are supported, allowing for role-based access control. Passwords are securely hashed, and authentication is handled via JWT tokens.
+  Users can manage their profiles, access account details, and interact with protected resources. User roles (such as admin or customer) are supported, allowing for role-based access control. Passwords are securely hashed, and authentication is handled via JWT tokens.
 
 - **Addresses**:
   Each user can have one saved address. The address can be created or updated before checkout and is automatically associated with new orders.
 
 - **Reviews**:  
   Authenticated users can leave reviews on products, including ratings and comments. Reviews can be created, updated, retrieved, and deleted, allowing for community feedback and product quality assessment.
+
+- **Wishlist**:
+  Users can save products to a wishlist for later purchase. Wishlist items can be added, listed, and removed independently from the cart.
 
 - **Cart**:  
   Each user has a shopping cart where they can add, update, or remove products before checkout. The cart maintains product quantities and calculates totals.
