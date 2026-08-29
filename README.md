@@ -75,29 +75,30 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 
 #### Auth
 
-- `POST /api/v1/auth/register`  
-  Register a new user.  
-  **Body:** `{ username, password, firstName, lastName, email }`  
-  **Returns:** `{ token }`
-
 - `POST /api/v1/auth/authenticate`  
   Authenticate a user and receive a JWT.  
   **Body:** `{ username, password }`  
   **Returns:** `{ token }`
 
+- `POST /api/v1/auth/verify-email?token=${token}`
+  Verify email (defaults to 24 hours).
+
+- `POST /api/v1/auth/resend-verification`
+  Resend verification.
+
 #### Products
 
 - `GET /api/v1/products`  
   List all products.  
-  `GET /api/v1/products?cursor={int}
-  **Query params:** Optional filters (cursor {int})
+  `GET /api/v1/products?page={int}&limit={int}`
+  **Query params:** Optional filters (page {int}, limit {int})
 
 - `GET /api/v1/products/:id`  
   Get details for a single product by ID.
 
 - `POST /api/v1/products`  
   Create a new product (admin only).  
-  **Body:** `{ name, description, price, categoryId, inventory, imageUrl }`
+  **Body:** `{ sku, name, description, price, stock, imageUrl }`
 
 - `PATCH /api/v1/products/:id`  
   Update an existing product (admin only).  
@@ -106,38 +107,47 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 - `DELETE /api/v1/products/:id`  
   Delete a product (admin only).
 
+- `POST /api/v1/products/:productId/category/:categoryId`
+  Add product category using productId and a catgoryId
+
+- `DELETE /api/v1/products/:productId/category/:categoryId`
+  Delete a product category using productId and categoryId
+
 #### Categories
 
 - `GET /api/v1/categories`  
   List all categories.
-
-- `GET /api/v1/categories/:id`  
-  Get details for a single category.
+  `GET /api/v1/categories?page={int}&limit={int}`
+  **Query params:** Optional filters (page {int}, limit {int}).
 
 - `POST /api/v1/categories`  
   Create a new category (admin only).  
-  **Body:** `{ name, description }`
+  **Body:** `{ category }`
 
 - `PATCH /api/v1/categories/:id`  
   Update a category (admin only).  
-  **Body:** Any updatable category fields.
+  **Body:** { category }.
 
 - `DELETE /api/v1/categories/:id`  
   Delete a category (admin only).
 
+- `GET /api/v1/categories/:categoryId/products`
+  Gets all products associated with given category
+
+- `GET /api/v1/categories/search/:searchTerm`  
+  Get filtered categories using the search term.
+
+- `GET /api/v1/categories/products/filter?ids={1 ,3 ,5}`
+  Gets all products associated with given category id(s)
+
 #### Users
 
-- `GET /api/v1/users`  
-  List all users (admin only).
+- `POST /api/v1/users/register`
+  Register a new user.  
+  **Body:** `{ username, password, firstName, lastName, email }`  
+  **Returns:** `{ token }`
 
-- `GET /api/v1/users/:username`  
-  Get a user's profile (self or admin).
-
-- `PATCH /api/v1/users/:username`  
-  Update user profile (self or admin).  
-  **Body:** Any updatable user fields.
-
-- `DELETE /api/v1/users/:username`  
+- `DELETE /api/v1/users/me`
   Delete a user (self or admin).
 
 #### Addresses
@@ -155,41 +165,60 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 
 #### Reviews
 
-- `GET /api/v1/products/:productId/reviews`  
+- `GET /api/v1/reviews/products/:productId`
   List all reviews for a product.
+  `GET /api/v1/reviews/products?page={int}&limit={int}`
+  **Query params:** Optional filters (page {int}, limit {int}).
 
-- `POST /api/v1/products/:productId/reviews`  
+- `POST /api/v1/reviews/products/:productId/:username`
   Add a review to a product (authenticated user).  
-  **Body:** `{ rating, comment }`
+  **Body:** `{ rating, review }`
 
-- `PATCH /api/v1/reviews/:reviewId`  
+- `PATCH /api/v1/reviews/product/:productId/:username`  
   Update a review (author or admin).  
-  **Body:** `{ rating, comment }`
+  **Body:** Any updatable review fields.
 
-- `DELETE /api/v1/reviews/:reviewId`  
+- `DELETE /api/v1/reviews/product/:productId/:username`
   Delete a review (author or admin).
+
+#### Wishlist
+
+- `GET /api/v1/wishlist/:username`
+  Gets users wishlist.
+
+- `DELETE /api/v1/wishlist/:username`
+  Clears users wishlist.
+
+- `POST /api/v1/wishlist/:username/:productId`
+  Adds to users wishlist.
+
+- `DELETE /api/v1/wishlist/:username/:productId`
+  Removed a single product from users wishlist
 
 #### Cart
 
-- `GET /api/v1/cart`  
+- `GET /api/v1/cart/:username`  
   Get the current user's cart.
 
-- `POST /api/v1/cart`  
-  Add an item to the cart.  
-  **Body:** `{ productId, quantity }`
+- `DELETE /api/v1/cart/:username`
+  Clears all items in cart
 
-- `PATCH /api/v1/cart/:itemId`  
+- `POST /api/v1/cart/:username/:productId`  
+  Add an item to the cart.  
+  **Body:** `{ quantity }`
+
+- `PATCH /api/v1/cart/:username/:productId`  
   Update quantity of a cart item.  
   **Body:** `{ quantity }`
 
-- `DELETE /api/v1/cart/:itemId`  
+- `DELETE /api/v1/cart/:username/:productId`  
   Remove an item from the cart.
 
 #### Checkout & Orders
 
 - `POST /api/v1/orders/:username/createorder`
   Checkout the user's cart and create an order. The user must have a saved address before placing the order. The saved address is linked automatically; do not send `addressId` in the request body.
-  **Body:** `{ cart: [{ productId, quantity, price }] }`
+  **Body:** `{ address, cart: [{ productId, quantity }] }`
 
 - `GET /api/v1/orders/:username`
   List all orders for a user, including the saved address associated with each order.
@@ -198,10 +227,6 @@ Below is a detailed list of the main API endpoints, grouped by resource:
   Get details for a specific order, including its address and order items.
 
   Order responses include an `addressId` when an order is created and address fields such as `address1`, `address2`, `city`, `state`, and `zipcode` when the order is retrieved.
-
-### Database Migration
-
-The `orders` table stores the address used for an order through an `address_id` foreign key referencing `addresses(id)`. For an existing database, run [`migration_add_address_to_orders.sql`](migration_add_address_to_orders.sql) before using the updated order model. The migration also backfills existing orders from each user's saved address.
 
 ---
 
