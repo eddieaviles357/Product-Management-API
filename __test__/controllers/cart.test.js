@@ -224,12 +224,12 @@ describe("Cart Routes", () => {
     });
   });
 
-  describe("PUT /cart updates cart item", () => {
+  describe("PATCH /cart updates cart item", () => {
     test("works for logged in user with no quantity", async () => {
       const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       const response = await request(app)
-        .put(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
+        .patch(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
         .send();
 
@@ -250,7 +250,7 @@ describe("Cart Routes", () => {
       const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       const response = await request(app)
-        .put(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
+        .patch(`/api/v1/cart/${currentUser.username}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
         .send({
           quantity: 2
@@ -272,7 +272,7 @@ describe("Cart Routes", () => {
       const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       const response = await request(app)
-        .put(`/api/v1/cart/${currentUser.username}/`)
+        .patch(`/api/v1/cart/${currentUser.username}/`)
         .set("authorization", `Bearer ${token}`)
         .send();
     
@@ -289,7 +289,7 @@ describe("Cart Routes", () => {
       const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       const response = await request(app)
-        .put(`/api/v1/cart//${productIds[0]}`)
+        .patch(`/api/v1/cart//${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
         .send();
     
@@ -304,7 +304,7 @@ describe("Cart Routes", () => {
 
     test("throws error if no token is given", async () => {
       const response = await request(app)
-        .put(`/api/v1/cart/${username1}/${productIds[0]}`)
+        .patch(`/api/v1/cart/${username1}/${productIds[0]}`)
         .send();
     
       expect(response.statusCode).toBe(401);
@@ -320,7 +320,7 @@ describe("Cart Routes", () => {
       const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       const response = await request(app)
-        .put(`/api/v1/cart/${'doesnexist'}/${productIds[0]}`)
+        .patch(`/api/v1/cart/${'doesnexist'}/${productIds[0]}`)
         .set("authorization", `Bearer ${token}`)
         .send();
 
@@ -338,7 +338,7 @@ describe("Cart Routes", () => {
       const token = await createToken(currentUser);
       const fakeProduct = 99999
       const response = await request(app)
-        .put(`/api/v1/cart/${currentUser.username}/${99999}`)
+        .patch(`/api/v1/cart/${currentUser.username}/${99999}`)
         .set("authorization", `Bearer ${token}`)
         .send();
       expect(response.statusCode).toBe(400);
@@ -354,7 +354,7 @@ describe("Cart Routes", () => {
       const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
       const response = await request(app)
-        .put(`/api/v1/cart/${currentUser.username}/${productIds[1]}`)
+        .patch(`/api/v1/cart/${currentUser.username}/${productIds[1]}`)
         .set("authorization", `Bearer ${token}`)
         .send({
           quantity: 2
