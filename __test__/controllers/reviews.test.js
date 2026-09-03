@@ -128,7 +128,7 @@ describe("Reviews Controller", () => {
     });
   });
 
-  describe("PUT /api/v1/reviews/product/:productId/:username", () => {
+  describe("PATCH /api/v1/reviews/product/:productId/:username", () => {
     test("should update a review for a product", async () => {
       const currentUser = await Auth.authenticate(username1, "password");
       const token = await createToken(currentUser);
@@ -139,7 +139,7 @@ describe("Reviews Controller", () => {
       };
 
       const response = await request(app)
-        .put(`/api/v1/reviews/product/${productIds[0]}/${username1}`)
+        .patch(`/api/v1/reviews/product/${productIds[0]}/${username1}`)
         .send(updatedReview)
         .set("Authorization", `Bearer ${token}`);
 
@@ -150,7 +150,7 @@ describe("Reviews Controller", () => {
 
     test("should return 401 if user is not logged in", async () => {
       const response = await request(app)
-        .put(`/api/v1/reviews/product/${productIds[0]}/${username1}`)
+        .patch(`/api/v1/reviews/product/${productIds[0]}/${username1}`)
         .send({ review: "Test", rating: 5 });
 
       expect(response.statusCode).toBe(401);

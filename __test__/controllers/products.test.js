@@ -118,7 +118,7 @@ describe("Products Controller", () => {
     });
   });
 
-  describe("PUT /api/v1/products/:id", () => {
+  describe("PATCH /api/v1/products/:id", () => {
     test("should update a product", async () => {
       const updatedProduct = {
         name: "Updated Product",
@@ -130,7 +130,7 @@ describe("Products Controller", () => {
       const token = await createToken(currentUser);
 
       const response = await request(app)
-        .put(`/api/v1/products/${productIds[0]}`)
+        .patch(`/api/v1/products/${productIds[0]}`)
         .send(updatedProduct)
         .set("Authorization", `Bearer ${token}`);
 
@@ -143,7 +143,7 @@ describe("Products Controller", () => {
       const token = await createToken(currentUser);
 
       const response = await request(app)
-        .put("/api/v1/products/invalid")
+        .patch("/api/v1/products/invalid")
         .send({ name: "Test" })
         .set("Authorization", `Bearer ${token}`);
 
@@ -152,7 +152,7 @@ describe("Products Controller", () => {
 
     test("should return 401 for unauthorized user", async () => {
       const response = await request(app)
-        .put(`/api/v1/products/${productIds[0]}`)
+        .patch(`/api/v1/products/${productIds[0]}`)
         .send({ name: "Test" });
       
       expect(response.statusCode).toBe(401);
