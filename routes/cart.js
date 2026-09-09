@@ -28,7 +28,7 @@ router
 router
   .route("/:username/:productId")
   .post(ensureUser, ensureLoggedIn, addToCart)
-  .put(ensureUser, ensureLoggedIn, updateCartItemQty)
+  .patch(ensureUser, ensureLoggedIn, updateCartItemQty)
   .delete(ensureUser, ensureLoggedIn, deleteCartItem)
 
 

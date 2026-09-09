@@ -36,7 +36,7 @@ router
   .route("/product/:productId/:username")
   .get(getReview)
   .post(ensureLoggedIn, ensureUser, validateSchema(newReviewSchema), addReviewToProduct)
-  .put(ensureLoggedIn, ensureUser, validateSchema(updateReviewSchema), updateReviewToProduct)
+  .patch(ensureLoggedIn, ensureUser, validateSchema(updateReviewSchema), updateReviewToProduct)
   .delete(ensureLoggedIn, ensureUserOrAdmin, deleteReviewFromProduct)
 
 module.exports = router;

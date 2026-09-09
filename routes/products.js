@@ -36,7 +36,7 @@ router
 router
   .route('/:id')
   .get(getProductById)
-  .put(ensureLoggedIn, ensureAdmin, validateSchema(updatedProductSchema), updateProduct)
+  .patch(ensureLoggedIn, ensureAdmin, validateSchema(updatedProductSchema), updateProduct)
   .delete(ensureLoggedIn, ensureAdmin, deleteProductById)
 
 router
