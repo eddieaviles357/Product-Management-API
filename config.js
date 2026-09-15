@@ -3,6 +3,7 @@
 /** Shared config for application; can be required many places. */
 
 // require("dotenv").config();
+const crypto = require("crypto");
 
 const SECRET_KEY = process.env.SECRET_KEY || crypto.randomUUID();
 
