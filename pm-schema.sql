@@ -25,6 +25,9 @@ CREATE TABLE products_categories (
   category_id INTEGER NOT NULL REFERENCES categories (id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_products_categories_category_id
+ON products_categories(category_id);
+
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE users (
@@ -32,7 +35,8 @@ CREATE TABLE users (
   first_name VARCHAR(30) NOT NULL,
   last_name VARCHAR(30) NOT NULL,
   username VARCHAR(20) UNIQUE NOT NULL,
-  password VARCHAR(60) NOT NULL,
+  password VARCHAR(60) NOT NULL
+    CHECK (LENGTH(password) >= 8),
   join_at TIMESTAMP NOT NULL DEFAULT NOW(),
   last_login_at TIMESTAMP NOT NULL DEFAULT NOW(),
   email CITEXT NOT NULL UNIQUE
@@ -51,30 +55,19 @@ CREATE TABLE email_verification_tokens (
   expires_at TIMESTAMP NOT NULL
 );
 
--- old table
--- CREATE TABLE addresses (
---   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
---   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
---   address_1 VARCHAR(95) NOT NULL,
---   address_2 VARCHAR(95),
---   city VARCHAR(35) NOT NULL,
---   state CHAR(2) NOT NULL,
---   CHECK (state IN (
---     'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
---     'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
---     'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
---     'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
---     'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
---     )),
---   zipcode VARCHAR(10) NOT NULL,
---   CHECK ( zipcode ~ '^\d{5}(-\d{4})?$' )
--- );
--- New table with support for multiple addresses per user + default address flag. 
--- We will use the address snapshot in the orders table for history accuracy, 
--- so address updates won't break past orders.
--- example that is useful for fetching default address for a user:
--- SELECT * FROM addresses
--- WHERE user_id = $1 AND is_default = true;
+CREATE TABLE password_reset_tokens (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id INTEGER NOT NULL
+    REFERENCES users(id)
+    ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_password_reset_tokens_user_id
+ON password_reset_tokens(user_id);
+
 CREATE TABLE addresses (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -96,6 +89,9 @@ CREATE TABLE addresses (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE INDEX idx_addresses_user_id
+ON addresses(user_id);
+
 CREATE TABLE reviews (
   PRIMARY KEY (product_id, user_id),
   product_id INTEGER NOT NULL REFERENCES products (product_id) ON DELETE CASCADE,
@@ -105,12 +101,18 @@ CREATE TABLE reviews (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+-- maybe when project is bigger, for now we can just use the primary key
+-- CREATE INDEX idx_reviews_user_id
+-- ON reviews(user_id);
 
 CREATE TABLE wishlist (
   PRIMARY KEY (user_id, product_id),
   user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   product_id INTEGER NOT NULL REFERENCES products (product_id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_wishlist_product_id
+ON wishlist(product_id);
 
 CREATE TABLE cart (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -122,6 +124,8 @@ CREATE TABLE cart (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 -- users → orders → order_items → payments ( omitted ) → shipments
+CREATE INDEX idx_cart_user_id
+ON cart(user_id);
 
 CREATE TABLE orders (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -149,6 +153,9 @@ CREATE TABLE order_products (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE INDEX idx_order_products_order_id
+ON order_products(order_id);
+
 CREATE TABLE payment_details (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders (id) ON DELETE CASCADE,
@@ -159,6 +166,9 @@ CREATE TABLE payment_details (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_payment_details_order_id
+ON payment_details(order_id);
 
 /* =========================================================
    Shipment table is left out for now, in a real life app we 
