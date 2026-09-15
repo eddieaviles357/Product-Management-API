@@ -1,25 +1,21 @@
 "use strict";
 
-/** Database setup for product_management api. */
-const { Client } = require("pg");
+const { Pool } = require("pg");
 const { getDatabaseUri } = require("./config");
-
 
 let db;
 
 if (process.env.NODE_ENV === "production") {
-  db = new Client({
+  db = new Pool({
     connectionString: getDatabaseUri(),
     ssl: {
       rejectUnauthorized: true
     }
   });
 } else {
-  db = new Client({
-    database: getDatabaseUri(),
+  db = new Pool({
+    database: getDatabaseUri()
   });
 }
-
-db.connect();
 
 module.exports = db;
