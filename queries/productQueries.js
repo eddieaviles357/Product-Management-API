@@ -19,7 +19,8 @@ function insertProduct() {
           price::float,
           stock,
           image_url AS "imageURL",
-          created_at AS "createdAt"
+          created_at AS "createdAt",
+          is_active AS "isActive"
     )
   `;
 }
@@ -65,7 +66,8 @@ function getProductById() {
       price,
       image_url,
       created_at AS "createdAt",
-      updated_at AS "updatedAt"
+      updated_at AS "updatedAt",
+      is_active AS "isActive"
     FROM products 
     WHERE product_id = $1
   `;
@@ -89,7 +91,8 @@ function updateProduct() {
       price::float,
       image_url AS "imageURL",
       created_at AS "createdAt",
-      updated_at AS "updatedAt"
+      updated_at AS "updatedAt",
+      is_active AS "isActive"
   `;
 } 
 
@@ -162,11 +165,19 @@ function insertIntoProductCategories() {
   `;
 }
 
+/*  DELETE FROM products 
+**  WHERE product_id = $1
+**  RETURNING product_name AS "productName"
+*/
 function deleteFromProduct() {
   return `
-    DELETE FROM products 
+    UPDATE products
+    SET is_active = FALSE
     WHERE product_id = $1
-    RETURNING product_name AS "productName"
+    RETURNING 
+      product_id, 
+      product_name, 
+      is_active;
   `;
 }
 function checkProductOrdered() {
