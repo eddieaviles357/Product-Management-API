@@ -11,7 +11,8 @@ CREATE TABLE products (
   stock INTEGER NOT NULL CHECK( stock >= 0 ),
   image_url VARCHAR(100) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE categories (
@@ -147,10 +148,13 @@ CREATE TABLE orders (
 CREATE TABLE order_products (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   order_id INTEGER NOT NULL REFERENCES orders (id) ON DELETE CASCADE,
-  product_id INTEGER NOT NULL REFERENCES products (product_id),
-  quantity INTEGER NOT NULL,
-  total_amount NUMERIC(7,2) NOT NULL CHECK(total_amount > 0.00),
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  product_id INTEGER NOT NULL REFERENCES products (product_id) ON DELETE SET NULL,
+  sku TEXT NOT NULL,
+  product_name TEXT NOT NULL,
+  unit_price NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0),
+  quantity INTEGER NOT NULL CHECK (quantity > 0),
+  total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 );
 
 CREATE INDEX idx_order_products_order_id
@@ -273,6 +277,7 @@ SELECT
   p.image_url AS "imageURL",
   p.created_at AS "createdAt",
   p.updated_at AS "updatedAt",
+  p.is_active AS "isActive",
   COALESCE(
     JSON_AGG(
       JSON_BUILD_OBJECT(
@@ -297,7 +302,8 @@ GROUP BY
   p.stock,
   p.image_url,
   p.created_at,
-  p.updated_at
+  p.updated_at,
+  p.is_active
 WITH DATA;
 
 -- Required for REFRESH CONCURRENTLY
