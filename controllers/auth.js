@@ -50,3 +50,34 @@ exports.resendVerificationEmail = async (req, res, next) => {
     return next(err);
   }
 };
+
+// ********************* PASSWORD RESET ****************** Needs test updating
+
+
+// @desc     Initiates password reset process
+// @route    POST /api/v1/auth/password-reset
+// @access   public (but requires valid email in body)
+exports.initiatePasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const resetResult = await Auth.initiatePasswordReset(email);
+    
+    return res.json(resetResult);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// @desc     Resets password using token
+// @route    POST /api/v1/auth/password-reset/confirm
+// @access   public (but requires valid token and new password in body)
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    const resetResult = await Auth.resetPassword(token, newPassword);
+    
+    return res.json(resetResult);
+  } catch (err) {
+    return next(err);
+  }
+};
