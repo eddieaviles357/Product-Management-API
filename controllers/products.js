@@ -58,7 +58,7 @@ exports.addProduct = async (req, res, next) => {
 };
 
 // @desc      Update product
-// @route     PUT /api/v1/products/:id
+// @route     PATCH /api/v1/products/:id
 // @access    Private/Admin
 exports.updateProduct = async (req, res, next) => {
   try {
@@ -115,6 +115,22 @@ exports.deleteProductById = async (req, res, next) => {
     const success = await Products.removeProduct(req.params.id);
     
     return res.status(200).json({ 
+      success
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+
+// @desc      Restore product by id
+// @route     PATCH /api/v1/products/:id/restore
+// @access    Private/Admin
+exports.restoreProductById = async (req, res, next) => {
+  try {
+    const success = await Products.restoreProduct(req.params.id);
+
+    return res.status(200).json({
       success
     });
   } catch (err) {
