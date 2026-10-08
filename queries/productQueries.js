@@ -100,6 +100,7 @@ function getProductsPagination() {
   return `
     SELECT *
     FROM get_product_list()
+    WHERE "isActive" = TRUE
     ORDER BY id DESC
     LIMIT $1 OFFSET $2
   `;
@@ -120,15 +121,16 @@ function getSingleProduct() {
   return `
     SELECT *
     FROM get_product_list()
-    WHERE id = $1
+    WHERE id = $1 AND "isActive" = TRUE
     LIMIT 1
   `;
 }
 
 function getProductListCount() {
   return `
-    SELECT COUNT(*) as total 
+    SELECT COUNT(*) as total
     FROM get_product_list()
+    WHERE "isActive" = TRUE
   `;
 }
 
@@ -189,6 +191,27 @@ function checkProductOrdered() {
   `;
 }
 
+function activateProduct() {
+  return `
+    UPDATE products
+    SET
+      is_active = TRUE,
+      updated_at = NOW()
+    WHERE product_id = $1
+      AND is_active = FALSE
+    RETURNING
+      product_id AS id,
+      sku,
+      product_name AS "productName",
+      product_description AS "productDescription",
+      price::float,
+      stock,
+      image_url AS "imageURL",
+      is_active AS "isActive",
+      updated_at AS "updatedAt";
+  `;
+}
+
 module.exports = {
   insertIntoProduct,
   getProductsPagination,
@@ -202,5 +225,6 @@ module.exports = {
   deleteCategoryNone,
   deleteProductCategory,
   deleteFromProduct,
-  checkProductOrdered
+  checkProductOrdered,
+  activateProduct
 };

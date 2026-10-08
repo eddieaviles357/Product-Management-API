@@ -154,7 +154,7 @@ CREATE TABLE order_products (
   unit_price NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0),
   quantity INTEGER NOT NULL CHECK (quantity > 0),
   total_amount NUMERIC(10,2) NOT NULL CHECK(total_amount > 0.00),
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_order_products_order_id
@@ -284,7 +284,7 @@ SELECT
         'id', c.id,
         'name', c.category
       )
-    ) FILTER (WHERE c.id IS NOT NULL),
+    ) FILTER (WHERE c.id IS NOT NULL AND p.is_active = TRUE),
     '[]'::json
   ) AS categories,
   COALESCE(ROUND(AVG(r.rating)::numeric, 2), 0) AS "averageRating",
