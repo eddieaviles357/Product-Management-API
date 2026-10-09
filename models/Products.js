@@ -95,9 +95,18 @@ class Products {
   static async addProduct({ sku, name, description, price, stock, imageURL }) {
     try {
       sku = removeNonAlphaNumericChars(sku);
-      
-      const queryValues = [sku, name, description, price, stock, imageURL]
-      const result = await db.query(Queries.insertIntoProduct(), queryValues);
+      const queryValues = [
+        sku, 
+        name, 
+        description, 
+        price, 
+        stock, 
+        imageURL
+      ];
+      const result = await db.query(
+        Queries.insertIntoProduct(), 
+        queryValues
+      );
   
       if(!result.rows || result.rows.length === 0) {
         throw new BadRequestError("Failed to create product");
@@ -223,36 +232,65 @@ class Products {
    * @throws {BadRequestError} - if product or category does not exist
    */
   static async addCategoryToProduct(productId, categoryId) {
+    const client = await db.connect();
     try {
-      // confirm product exists in db
-      const product = await this.findProductById(productId);
+      await client.query("BEGIN");
 
-      if(!product || Object.keys(product).length === 0) {
-        throw new BadRequestError(`Product with id ${productId} not found`);
+      // confirm product exists in db
+      const product = await client.query(
+        Queries.getSingleProduct(), 
+        [productId]
+      );
+
+      if(product.rows.length === 0 || product.rows[0]?.isActive === false) {
+        throw new BadRequestError(
+          `Product with id ${productId} not found`
+        );
       }
   
       // does product contain default category "none" if so remove from db
-      if(product.categories.includes('none')) {
-        await db.query(Queries.deleteCategoryNone(), [productId]);
+      if(product.rows[0].categories[0].name === 'none') {
+        await client.query(
+          Queries.deleteCategoryNone(), 
+          [productId]
+        );
       }
 
       // check if category exists in db
-      const categoryResult = await db.query(doesCategoryExist(), [categoryId]);
+      const categoryResult = await client.query(
+        doesCategoryExist(), 
+        [categoryId]
+      );
 
       if(categoryResult.rows.length === 0) {
-        throw new BadRequestError(`Category with id ${categoryId} not found`);
+        throw new BadRequestError(
+          `Category with id ${categoryId} not found`
+        );
       }
       // insert the new category
-      const result = await db.query(Queries.insertToProductCategories(), [productId, categoryId]);
+      const result = await client.query(
+        Queries.insertToProductCategories(), 
+        [ 
+          productId, 
+          categoryId 
+        ]
+      );
       
       if (result.rows.length === 0) {
-        throw new BadRequestError("Failed to add category to product");
+        throw new BadRequestError(
+          "Failed to add category to product"
+        );
       }
+
+      await client.query("COMMIT");
 
       return result.rows[0];
 
     } catch (err) {
+      await client.query("ROLLBACK");
       throw new BadRequestError(err.message);
+    } finally {
+      client.release();
     }
   }
 
@@ -264,18 +302,33 @@ class Products {
    * @throws {BadRequestError} - if database error occurs
    */
   static async removeCategoryFromProduct(productId, categoryId) {
+    const client = await db.connect();
     try {
-      const product = await this.findProductById(productId);
+      await client.query("BEGIN");
       
-      if (!product || !product.categories) {
+      // confirm product exists in db
+      const product = await client.query(
+        Queries.getSingleProduct(), 
+        [productId]
+      );
+      
+      if (product.rows.length === 0 || !product.rows[0].categories) {
+        await client.query("ROLLBACK");
         return false;
       }
 
-      const initialCount = product.categories.length;
+      const initialCount = product.rows[0].categories.length;
 
-      const deleteResult = await db.query(Queries.deleteProductCategory(), [productId, categoryId]);
+      const deleteResult = await client.query(
+        Queries.deleteProductCategory(), 
+        [
+          productId, 
+          categoryId
+        ]
+      );
 
       if (deleteResult.rows.length === 0) {
+        await client.query("ROLLBACK");
         return false;
 
       } else {
@@ -283,42 +336,73 @@ class Products {
   
         // If no categories remain, add the default "none" category back to the product
         if (remainingCount === 0) {
-          await db.query(Queries.insertIntoProductCategories(), [productId]);
+          await client.query(
+            Queries.insertIntoProductCategories(), 
+            [productId]
+          );
         }
   
+        await client.query("COMMIT");
         return true;
 
       }
 
     } catch (err) {
+      await client.query("ROLLBACK");
       throw new BadRequestError(err.message);
+    } finally {
+      client.release();
     }
   }
 
   /**
    * Removes a product from the database.
    * @param {number} id
-   * @returns {boolean} - True if the product was deleted, false if the product was not found
+   * @returns {boolean} - True if the product was deleted, false
    * @throws {BadRequestError} - if database error occurs
    */
   static async removeProduct(id) {
     try {
-      const exists = await db.query(Queries.checkProductOrdered(), [id]);
+      const result = await db.query(
+        Queries.deleteFromProduct(), 
+        [id]
+      );
 
-      if (exists.rows.length > 0) {
+      return result.rows.length > 0;
+
+    } catch (err) {
+      if (err.code === "23503") {
         throw new BadRequestError(
           "Cannot delete a product that has been ordered."
         );
       }
-      // Delete product
-      const result = await db.query(Queries.deleteFromProduct(), [id]);
-
-      return (result.rows.length > 0);
-
-    } catch (err) {
       throw new BadRequestError(err.message);
     }
   }
+
+  static async restoreProduct(id) {
+  try {
+    const result = await db.query(
+      Queries.activateProduct(),
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      throw new BadRequestError(
+        `Product with id ${id} not found or already active`
+      );
+    }
+
+    return result.rows[0];
+
+  } catch (err) {
+    if (err instanceof BadRequestError) {
+      throw err;
+    }
+
+    throw new BadRequestError(err.message);
+  }
+}
 }
 
 module.exports = Products;
