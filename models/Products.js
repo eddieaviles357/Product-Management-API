@@ -288,7 +288,13 @@ class Products {
 
     } catch (err) {
       await client.query("ROLLBACK");
-      throw new BadRequestError(err.message);
+      if(err.code === '23505') {
+        throw new BadRequestError(
+          `Product with id ${productId} already has category with id ${categoryId}`
+        );
+      } else {
+        throw new BadRequestError(err.message);
+      }
     } finally {
       client.release();
     }
