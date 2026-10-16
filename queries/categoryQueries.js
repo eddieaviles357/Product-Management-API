@@ -15,6 +15,16 @@ function getCount() {
   `;
 }
 
+function getCategoryProductsCount() {
+  return `
+    SELECT COUNT(*) AS total
+    FROM products p
+    JOIN products_categories pc ON pc.product_id = p.product_id
+    JOIN categories c ON c.id = pc.category_id
+    WHERE c.id = $1
+  `;
+}
+
 function searchCategoryByName() {
   return `
     SELECT id, category 
@@ -57,7 +67,8 @@ function getCategory() {
   `;
 }
 
-function getAllCategoryProducts() {
+
+function getAllCategoryProductsPagination() {
   return `
   WITH all_product_id AS 
     ( SELECT p.product_id 
@@ -65,7 +76,7 @@ function getAllCategoryProducts() {
       JOIN products_categories pc ON pc.product_id = p.product_id 
       JOIN categories c ON c.id = pc.category_id 
       WHERE c.id = $1
-      LIMIT 20 ) 
+      LIMIT $2 OFFSET $3 ) 
   SELECT 
     prod.product_id AS id,
     prod.sku,
@@ -82,6 +93,7 @@ function getAllCategoryProducts() {
   JOIN categories cat ON cat.id = p_c.category_id 
   WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
   GROUP BY prod.product_id
+  LIMIT $2 OFFSET $3
   `;
 }
 
@@ -123,8 +135,9 @@ function deleteCategory() {
 
 module.exports = {
   getCount,
+  getCategoryProductsCount,
   getCategory,
-  getAllCategoryProducts,
+  getAllCategoryProductsPagination,
   getCategoriesPagination,
   getAllCategoryProductsMultipleIds,
   searchCategoryByName,
