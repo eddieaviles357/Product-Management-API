@@ -6,6 +6,8 @@ const { BadRequestError } = require("../AppError");
 // @desc      Get paginated reviews from product
 // @route     GET /api/v1/reviews/product/:id
 // @access    Private/Admin ?????????
+// @query     page  - Optional. Page number (default: 1)
+// @query     limit - Optional. Number of products per page (default: 10)
 exports.getReviewsForProduct = async (req, res, next) => {
   try {
     // Call updated model function

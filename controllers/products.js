@@ -4,8 +4,10 @@ const Products = require("../models/Products");
 const { BadRequestError } = require("../AppError");
 
 // @desc      Get all products with pagination
-// @route     GET /api/v1/products?page=1&limit=10
+// @route     GET /api/v1/products
 // @access    Public
+// @query     page  - Optional. Page number (default: 1)
+// @query     limit - Optional. Number of products per page (default: 10)
 exports.getProducts = async (req, res, next) => {
   try {
     const result = await Products.getProducts(req.pagination.page, req.pagination.limit);
