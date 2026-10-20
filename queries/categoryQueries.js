@@ -75,8 +75,7 @@ function getAllCategoryProductsPagination() {
       FROM products p 
       JOIN products_categories pc ON pc.product_id = p.product_id 
       JOIN categories c ON c.id = pc.category_id 
-      WHERE c.id = $1
-      LIMIT $2 OFFSET $3 ) 
+      WHERE c.id = $1 ) 
   SELECT 
     prod.product_id AS id,
     prod.sku,
