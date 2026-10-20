@@ -6,6 +6,8 @@ const { BadRequestError } = require("../AppError");
 // @desc      Get all categories
 // @route     GET /api/v1/categories
 // @access    Public
+// @query     page  - Optional. Page number (default: 1)
+// @query     limit - Optional. Number of products per page (default: 10)
 exports.getCategories = async (req, res, next) => {
   try {
     const result = await Categories.getAllCategories(req.pagination.page, req.pagination.limit);
@@ -77,21 +79,25 @@ exports.updateCategory = async (req, res, next) => {
 // @desc      Get all products in a category
 // @route     GET /api/v1/categories/:categoryId/products
 // @access    Public
+// @query     page  - Optional. Page number (default: 1)
+// @query     limit - Optional. Number of products per page (default: 10)
 exports.getCategoryProducts = async (req, res, next) => {
   try {
-    const categoryProducts = await Categories.getAllCategoryProducts(req.params.categoryId);
+    const categoryProducts = await Categories.getAllCategoryProducts(req.params.categoryId, req.pagination.page, req.pagination.limit);
     
     return res.status(200).json({
       success: true,
-      categoryProducts
+      ...categoryProducts
     })
   } catch (err) {
     return next(err);
   }
 }
-// @desc      Get all products in a category using multiple category ids
-// @route     GET /api/v1/categories/products/filter?ids=1,2,3
+// @desc      Get all products using multiple categories id's
+// @route     GET /api/v1/categories/products/filter?ids=1,3,5
 // @access    Public
+// @query     page  - Optional. Page number (default: 1)
+// @query     limit - Optional. Number of products per page (default: 10)
 exports.getMultipleCategoryProducts = async (req, res, next) => {
   try {
     const categoryProducts = await Categories.getMultipleCategoryProducts(req.sanitizedCategoryIds);
