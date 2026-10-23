@@ -25,6 +25,16 @@ function getCategoryProductsCount() {
   `;
 }
 
+function getMultipleCategoryProductsCount() {
+  return `
+    SELECT COUNT(DISTINCT p.product_id) AS total
+    FROM products p
+    JOIN products_categories pc ON pc.product_id = p.product_id
+    JOIN categories c ON c.id = pc.category_id
+    WHERE c.id = ANY($1::int[])
+  `;
+}
+
 function searchCategoryByName() {
   return `
     SELECT id, category 
@@ -90,7 +100,8 @@ function getAllCategoryProductsPagination() {
   FROM products prod 
   JOIN products_categories p_c ON p_c.product_id = prod.product_id 
   JOIN categories cat ON cat.id = p_c.category_id 
-  WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
+  WHERE prod.product_id IN 
+    ( SELECT product_id FROM all_product_id ) 
   GROUP BY prod.product_id
   LIMIT $2 OFFSET $3
   `;
@@ -98,13 +109,12 @@ function getAllCategoryProductsPagination() {
 
 function getAllCategoryProductsMultipleIds() {
   return `
-    WITH all_product_id AS (
-        SELECT p.product_id 
+    WITH all_product_id AS 
+      ( SELECT p.product_id 
         FROM products p 
         JOIN products_categories pc ON pc.product_id = p.product_id 
         JOIN categories c ON c.id = pc.category_id 
-        WHERE c.id = ANY($1::int[])  -- Accepts multiple category IDs
-    ) 
+        WHERE c.id = ANY($1::int[]) ) 
     SELECT 
         prod.product_id AS id,
         prod.sku,
@@ -119,8 +129,10 @@ function getAllCategoryProductsMultipleIds() {
     FROM products prod 
     JOIN products_categories p_c ON p_c.product_id = prod.product_id 
     JOIN categories cat ON cat.id = p_c.category_id 
-    WHERE prod.product_id IN (SELECT product_id FROM all_product_id) 
-    GROUP BY prod.product_id;
+    WHERE prod.product_id IN 
+      ( SELECT product_id FROM all_product_id ) 
+    GROUP BY prod.product_id
+    LIMIT $2 OFFSET $3
   `;
 }
 
@@ -135,6 +147,7 @@ function deleteCategory() {
 module.exports = {
   getCount,
   getCategoryProductsCount,
+  getMultipleCategoryProductsCount,
   getCategory,
   getAllCategoryProductsPagination,
   getCategoriesPagination,
