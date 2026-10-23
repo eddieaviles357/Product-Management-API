@@ -62,6 +62,36 @@ class Categories {
   }
 
   /**
+   * Gets the total count of products in a category.
+   * @param {number} catId - The id of the category
+   * @returns {number} - returns the total number of products in the category
+   * @throws {BadRequestError} - if there is a database error
+   */
+  static async #getTotalCategoryProductsCount(catId) {
+    try {
+      const result = await db.query(Queries.getCategoryProductsCount(), [catId]);
+      return parseInt(result.rows[0].total, 10);
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
+
+  /**
+   * Gets the total count of products associated with multiple category IDs.
+   * @param {number[]} idArray - An array of category IDs
+   * @returns {number} - returns the total number of products associated with the given category IDs
+   * @throws {BadRequestError} - if there is a database error
+   */
+  static async #getTotalMultipleCategoryProductsCount(idArray) {
+    try {
+      const result = await db.query(Queries.getMultipleCategoryProductsCount(), [idArray]);
+      return parseInt(result.rows[0].total, 10);
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
+
+  /**
   * Retrieves a paginated list of categories from the database.
   * @param {number} page - The page number
   * @param {number} limit - The number of categories
@@ -188,13 +218,31 @@ class Categories {
   * @returns {array} Array of products in the category or empty array if no products found
   * @throws {BadRequestError} If an error occurs while querying the database
   */
-  static async getAllCategoryProducts(catId) {
+  static async getAllCategoryProducts(catId, page = 1, limit = 10) {
     try {
       this.#validateId(catId, "category Id");
+      
+      const {
+        page: currentPage,
+        limit: pageSize,
+        offset
+      } = sanitizePagination(page, limit);
+      
+      const result = await db.query(Queries.getAllCategoryProductsPagination(), [catId, pageSize, offset]);
+      
+      const data = result.rows;
+      const total = await this.#getTotalCategoryProductsCount(catId);
+      const totalPages = Math.ceil(total / pageSize);
 
-      const result = await db.query(Queries.getAllCategoryProducts(), [catId]);
-
-      return result.rows;
+      return { 
+        data, 
+        pagination: {
+          currentPage,
+          pageSize,
+          total,
+          totalPages
+        } 
+      };
 
     } catch (err) {
       throw new BadRequestError(err.message);
@@ -236,17 +284,35 @@ class Categories {
    * @throws {BadRequestError} If an error occurs while querying the database.
    * @throws {NotFoundError} If no products are found for the given category IDs.
    */
-  static async getMultipleCategoryProducts(idArray) {
+  static async getMultipleCategoryProducts(idArray, page = 1, limit = 10) {
     try {
       if (!Array.isArray(idArray) || idArray.length === 0) {
         throw new BadRequestError("idArray must be a non-empty array");
       }
 
+      const {
+        page: currentPage,
+        limit: pageSize,
+        offset
+      } = sanitizePagination(page, limit);
+
       idArray.forEach(id => this.#validateId(id, "category Id"));
 
-      const result = await db.query(Queries.getAllCategoryProductsMultipleIds(), [idArray]);
+      const result = await db.query(Queries.getAllCategoryProductsMultipleIds(), [idArray, pageSize, offset]);
 
-      return result.rows;
+      const data = result.rows;
+      const total = await this.#getTotalMultipleCategoryProductsCount(idArray);
+      const totalPages = Math.ceil(total / pageSize);
+
+      return { 
+        data, 
+        pagination: {
+          currentPage,
+          pageSize,
+          total,
+          totalPages
+        } 
+      };
 
     } catch (err) {
       throw new BadRequestError(err.message);
