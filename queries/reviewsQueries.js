@@ -16,6 +16,24 @@ function getReviews() {
   `;
 }
 
+function getAllReviewsByUser() {
+  return `
+    SELECT
+      r.product_id AS "productId",
+      p.product_name AS "productName",
+      p.image_url AS "imageUrl",
+      r.rating,
+      r.review,
+      r.created_at AS "createdAt",
+      r.updated_at AS "updatedAt"
+    FROM reviews AS r
+    JOIN products AS p
+      ON p.product_id = r.product_id
+    WHERE r.user_id = $1
+    ORDER BY r.created_at DESC, r.product_id DESC
+    `;
+}
+
 function getSingleReview() {
   return `
     SELECT 
@@ -86,6 +104,7 @@ function deleteReview() {
 module.exports = {
   getReviews,
   getSingleReview,
+  getAllReviewsByUser,
   addReview,
   doesReviewExist,
   updateReview,
