@@ -4,6 +4,7 @@
 const {
   getReviewsForProduct,
   getReview,
+  getReviewsByUser,
   addReviewToProduct,
   updateReviewToProduct,
   deleteReviewFromProduct
@@ -28,6 +29,10 @@ router.param("id", validateParamId("id"));
 router.param("productId", validateParamId("productId"));
 router.param("username", validateUsername("username"));
 
+router
+  .route("/:username")
+  .get(ensureLoggedIn, ensureUserOrAdmin, getReviewsByUser);
+  
 router
   .route("/product/:id")
   .get(validatePagination, getReviewsForProduct)
