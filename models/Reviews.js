@@ -53,6 +53,26 @@ class Reviews {
     }
   }
 
+  /**
+   * @param {string} username
+   * @returns {Object} reviews object
+   * @throws {BadRequestError} if username is missing
+   * @throws {BadRequestError} if there is an error in the database query
+   */
+  static async getAllReviewsByUser(username) {
+    try {
+      const userId = await Users.getUserId(username);
+
+      if (!userId) throw new BadRequestError("User does not exist");
+
+      const { rows } = await db.query(Queries.getAllReviewsByUser(), [userId]);
+
+      return (rows.length === 0) ? {} : rows;
+    } catch (err) {
+      throw new BadRequestError(err.message);
+    }
+  }
+
     /**
    * @param {number} productId
    * @param {string} username
