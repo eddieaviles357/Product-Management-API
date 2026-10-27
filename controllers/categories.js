@@ -94,13 +94,15 @@ exports.getCategoryProducts = async (req, res, next) => {
   }
 }
 // @desc      Get all products using multiple categories id's
-// @route     GET /api/v1/categories/products/filter?ids=1,3,5
+// @route     GET /api/v1/categories/products/filter?ids={categoryIds}
 // @access    Public
+// @query     ids   - Required. Comma-separated list of category IDs
 // @query     page  - Optional. Page number (default: 1)
 // @query     limit - Optional. Number of products per page (default: 10)
+// @example  GET /api/v1/categories/products/filter?ids=1,2,3&page=1&limit=10
 exports.getMultipleCategoryProducts = async (req, res, next) => {
   try {
-    const categoryProducts = await Categories.getMultipleCategoryProducts(req.sanitizedCategoryIds);
+    const categoryProducts = await Categories.getMultipleCategoryProducts(req.sanitizedCategoryIds, req.pagination.page, req.pagination.limit);
     
     return res.status(200).json({
       success: true,

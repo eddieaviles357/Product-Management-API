@@ -38,7 +38,7 @@ router
 
 router
   .route('/:categoryId/products')
-  .get(getCategoryProducts)
+  .get(validatePagination,getCategoryProducts)
 
 router
   .route('/search/:searchTerm')
@@ -46,6 +46,6 @@ router
 
 router
   .route('/products/filter')
-  .get(sanitizeCategoryIds, getMultipleCategoryProducts)
+  .get(sanitizeCategoryIds, validatePagination, getMultipleCategoryProducts)
 
 module.exports = router;
