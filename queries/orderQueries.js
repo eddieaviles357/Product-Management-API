@@ -23,36 +23,37 @@ function getProductsForOrder() {
 
 function getOrderById() {
   return `
-    SELECT O.id AS "orderId",
-          O.status AS "orderStatus",
-          O.total_amount::float AS "totalAmount",
-          O.created_at AS "createdAt",
-          O.updated_at AS "updatedAt",
+    SELECT
+      O.id AS "orderId",
+      O.status AS "orderStatus",
+      O.total_amount::float AS "totalAmount",
+      O.created_at AS "createdAt",
+      O.updated_at AS "updatedAt",
 
-          O.address_1 AS "address1",
-          O.address_2 AS "address2", 
-          O.city,
-          O.state,
-          O.zipcode,
+      O.address_1 AS "address1",
+      O.address_2 AS "address2",
+      O.city,
+      O.state,
+      O.zipcode,
 
-          json_agg(
-            json_build_object(
-              'productId', OP.product_id,
-              'quantity', OP.quantity,
-              'productName', P."productName",
-              'productDescription', P."productDescription",
-              'productPrice', P.price,
-              'imageURL', P."imageURL"
-            )
-          ) AS "orderItems"
+      json_agg(
+        json_build_object(
+          'productId', OP.product_id,
+          'quantity', OP.quantity,
+          'productName', P.product_name,
+          'productDescription', P.product_description,
+          'productPrice', P.price::float,
+          'imageURL', P.image_url
+        )
+      ) AS "orderItems"
 
-    FROM orders O 
+    FROM orders O
 
-    JOIN order_products OP 
+    JOIN order_products OP
       ON O.id = OP.order_id
 
-    JOIN mv_product_list P 
-      ON OP.product_id = P.id
+    JOIN products P
+      ON OP.product_id = P.product_id
 
     WHERE O.id = $1
 
@@ -111,10 +112,10 @@ function insertIntoOrderProducts(placeholders) {
 
 function getAllOrdersByUsername() {
   return `
-    SELECT 
-      O.id AS "orderId", 
+    SELECT
+      O.id AS "orderId",
       O.status AS "orderStatus",
-      O.total_amount::float AS "totalAmount", 
+      O.total_amount::float AS "totalAmount",
       O.created_at AS "createdAt",
       O.updated_at AS "updatedAt",
 
@@ -129,20 +130,20 @@ function getAllOrdersByUsername() {
           'productId', OP.product_id,
           'quantity', OP.quantity,
           'productTotalAmount', OP.total_amount::float,
-          'productName', P."productName",
-          'productDescription', P."productDescription",
-          'productPrice', P.price,
-          'imageURL', P."imageURL"
+          'productName', P.product_name,
+          'productDescription', P.product_description,
+          'productPrice', P.price::float,
+          'imageURL', P.image_url
         )
       ) AS "orderItems"
 
     FROM orders O
 
-    JOIN order_products OP 
+    JOIN order_products OP
       ON O.id = OP.order_id
 
-    JOIN mv_product_list P 
-      ON OP.product_id = P.id
+    JOIN products P
+      ON OP.product_id = P.product_id
 
     WHERE O.user_id = $1
 
@@ -150,7 +151,7 @@ function getAllOrdersByUsername() {
 
     ORDER BY O.created_at DESC
   `;
-};
+}
 
 module.exports = {
   insertIntoOrders,

@@ -122,8 +122,6 @@ class Orders {
     try {
       const userId = await Users.getUserId(username);
 
-        // Wait for the materialized view to refresh.
-      await db.query( "REFRESH MATERIALIZED VIEW CONCURRENTLY mv_product_list" );
       const result = await db.query(Queries.getAllOrdersByUsername(), [userId]);
 
       return result.rows || [];
