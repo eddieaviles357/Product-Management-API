@@ -8,11 +8,16 @@ function getTotalAmount() {
   `;
 }
 
-function getProductPrice() {
+function getProductsForOrder() {
   return `
-    SELECT product_id, price
+    SELECT
+      product_id AS "productId",
+      sku,
+      product_name AS "productName",
+      price::float AS price
     FROM products
-    WHERE product_id = ANY($1)
+    WHERE product_id = ANY($1::int[])
+      AND is_active = TRUE
     `;
 }
 
@@ -83,9 +88,24 @@ function updateOrders(status) {
 
 function insertIntoOrderProducts(placeholders) {
   return `
-    INSERT INTO order_products(order_id, product_id, quantity, total_amount)
+    INSERT INTO order_products(
+      order_id, 
+      product_id, 
+      sku,
+      product_name, 
+      unit_price,
+      quantity, 
+      total_amount
+    )
     VALUES${placeholders}
-    RETURNING id
+    RETURNING
+      order_id AS "orderId",
+      product_id AS "productId",
+      sku,
+      product_name AS "productName",
+      unit_price::float AS "unitPrice",
+      quantity,
+      total_amount::float AS "totalAmount";
   `;
 }
 
@@ -137,7 +157,7 @@ module.exports = {
   insertIntoOrderProducts,
   getTotalAmount,
   getOrderById,
-  getProductPrice,
+  getProductsForOrder,
   getAllOrdersByUsername,
   updateOrders,
 }

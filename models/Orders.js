@@ -122,6 +122,8 @@ class Orders {
     try {
       const userId = await Users.getUserId(username);
 
+        // Wait for the materialized view to refresh.
+      await db.query( "REFRESH MATERIALIZED VIEW CONCURRENTLY mv_product_list" );
       const result = await db.query(Queries.getAllOrdersByUsername(), [userId]);
 
       return result.rows || [];
@@ -145,49 +147,68 @@ class Orders {
    * @throws {BadRequestError} - if there is an error in the query or if the user is not found  
    */
   static async create(username, {cart, address}) {
-    try {
-      if (!cart || cart.length === 0) {
-        throw new BadRequestError("Cart cannot be empty");
-      }
-      // 1. Get userId and addressId (or throw error if no address)
-      const userId = await Users.getUserId(username);
-      
-      // 2. Resolve address
-      let finalAddress;
+    if (!cart || cart.length === 0) {
+      throw new BadRequestError("Cart cannot be empty");
+    }
+    // Get userId and addressId (or throw error if no address)
+    const userId = await Users.getUserId(username);
+    
+    // Resolve address
+    let finalAddress;
 
-      if (address) {
-        if (
-          !address.address1 ||
-          !address.city ||
-          !address.state ||
-          !address.zipcode
-          ) {
-            throw new BadRequestError("Missing required address fields");
-          }
-          finalAddress = address;
-      } else {
-        // returns and array of address objects
-        let tempAddressHolder = await Address.getAddress(username);
-        finalAddress = tempAddressHolder[0]
-
-        if (!finalAddress) {
-          throw new BadRequestError("No address provided and no address on file");
+    if (address) {
+      if (
+        !address.address1 ||
+        !address.city ||
+        !address.state ||
+        !address.zipcode
+        ) {
+          throw new BadRequestError("Missing required address fields");
         }
+        finalAddress = address;
+    } else {
+      // returns and array of address objects
+      let tempAddressHolder = await Address.getAddress(username);
+      finalAddress = tempAddressHolder[0]
+
+      if (!finalAddress) {
+        throw new BadRequestError("No address provided and no address on file");
       }
+    }
 
-      // 3. Extract productIds
-      const productIds = cart.map(item => item.productId);
+    // Extract productIds
+    const productIds = cart.map(
+      item => item.productId
+    );
 
-      // 4. Fetch trusted prices from DB
-      const productRes = await db.query(Queries.getProductPrice(), [productIds] );
+    /** get a dedicated connection
+    *   to the database for this transaction
+    */
+
+    const client = await db.connect();
+
+    try {
+      await client.query("BEGIN");
+      /**
+       * Fetch trusted producti information
+       * never from frontend
+       *  */
+      const productRes = await db.query(Queries.getProductsForOrder(), [productIds] );
 
       const productMap = new Map();
 
       productRes.rows.forEach(p => {
-        productMap.set(p.product_id, Number(p.price));
+        productMap.set(
+          p.productId, 
+          {
+            sku: p.sku,
+            productName: p.productName,
+            price: Number(p.price)
+          }
+        );
       });
 
-      // 5. Validate cart + calculate total
+      // Validate cart
       let totalAmount = 0;
       const validatedCart = [];
 
@@ -198,22 +219,30 @@ class Orders {
           throw new BadRequestError(`Invalid productId: ${item.productId}`);
         }
 
-        if (!quantity || quantity <= 0) {
+        if (
+          !Number.isInteger(quantity) || 
+          quantity <= 0
+        ) {
           throw new BadRequestError("Invalid quantity");
         }
 
-        const price = productMap.get(item.productId);
+        const product = productMap.get(item.productId);
 
-        totalAmount += price * quantity;
+        const itemTotal = product.price * quantity;
+
+        totalAmount += itemTotal;
 
         validatedCart.push({
           productId: item.productId,
+          sku: product.sku,
+          productName: product.productName,
+          unitPrice: product.price,
           quantity,
-          price // ✅ trusted price from DB
+          totalAmount: itemTotal
         });
       }
 
-      // 6. Insert order
+      // Insert order
       const orderResult = await db.query(
         Queries.insertIntoOrders(),
         [
@@ -229,23 +258,50 @@ class Orders {
 
       const orderId = orderResult.rows[0].id;
 
-
-      // 7. Insert order_products (using trusted prices)
+      /**
+       * Create order snapshot
+       */
       const values = [];
       const placeholders = [];
 
       validatedCart.forEach((item, i) => {
-        const idx = i * 4;
+        const idx = i * 7; // values per item
         placeholders.push(
-          `($${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4})`
+          `(
+            $${idx + 1}, 
+            $${idx + 2}, 
+            $${idx + 3}, 
+            $${idx + 4},
+            $${idx + 5},
+            $${idx + 6},
+            $${idx + 7}
+          )`
         );
-        values.push(orderId, item.productId, item.quantity, item.price);
+        values.push(
+          orderId, 
+          item.productId,
+          item.sku,
+          item.productName,
+          item.unitPrice,
+          item.quantity, 
+          item.totalAmount
+        );
       });
 
-      await db.query( Queries.insertIntoOrderProducts(placeholders.join(",")), values );
+      await db.query( 
+        Queries.insertIntoOrderProducts(
+          placeholders.join(",")
+        ), 
+        values 
+      );
 
-      // 8. Clear cart
-      await db.query(clearCart(), [userId]);
+      // Clear cart
+      await db.query(
+        clearCart(), 
+        [userId]
+      );
+
+      await client.query("COMMIT");
 
       return {
         id: orderId,
@@ -255,7 +311,15 @@ class Orders {
       };
 
     } catch (err) {
+      await client.query("ROLLBACK");
+
+      if (err instanceof BadRequestError) {
+        throw err;
+      }
+
       throw new BadRequestError(err.message);
+    } finally {
+      client.release();
     }
   }
 };
