@@ -6,13 +6,14 @@
 const {
   createOrder,
   getOrdersById,
-  getAllOrders
+  getAllOrders,
+  updateOrderStatus
 } = require("../controllers/orders");
 // const router = require("express").Router({mergeParams: true});
 const router = require("express").Router({mergeParams: true});
 
 // Middleware
-const { ensureLoggedIn, ensureUser, ensureUserOrAdmin } = require("../middleware/auth/auth");
+const { ensureLoggedIn, ensureUser, ensureUserOrAdmin, ensureAdmin } = require("../middleware/auth/auth");
 const validateParamId = require("../middleware/validation/validateParamId");
 const validateUsername = require("../middleware/validation/validateUsername");
 
@@ -31,5 +32,9 @@ router
 router
   .route('/:username')
   .get(ensureLoggedIn, ensureUserOrAdmin, getAllOrders);
+
+router
+  .route('/:username/:orderId/status')
+  .patch(ensureLoggedIn, ensureAdmin, updateOrderStatus);
 
 module.exports = router;

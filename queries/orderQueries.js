@@ -153,6 +153,18 @@ function getAllOrdersByUsername() {
   `;
 }
 
+function updateOrderStatus() {
+  return `
+    UPDATE orders
+    SET status = $3,
+      updated_at = NOW()
+    WHERE id = $1 AND status = $2
+    RETURNING id AS "orderId",
+      status AS "orderStatus",
+      updated_at AS "updatedAt"
+  `;
+}
+
 module.exports = {
   insertIntoOrders,
   insertIntoOrderProducts,
@@ -161,4 +173,5 @@ module.exports = {
   getProductsForOrder,
   getAllOrdersByUsername,
   updateOrders,
+  updateOrderStatus
 }

@@ -320,7 +320,25 @@ class Orders {
       client.release();
     }
   }
+
+  /**
+    * Updates the status of an order if the current status matches the expected status
+    * @param {number} orderId - the ID of the order to update
+    * @param {string} expectedStatus - the current status of the order
+    * @param {string} newStatus - the new status to set for the order
+    * @returns {object} - returns an object containing the order ID, new status, and updated timestamp
+    * @throws {BadRequestError} - if the order is not found or if the current status does not match the expected status
+    */
+  static async updateStatus(orderId, expectedStatus, newStatus) {
+    const { rows } = await db.query(
+      Queries.updateOrderStatus(),
+      [orderId, expectedStatus, newStatus]
+    );
+
+    return rows[0];
+  }
 };
+
 
 
 module.exports = Orders;
