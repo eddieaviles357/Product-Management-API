@@ -6,13 +6,14 @@ The **Product Management API** is a RESTful API that supports full CRUD operatio
 
 ## 🚀 Features
 
-- **Products**: Create, read, update, and delete product listings.
-- **Categories**: Organize products into categories with full CRUD support.
-- **Reviews**: Users can post and manage reviews on products.
-- **Users**: User management with full CRUD operations.
+- **Products**: Create, read, update, and soft-delete product listings with admin restore support.
+- **Categories**: Organize products into categories with full CRUD support and product/category filtering.
+- **Reviews**: Users can post, update, and remove product reviews with authenticated ownership checks.
+- **Users**: User registration, account management, email verification, and password reset flows.
 - **Addresses**: Store and manage a customer's address for checkout and order history.
 - **Cart**: Add, remove, and update items in a user's shopping cart.
-- **Checkout**: Process cart contents into orders with checkout functionality.
+- **Checkout**: Process cart contents into orders with transactional checkout logic.
+- **Security**: JWT-based authentication, admin authorization, rate limiting, and secure password handling.
 
 ---
 
@@ -24,6 +25,23 @@ cd product-management-api
 npm install
 ```
 
+Create a `.env` file in the project root with the following values:
+
+```env
+PORT=3001
+SECRET_KEY=your-secret-key
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/product_management
+FRONTEND_URL=http://localhost:3001
+
+SMTP_HOST=smtp.example.com
+SMTP_PORT=465
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-email-password
+PASSWORD_RESET_TOKEN_TTL_HOURS=1
+```
+
+If `NODE_ENV=test`, the app will default to the `product_management_test` database when `DATABASE_URL` is not provided.
+
 ---
 
 ## 📖 API Overview
@@ -33,10 +51,10 @@ The Product Management API is a comprehensive backend solution for e-commerce an
 ### Core Resources
 
 - **Authentication**:
-  Users can register, log in, verify their email, and manage secure JWT-based sessions. Auth endpoints handle account creation, login, token issuance, and email verification workflows.
+  Users can register, log in, verify their email, reset their password, and manage secure JWT-based sessions. Auth endpoints handle account creation, login, token issuance, email verification, and password recovery workflows.
 
 - **Products**:  
-  Products are the main items available for sale. Each product has attributes such as name, description, price, category, inventory count, and optional images. Endpoints allow for listing all products, retrieving a single product, creating new products, updating existing products, and deleting products.
+  Products are the main items available for sale. Each product has attributes such as name, description, price, category, inventory count, and optional images. Endpoints allow for listing all products, retrieving a single product, creating new products, updating existing products, soft-deleting products, and restoring them when needed.
 
 - **Categories**:  
   Categories help organize products into logical groups (e.g., Electronics, Clothing). The API supports CRUD operations for categories, enabling dynamic organization of the product catalog.
@@ -90,7 +108,13 @@ Below is a detailed list of the main API endpoints, grouped by resource:
   Verify email (defaults to 24 hours).
 
 - `POST /api/v1/auth/resend-verification`  
-  Resend verification.
+  Resend verification email to the user.
+
+- `POST /api/v1/auth/forgot-password`  
+  Initiate a password reset flow and send a reset link via email.
+
+- `POST /api/v1/auth/reset-password`  
+  Reset a user's password using a valid reset token.
 
 #### Products
 
@@ -104,20 +128,23 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 
 - `POST /api/v1/products`  
   Create a new product (admin only).  
-  **Body:** `{ sku, name, description, price, stock, imageUrl }`
+  **Body:** `{ sku, name, description, price, stock, imageURL }`
 
 - `PATCH /api/v1/products/:id`  
   Update an existing product (admin only).  
   **Body:** Any updatable product fields.
 
 - `DELETE /api/v1/products/:id`  
-  Delete a product (admin only).
+  Soft-delete a product (admin only).
+
+- `PATCH /api/v1/products/:id/restore`  
+  Restore a soft-deleted product (admin only).
 
 - `POST /api/v1/products/:productId/category/:categoryId`  
-  Add product category using productId and a catgoryId
+  Add a category to a product.
 
 - `DELETE /api/v1/products/:productId/category/:categoryId`  
-  Delete a product category using productId and categoryId
+  Remove a category from a product.
 
 #### Categories
 
@@ -130,11 +157,11 @@ Below is a detailed list of the main API endpoints, grouped by resource:
   Create a new category (admin only).  
   **Body:** `{ category }`
 
-- `PATCH /api/v1/categories/:id`  
+- `PUT /api/v1/categories/:categoryId`  
   Update a category (admin only).  
-  **Body:** { category }.
+  **Body:** `{ category }`
 
-- `DELETE /api/v1/categories/:id`  
+- `DELETE /api/v1/categories/:categoryId`  
   Delete a category (admin only).
 
 - `GET /api/v1/categories/:categoryId/products`  
@@ -171,12 +198,18 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 
 #### Reviews
 
-- `GET /api/v1/reviews/products/:productId`  
+- `GET /api/v1/reviews/product/:id`  
   List all reviews for a product.
-  `GET /api/v1/reviews/products?page={int}&limit={int}`  
+  `GET /api/v1/reviews/product/:id?page={int}&limit={int}`  
   **Query params:** Optional filters (page {int}, limit {int}).
 
-- `POST /api/v1/reviews/products/:productId/:username`  
+- `GET /api/v1/reviews/:username`  
+  Get all reviews created by a user.
+
+- `GET /api/v1/reviews/product/:productId/:username`  
+  Get a single review for a product by the user.
+
+- `POST /api/v1/reviews/product/:productId/:username`  
   Add a review to a product (authenticated user).  
   **Body:** `{ rating, review }`
 
@@ -232,7 +265,10 @@ Below is a detailed list of the main API endpoints, grouped by resource:
 - `GET /api/v1/orders/:username/getorder/:orderId`  
   Get details for a specific order, including its address and order items.
 
-  Order responses include an `addressId` when an order is created and address fields such as `address1`, `address2`, `city`, `state`, and `zipcode` when the order is retrieved.
+- `PATCH /api/v1/orders/:username/:orderId/status`  
+  Update the status of an order (admin only).
+
+  Order responses include address fields such as `address1`, `address2`, `city`, `state`, and `zipcode` when the order is retrieved.
 
 ---
 
