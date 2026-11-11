@@ -115,10 +115,18 @@ async function commonBeforeAll() {
   orderIds.splice(0, 0, ...orderIdsResult.rows.map(({id}) => id));
 
   await db.query(`
-    INSERT INTO order_products (order_id, product_id, quantity, total_amount)
+    INSERT INTO order_products (
+      order_id,
+      product_id,
+      sku,
+      product_name,
+      unit_price,
+      quantity,
+      total_amount
+    )
     VALUES
-    ($1, $2, $3, $4)`
-    , [ orderIds[0], productIds[0], 1, 2.00 ]);
+    ($1, $2, $3, $4, $5, $6, $7)`
+    , [ orderIds[0], productIds[0], rawProducts[0].sku, rawProducts[0].item, 2.00, 1, 2.00 ]);
     
   // since we have a materialized view, we need to refresh it after seeding the products table
   await db.query("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_product_list");

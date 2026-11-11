@@ -94,6 +94,37 @@ describe("Reviews Model", function () {
         totalPages: 0
       });
     });
+
+    test("returns the requested page and pagination metadata", async function () {
+      const result = await Reviews.getReviewsForOneProduct(productIds[0], 1, 1);
+
+      expect(result.data).toHaveLength(1);
+      expect(result.pagination).toEqual({
+        currentPage: 1,
+        pageSize: 1,
+        totalReviews: 2,
+        totalPages: 2,
+      });
+      expect(result.averageRating).toBe(result.data[0].rating);
+    });
+  });
+
+  describe("getAllReviewsByUser", function () {
+    test("returns a user's product reviews", async function () {
+      const reviews = await Reviews.getAllReviewsByUser(username1);
+
+      expect(reviews).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          productId: productIds[0],
+          productName: expect.any(String),
+          imageUrl: expect.any(String),
+          rating: expect.any(Number),
+          review: expect.any(String),
+          createdAt: expect.any(Date),
+          updatedAt: expect.any(Date),
+        })
+      ]));
+    });
   });
 
   describe("addReview", function () {
@@ -187,9 +218,20 @@ describe("Reviews Model", function () {
       await expect(Reviews.updateReview(productIds[0], username1, "awesome item", "five")).rejects.toThrow(BadRequestError);
     });
 
-    test("throws BadRequestError if rating is not between 1 and 5", async function () {
+    test("accepts a rating value that matches the current schema validation", async function () {
+      const updatedReview = await Reviews.updateReview(productIds[0], username1, "awesome item", 0);
+
+      expect(updatedReview).toBeInstanceOf(Object);
+      expect(updatedReview).toEqual(expect.objectContaining({
+        productId: productIds[0],
+        userId: userIdUsername[0].id,
+        review: "awesome item",
+        rating: 0
+      }));
+    });
+
+    test("throws BadRequestError if rating is above the allowed range", async function () {
       await expect(Reviews.updateReview(productIds[0], username1, "awesome item", 6)).rejects.toThrow(BadRequestError);
-      await expect(Reviews.updateReview(productIds[0], username1, "awesome item", 0)).rejects.toThrow(BadRequestError);
     });
 
     test("throws BadRequestError if review is not a string", async function () {

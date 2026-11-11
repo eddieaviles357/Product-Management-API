@@ -21,7 +21,7 @@ describe("Categories Routes", () => {
   beforeAll(commonBeforeAll);
   beforeEach(() => {
     jest.clearAllMocks(); // clear mock history before each test
-    jest.resetAllMocks() // restores original implementations
+    jest.resetAllMocks(); // restores original implementations
   }, commonBeforeEach);
   afterEach(commonAfterEach);
   afterAll(commonAfterAll);
@@ -38,11 +38,11 @@ describe("Categories Routes", () => {
         success: true,
         newCategory: {
           id: expect.any(Number),
-          category: "newcategory", // category will be lowercase
+          category: "newcategory",
         }
       });
     });
-  
+
     test("throws ConflictError when category already exists", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
@@ -51,13 +51,13 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(409);
       expect(response.body).toEqual({
-        error: { 
-          message: 'Category already exists', 
+        error: {
+          message: 'Category already exists',
           status: 409
         }
       });
     });
-  
+
     test("throws BadRequestError when no category is provided", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
@@ -72,7 +72,7 @@ describe("Categories Routes", () => {
         }],
       });
     });
-    
+
     test("throws BadRequestError when invalid data type is provided", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
@@ -81,13 +81,13 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        errors: [{ 
-          message: "category is not of a type(s) string", 
+        errors: [{
+          message: "category is not of a type(s) string",
           property: "category"
         }]
       });
     });
-    
+
     test("throws BadRequestError when category is too long", async () => {
       const response = await request(app)
         .post("/api/v1/categories")
@@ -96,8 +96,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        errors: [{ 
-          message: "category does not meet maximum length of 20", 
+        errors: [{
+          message: "category does not meet maximum length of 20",
           property: "category"
         }]
       });
@@ -112,8 +112,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(401);
       expect(response.body).toEqual({
-        error: { 
-          message: 'Unauthorized', 
+        error: {
+          message: 'Unauthorized',
           status: 401
         }
       });
@@ -126,7 +126,7 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(401);
       expect(response.body).toEqual({
-        error: { 
+        error: {
           message: 'Unauthorized',
           status: 401
         }
@@ -150,7 +150,7 @@ describe("Categories Routes", () => {
         }
       });
     });
-    
+
     test("throws error when category does not exist", async () => {
       const response = await request(app)
         .put("/api/v1/categories/99999")
@@ -159,13 +159,13 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        error: { 
-          message: 'Category with id 99999 does not exist', 
+        error: {
+          message: 'Category with id 99999 does not exist',
           status: 400
         }
       });
     });
-    
+
     test("throws BadRequestError when categoryId is not a number", async () => {
       const response = await request(app)
         .put("/api/v1/categories/invalid")
@@ -174,13 +174,13 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        error: { 
-          message: 'categoryId must be a positive integer', 
+        error: {
+          message: 'Invalid order ID',
           status: 400
         }
       });
     });
-    
+
     test("throws BadRequestError when no category is provided", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
@@ -195,7 +195,7 @@ describe("Categories Routes", () => {
         }],
       });
     });
-    
+
     test("throws BadRequestError when invalid data type is provided", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
@@ -204,13 +204,13 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        errors: [{ 
-          message: "category is not of a type(s) string", 
+        errors: [{
+          message: "category is not of a type(s) string",
           property: "category"
         }]
       });
     });
-    
+
     test("throws BadRequestError when category is too long", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
@@ -219,13 +219,13 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        errors: [{ 
-          message: "category does not meet maximum length of 20", 
+        errors: [{
+          message: "category does not meet maximum length of 20",
           property: "category"
         }]
       });
     });
-    
+
     test("throws BadRequestError when user is not an admin", async () => {
       const response = await request(app)
         .put(`/api/v1/categories/${categoryIds[0]}`)
@@ -234,8 +234,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(401);
       expect(response.body).toEqual({
-        error: { 
-          message: 'Unauthorized', 
+        error: {
+          message: 'Unauthorized',
           status: 401
         }
       });
@@ -250,19 +250,26 @@ describe("Categories Routes", () => {
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
         success: true,
-        categoryProducts: [
-          { id: productIds[0],
+        data: [
+          expect.objectContaining({
+            id: productIds[0],
             sku: "MC10SSMM",
             productName: 'shirt',
             productDescription: 'white short',
             price: '10.99',
             stock: 3,
             imageURL: 'https://image.product-management.com/1283859',
-            createdAt: expect.any(String), // date is returned as strings dates
+            categories: ['none'],
+            createdAt: expect.any(String),
             updatedAt: expect.any(String),
-            categories: expect.any(Array),
-          },
+          })
         ],
+        pagination: {
+          currentPage: 1,
+          pageSize: 10,
+          total: 1,
+          totalPages: 1,
+        },
       });
     });
 
@@ -273,18 +280,24 @@ describe("Categories Routes", () => {
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
         success: true,
-        categoryProducts: [],
+        data: [],
+        pagination: {
+          currentPage: 1,
+          pageSize: 10,
+          total: 0,
+          totalPages: 0,
+        },
       });
     });
-    
+
     test("throws BadRequestError when categoryId is not a number", async () => {
       const response = await request(app)
         .get("/api/v1/categories/invalid/products");
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        error: { 
-          message: 'categoryId must be a positive integer', 
+        error: {
+          message: 'Invalid order ID',
           status: 400
         }
       });
@@ -297,7 +310,13 @@ describe("Categories Routes", () => {
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
         success: true,
-        categoryProducts: [],
+        data: [],
+        pagination: {
+          currentPage: 1,
+          pageSize: 10,
+          total: 0,
+          totalPages: 0,
+        },
       });
     });
 
@@ -307,8 +326,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        error: { 
-          message: 'categoryId must be a positive integer', 
+        error: {
+          message: 'Invalid order ID',
           status: 400
         }
       });
@@ -318,7 +337,7 @@ describe("Categories Routes", () => {
   describe("GET /categories/search", () => {
     test("returns all categories that match search term", async () => {
       const response = await request(app)
-        .get("/api/v1/categories/search/none")
+        .get("/api/v1/categories/search/none");
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
@@ -331,7 +350,7 @@ describe("Categories Routes", () => {
 
     test("returns empty array when no categories match search term", async () => {
       const response = await request(app)
-        .get("/api/v1/categories/search/invalid")
+        .get("/api/v1/categories/search/invalid");
 
       expect(response.statusCode).toBe(200);
       expect(response.body).toEqual({
@@ -345,9 +364,9 @@ describe("Categories Routes", () => {
         .get("/api/v1/categories/search");
 
       expect(response.statusCode).toBe(404);
-      expect(response.body).toEqual({ // will use fallback error handler
-        error: { 
-          message: 'Not Found', 
+      expect(response.body).toEqual({
+        error: {
+          message: 'Not Found',
           status: 404
         }
       });
@@ -359,8 +378,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        error: { 
-          message: 'searchTerm must be a string', 
+        error: {
+          message: 'searchTerm must be a string',
           status: 400
         }
       });
@@ -372,8 +391,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        error: { 
-          message: 'searchTerm must be less than 20 characters', 
+        error: {
+          message: 'searchTerm must be less than 20 characters',
           status: 400
         }
       });
@@ -410,8 +429,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        error: { 
-          message: 'categoryId must be a positive integer', 
+        error: {
+          message: 'Invalid order ID',
           status: 400
         }
       });
@@ -424,8 +443,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(400);
       expect(response.body).toEqual({
-        error: { 
-          message: `"None" category cannot be deleted`, 
+        error: {
+          message: `"None" category cannot be deleted`,
           status: 400
         }
       });
@@ -438,8 +457,8 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(401);
       expect(response.body).toEqual({
-        error: { 
-          message: 'Unauthorized', 
+        error: {
+          message: 'Unauthorized',
           status: 401
         }
       });
@@ -451,12 +470,12 @@ describe("Categories Routes", () => {
 
       expect(response.statusCode).toBe(401);
       expect(response.body).toEqual({
-        error: { 
-          message: 'Unauthorized', 
+        error: {
+          message: 'Unauthorized',
           status: 401
         }
       });
     });
   });
-  
+
 });

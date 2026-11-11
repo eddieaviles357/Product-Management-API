@@ -2,12 +2,9 @@
 
 const request = require("supertest");
 const app = require("../../app.js");
-const Wishlist = require("../../models/Wishlist.js");
 const Auth = require("../../models/Auth.js");
-const Orders = require('../../models/Orders.js');
 const createToken = require("../../helpers/tokens.js");
-const { BadRequestError, ConflictError } = require("../../AppError.js");
-const db = require("../../db.js");
+const { BadRequestError } = require("../../AppError.js");
 const {
   username1,
   productIds,
@@ -20,7 +17,7 @@ const {
   defaultAddress
 } = require("../helpers/_testCommon.js");
 
-describe("Orders model tests", () => {
+describe("Orders routes", () => {
   beforeAll(commonBeforeAll);
   beforeEach(commonBeforeEach);
   afterEach(commonAfterEach);
@@ -56,8 +53,11 @@ describe("Orders model tests", () => {
         products: [
           {
             productId: productIds[0],
+            sku: rawProducts[0].sku,
+            productName: rawProducts[0].item,
+            unitPrice: Number(rawProducts[0].price),
             quantity: 1,
-            price: Number(rawProducts[0].price),
+            totalAmount: Number(rawProducts[0].price),
           },
         ]
       });
@@ -149,7 +149,10 @@ describe("Orders model tests", () => {
         .set("authorization", `Bearer ${token}`)
 
         expect(response.statusCode).toBe(200);
-        expect(response.body.countdata).toEqual(expect.arrayContaining([
+        expect(response.body.success).toBe(true);
+        expect(response.body.count).toBe(response.body.data.length);
+        expect(response.body.count).toBeGreaterThan(0);
+        expect(response.body.data).toEqual(expect.arrayContaining([
           expect.objectContaining({
             orderId: expect.any(Number),
             orderStatus: "pending",
@@ -165,7 +168,7 @@ describe("Orders model tests", () => {
           }),
         ]));
       
-      const orderItems = response.body.countdata.flatMap(order => order.orderItems);
+      const orderItems = response.body.data.flatMap(order => order.orderItems);
       expect(orderItems).toEqual(expect.arrayContaining([
         expect.objectContaining({
           productId: expect.any(Number),
@@ -173,6 +176,7 @@ describe("Orders model tests", () => {
           productName: expect.any(String),
           productDescription: expect.any(String),
           productPrice: expect.any(Number),
+          productTotalAmount: expect.any(Number),
           imageURL: expect.any(String)
         }),
       ]));
@@ -186,6 +190,53 @@ describe("Orders model tests", () => {
         .set("authorization", `Bearer ${token}`)
       
       expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe("updateOrderStatus", () => {
+    test("updates order status when the current state allows the transition", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .patch(`/api/v1/orders/${currentUser.username}/${orderIds[0]}/status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ status: "paid" });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        data: {
+          orderId: orderIds[0],
+          orderStatus: "paid",
+          updatedAt: expect.any(String),
+        },
+      });
+    });
+
+    test("rejects an invalid order status", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .patch(`/api/v1/orders/${currentUser.username}/${orderIds[0]}/status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ status: "processing" });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error.message)
+        .toBe("Status must be paid, shipped, delivered, cancelled, or refunded");
+    });
+
+    test("rejects a status transition that does not match the current order status", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+      const response = await request(app)
+        .patch(`/api/v1/orders/${currentUser.username}/${orderIds[0]}/status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ status: "shipped" });
+
+      expect(response.statusCode).toBe(409);
+      expect(response.body.error.message)
+        .toBe(`No order matched this ID with status "paid"`);
     });
   });
 });

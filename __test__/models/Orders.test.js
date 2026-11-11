@@ -4,8 +4,8 @@ const Orders = require('../../models/Orders');
 const { BadRequestError } = require("../../AppError");
 const {
   username1,
-  username2,
   productIds,
+  rawProducts,
   orderIds,
   commonBeforeAll,
   commonBeforeEach,
@@ -32,6 +32,9 @@ describe("Orders model tests", () => {
       expect(order).toBeDefined();
       expect(order).toHaveProperty("id");
       expect(order).toHaveProperty("totalAmount");
+      expect(order.totalAmount).toBe(
+        Number(rawProducts[0].price) * 2 + Number(rawProducts[1].price)
+      );
       expect(order.address).toEqual(expect.objectContaining({
         id: expect.any(Number),
         userId: expect.any(Number),
@@ -41,7 +44,24 @@ describe("Orders model tests", () => {
         zipcode: expect.any(String)
       }));
       expect(order.address.address2).toBeNull();
-      expect(order.products).toBeInstanceOf(Array);
+      expect(order.products).toEqual([
+        {
+          productId: productIds[0],
+          sku: rawProducts[0].sku,
+          productName: rawProducts[0].item,
+          unitPrice: Number(rawProducts[0].price),
+          quantity: 2,
+          totalAmount: Number(rawProducts[0].price) * 2,
+        },
+        {
+          productId: productIds[1],
+          sku: rawProducts[1].sku,
+          productName: rawProducts[1].item,
+          unitPrice: Number(rawProducts[1].price),
+          quantity: 1,
+          totalAmount: Number(rawProducts[1].price),
+        },
+      ]);
     });
 
     test("fails: with invalid username", async () => {
@@ -83,6 +103,7 @@ describe("Orders model tests", () => {
         productPrice: expect.any(Number),
         imageURL: expect.any(String)
       }));
+      expect(order.orderItems[0].productPrice).toBe(Number(rawProducts[0].price));
       expect(order.address2).toBeNull();
     });
     
@@ -113,6 +134,7 @@ describe("Orders model tests", () => {
         expect(order).toHaveProperty("zipcode");
         expect(order).toHaveProperty("orderItems");
         expect(order.orderItems).toBeInstanceOf(Array);
+        expect(order.orderItems[0]).toHaveProperty("productTotalAmount");
       });
     });
 

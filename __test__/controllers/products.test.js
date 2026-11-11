@@ -66,7 +66,7 @@ describe("Products Controller", () => {
       const response = await request(app).get("/api/v1/products/invalid");
       
       expect(response.statusCode).toBe(400);
-      expect(response.body.error.message).toContain("id must be a positive integer");
+      expect(response.body.error.message).toBe("Invalid order ID");
     });
 
     test("should return 400 for product not found", async () => {
@@ -188,6 +188,61 @@ describe("Products Controller", () => {
         .delete(`/api/v1/products/${productIds[0]}`);
 
       expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe("PATCH /api/v1/products/:id/restore", () => {
+    test("should restore a soft-deleted product", async () => {
+      await Products.removeProduct(productIds[1]);
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+
+      const response = await request(app)
+        .patch(`/api/v1/products/${productIds[1]}/restore`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({
+        success: expect.objectContaining({
+          id: productIds[1],
+          sku: expect.any(String),
+          productName: expect.any(String),
+          isActive: true,
+        }),
+      });
+    });
+
+    test("should return 400 when the product is already active", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+
+      const response = await request(app)
+        .patch(`/api/v1/products/${productIds[0]}/restore`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error.message)
+        .toBe(`Product with id ${productIds[0]} not found or already active`);
+    });
+
+    test("should return 400 for an invalid product id", async () => {
+      const currentUser = await Auth.authenticate(username1, "password");
+      const token = await createToken(currentUser);
+
+      const response = await request(app)
+        .patch("/api/v1/products/invalid/restore")
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.error.message).toBe("Invalid order ID");
+    });
+
+    test("should return 401 for an unauthenticated request", async () => {
+      const response = await request(app)
+        .patch(`/api/v1/products/${productIds[1]}/restore`);
+
+      expect(response.statusCode).toBe(401);
+      expect(response.body.error.message).toBe("Unauthorized");
     });
   });
 

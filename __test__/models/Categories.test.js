@@ -94,7 +94,9 @@ describe("Categories model tests", () => {
     test("works: retrieves all products for a category", async () => {
       const products = await Categories.getAllCategoryProducts(categoryIds[0]);
       expect(products).toBeDefined();
-      expect(products).toBeInstanceOf(Array);
+      expect(products).toHaveProperty("data");
+      expect(products.data).toBeInstanceOf(Array);
+      expect(products).toHaveProperty("pagination");
     });
 
     test("throws BadRequestError for invalid id", async () => {
@@ -118,7 +120,10 @@ describe("Categories model tests", () => {
   describe("getMultipleCategoryProducts", () => {
     test("works: retrieves products from multiple categories", async () => {
       const products = await Categories.getMultipleCategoryProducts([categoryIds[0], categoryIds[1]]);
-      expect(products).toBeInstanceOf(Array);
+      expect(products).toBeDefined();
+      expect(products).toHaveProperty("data");
+      expect(products.data).toBeInstanceOf(Array);
+      expect(products).toHaveProperty("pagination");
     });
 
     test("throws BadRequestError for empty array", async () => {

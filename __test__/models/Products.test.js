@@ -163,16 +163,49 @@ describe("Products model tests", () => {
   });
 
   describe("removeProduct", () => {
-    test("should return true for existing product", async () => {
+    test("should soft-delete an existing product", async () => {
       const result = await Products.removeProduct(productIds[1]);
 
       expect(result).toBe(true);
+      const { rows } = await db.query(
+        "SELECT is_active AS \"isActive\" FROM products WHERE product_id = $1",
+        [productIds[1]]
+      );
+      expect(rows[0].isActive).toBe(false);
     });
 
     test("should return false for non-existent product", async () => {
       const result = await Products.removeProduct(99999);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe("restoreProduct", () => {
+    test("should restore a soft-deleted product", async () => {
+      await Products.removeProduct(productIds[1]);
+
+      const restoredProduct = await Products.restoreProduct(productIds[1]);
+
+      expect(restoredProduct).toEqual(expect.objectContaining({
+        id: productIds[1],
+        sku: expect.any(String),
+        productName: expect.any(String),
+        isActive: true,
+        updatedAt: expect.any(Date),
+      }));
+      const { rows } = await db.query(
+        "SELECT is_active AS \"isActive\" FROM products WHERE product_id = $1",
+        [productIds[1]]
+      );
+      expect(rows[0].isActive).toBe(true);
+    });
+
+    test("should throw BadRequestError for an active or missing product", async () => {
+      await expect(Products.restoreProduct(productIds[0]))
+        .rejects.toThrow(`Product with id ${productIds[0]} not found or already active`);
+      await expect(Products.restoreProduct(99999))
+        .rejects.toThrow("Product with id 99999 not found or already active");
     });
   });
 
