@@ -5,7 +5,7 @@ const { BadRequestError } = require("../AppError");
 
 // @desc      Get paginated reviews from product
 // @route     GET /api/v1/reviews/product/:id
-// @access    Private/Admin ?????????
+// @access    Public
 // @query     page  - Optional. Page number (default: 1)
 // @query     limit - Optional. Number of products per page (default: 10)
 exports.getReviewsForProduct = async (req, res, next) => {
@@ -29,9 +29,26 @@ exports.getReviewsForProduct = async (req, res, next) => {
   }
 };
 
+// @desc     Get all reviews that a user has written for all products
+// @route    GET /api/v1/reviews/:username
+// @access   Public
+exports.getReviewsByUser = async (req, res, next) => {
+  try {
+    const reviews = await Reviews.getAllReviewsByUser(req.params.username);
+
+    return res.status(200).json({
+      success: true,
+      reviews 
+    });
+
+  } catch (err) {
+    return next(err);
+  }
+};
+
 // @desc      Get single review
 // @route     GET /api/v1/reviews/product/:productId/:username
-// @access    Private/Admin ?????????
+// @access    Public
 exports.getReview = async (req, res, next) => {
   try {
     const review = await Reviews.getSingleReview(req.params.productId, req.params.username);
@@ -48,7 +65,7 @@ exports.getReview = async (req, res, next) => {
 
 // @desc      Add review to product
 // @route     POST /api/v1/reviews/product/:productId/:username
-// @access    Private/Admin ?????????
+// @access    Private
 exports.addReviewToProduct = async (req, res, next) => {
   try {
     const {review, rating} = req.body;
@@ -67,7 +84,7 @@ exports.addReviewToProduct = async (req, res, next) => {
 
 // @desc      Updates review to product
 // @route     PUT /api/v1/reviews/product/:productId/:username
-// @access    Private/Admin ?????????
+// @access    Private
 exports.updateReviewToProduct = async (req, res, next) => {
   try {
     const {review, rating} = req.body;
@@ -86,7 +103,7 @@ exports.updateReviewToProduct = async (req, res, next) => {
 
 // // @desc      Deletes a review
 // // @route     DELETE /api/v1/reviews/product/:productId/:username
-// // @access    Private/Admin ?????????
+// // @access    Private/Admin
 exports.deleteReviewFromProduct = async (req, res, next) => {
   try {
     const success = await Reviews.deleteReview(req.params.productId, req.params.username);
