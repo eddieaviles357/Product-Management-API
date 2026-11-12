@@ -95,6 +95,10 @@ VALUES
 
 INSERT INTO reviews (product_id, user_id, review, rating)
 VALUES
+(2, 1, 'admin review haha', 5),
+(3, 1, 'admin review haha', 5),
+(4, 1, 'admin review haha', 5),
+(5, 1, 'admin review haha', 5),
 (2, 2, 'nice item', 1),
 (2, 3, 'nice item', 2),
 (2, 4, 'nice item', 3),
